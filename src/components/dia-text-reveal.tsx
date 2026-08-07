@@ -24,8 +24,11 @@ export function DiaTextReveal({
   className,
   /** ms before the first character moves */
   delay = 0,
-  /** ms between characters */
+  /** ms between characters — tighten it for long copy, or the wave outlasts
+   *  anyone's patience: 26ms over a 122-character sentence is 3.2 seconds. */
   stagger = 26,
+  /** ms for one character to resolve */
+  duration = 760,
   /** continues the wave across several segments of one sentence */
   startIndex = 0,
 }: {
@@ -34,6 +37,7 @@ export function DiaTextReveal({
   className?: string;
   delay?: number;
   stagger?: number;
+  duration?: number;
   startIndex?: number;
 }) {
   const words = text.split(" ");
@@ -49,6 +53,7 @@ export function DiaTextReveal({
             {chars.map((char, c) => {
               const style = {
                 animationDelay: `${delay + index * stagger}ms`,
+                "--dia-duration": `${duration}ms`,
                 "--dia-tint": colors[index % colors.length],
               } as React.CSSProperties;
               index += 1;

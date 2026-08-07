@@ -20,7 +20,6 @@ import { ItemThumb } from "@/components/item-thumb";
 import { signatureItems, peso } from "@/lib/menu";
 import { BRANCH_LIST, branchAddress, branchFullName, openStatusLabel } from "@/lib/branches";
 import { DiaTextReveal, revealLength } from "@/components/dia-text-reveal";
-import { HyperText } from "@/components/hyper-text";
 
 const rise = (delay: number) => ({
   animation: "craffe-rise 0.7s var(--ease-out) both",
@@ -75,18 +74,15 @@ export default function HomePage() {
                 startIndex={revealLength(HEADLINE.top) + revealLength(HEADLINE.accent)}
               />
             </h1>
-            <div style={rise(140)}>
-              {/* Starts as the headline finishes settling, so the two read as
-                  one entrance rather than competing. Hover re-run is off: this
-                  sits directly above the buttons, and re-scrambling the pitch
-                  every time someone reaches for "Order now" would be a tax. */}
-              <HyperText
-                text={SUBHEAD}
-                delay={640}
-                duration={900}
-                className="mt-6 max-w-[46ch] text-[17px] leading-relaxed text-ink-soft lg:text-[19px]"
-              />
-            </div>
+            {/* The same reveal as the headline, running under it. A far tighter
+                stagger, because this is 122 characters rather than 28 — at the
+                headline's spacing the wave would take over three seconds. */}
+            <p
+              aria-label={SUBHEAD}
+              className="mt-6 max-w-[46ch] text-[17px] leading-relaxed text-ink-soft lg:text-[19px]"
+            >
+              <DiaTextReveal text={SUBHEAD} delay={520} stagger={6} duration={620} />
+            </p>
             <div className="mt-8 flex flex-wrap items-center gap-3" style={rise(210)}>
               <Link
                 href="/menu"

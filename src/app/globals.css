@@ -117,11 +117,14 @@ body {
    `color` is deliberately absent from the 100% frame: a property missing from
    the final keyframe resolves to the element's underlying value, so the tint
    interpolates back to the inherited ink or coffee without either being
-   hardcoded here. */
+   hardcoded here.
+
+   Blur and offset are in `em` so the effect scales with the type it runs on:
+   a soft haze on an 80px headline is total obliteration on 17px body copy. */
 @keyframes craffe-dia-reveal {
   0% {
     opacity: 0;
-    filter: blur(14px);
+    filter: blur(0.2em);
     transform: translateY(0.32em);
     color: var(--dia-tint);
   }
@@ -129,7 +132,7 @@ body {
     opacity: 1;
   }
   55% {
-    filter: blur(4px);
+    filter: blur(0.06em);
     color: var(--dia-tint);
   }
   100% {
@@ -142,9 +145,7 @@ body {
 .dia-char {
   display: inline-block;
   white-space: pre;
-  animation: craffe-dia-reveal 760ms var(--ease-out) both;
-  /* The blur would otherwise be clipped against the character's own box. */
-  will-change: filter, transform, opacity;
+  animation: craffe-dia-reveal var(--dia-duration, 760ms) var(--ease-out) both;
 }
 
 /* Decorative looping rail behind a bento cell (see components/marquee).
