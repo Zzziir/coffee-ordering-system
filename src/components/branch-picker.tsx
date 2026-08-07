@@ -115,7 +115,7 @@ export function BranchGate() {
         </h2>
         <p className="mt-1 text-[14.5px] leading-relaxed text-ink-soft">
           We&apos;ll send your order to that counter — same menu, same prices at
-          all three.
+          both.
         </p>
         <div className="mt-5">
           <BranchOptions current={null} onPick={setBranch} />
