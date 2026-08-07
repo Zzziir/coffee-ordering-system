@@ -98,6 +98,25 @@ body {
   display: none;
 }
 
+/* Decorative looping rail behind a bento cell (see components/marquee).
+   Shifts by its own width plus the 1rem gap so the seam never shows. */
+@keyframes craffe-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - 1rem));
+  }
+}
+@keyframes craffe-marquee-reverse {
+  from {
+    transform: translateX(calc(-100% - 1rem));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
