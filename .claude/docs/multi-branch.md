@@ -258,13 +258,18 @@ order on MYCC's queue, and the production build is clean.
 ### Test staff accounts
 
 Created 2026-08-07 so the auth work could be exercised. Obvious `.test` domain,
-safe to delete once real accounts exist (open question 7).
+safe to delete once real accounts exist (open question 4).
 
-| Email | Password | Role |
-| --- | --- | --- |
-| `owner@craffe.test` | _kept out of the repo_ | owner — every branch |
-| `rembo@craffe.test` | _kept out of the repo_ | barista — East Rembo |
-| `mycc@craffe.test` | _kept out of the repo_ | barista — MYCC |
+| Email | Role |
+| --- | --- |
+| `owner@craffe.test` | owner — sees every branch |
+| `rembo@craffe.test` | barista — East Rembo |
+| `mycc@craffe.test` | barista — MYCC |
+
+**The passwords are deliberately not written down here.** This repo has a public
+remote, and these accounts open a barista screen on the live Supabase project.
+Ask Lance, or set your own: Supabase dashboard → Authentication → Users → the
+account → Reset password.
 
 Test *orders* were cleaned out afterwards; `orders`, `order_lines` and
 `order_events` are empty and the counters are back to 13. The `staff` rows and
