@@ -1,8 +1,10 @@
 # Craffé — Order Ahead
 
-A mobile-first coffee ordering prototype for **Craffé Coffee** (East Rembo, Makati).
-Customers scan a QR at the window or open the link, build a drink, pay ahead, and
-pick it up when their number is called. Baristas watch orders come in live.
+A mobile-first coffee ordering prototype for **Craffé Coffee**, across both
+branches: **East Rembo** (Makati) and **Craffé by MYCC** (Marilao, Bulacan).
+Customers scan the QR on their table, build a drink, pay ahead, and collect it
+when their number is called. Baristas watch their own branch's orders come in
+live.
 
 Built for a live pitch to the owner, on production-grade foundations so it can go
 live after approval without a rewrite.
@@ -14,25 +16,32 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
-The chatbot needs a Gemini key in `.env.local` (see `.env.example`):
+Copy `.env.example` to `.env.local` and fill it in — the app needs a Gemini key
+for the chatbot and a Supabase project for orders and staff accounts:
 
 ```
 GEMINI_API_KEY=your_key_here
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-Everything else runs with zero external services.
+Apply `supabase/migrations/*.sql` in order to a fresh project, then create a row
+in `staff` for each barista keyed to their Supabase Auth user.
 
 ## The pitch walkthrough
 
 1. **`/`** — home. Tap **Order now**.
-2. **`/menu`** — browse by category, tap a drink, pick size / milk / extras
+2. **`/menu`** — pick a branch if you didn't scan a QR, then browse by category, tap a drink, pick size / milk / extras
    (watch the price update), add to bag.
-3. **`/cart`** → **`/checkout`** — choose pickup style, enter a name, pick GCash /
-   card / cash, and pay (simulated — no real charge). Land on a live pickup screen.
-4. Open **`/staff`** on another screen (or tablet). The new order is already there.
-   Tap **Start preparing → Mark ready**.
+3. **`/cart`** → **`/checkout`** — choose how you're taking it, enter a name, pick
+   a payment method, and pay (simulated — no real charge). Only the options that
+   branch actually offers are shown. Land on a live pickup screen.
+4. Open **`/staff`** on another screen (or tablet) and sign in. A barista lands on
+   their own branch's board; owners pick one. Tap **Start preparing → Mark ready**.
 5. Back on the customer's screen, the status updates **live** and it chimes when ready.
-6. **`/qr`** — the printable "Scan to order" card for the window.
+6. **`/qr`** — printable "Scan to order" table tents, one per branch. Each code
+   carries `?b=<branch>`, so a scan at MYCC puts the order on MYCC's queue.
 7. Tap **Ask Craffé** (bottom-right) — the Gemini chatbot that knows the whole menu.
 
 ## What's included
@@ -45,22 +54,29 @@ Everything else runs with zero external services.
   and add-on rules (+₱20 upsize, +₱40 oat milk, extra shot, sea salt cream, etc.).
 - **Customer flow** — menu → customize → cart → guest checkout → simulated payment
   → live order status.
-- **Staff queue** — real-time order board (Received → Preparing → Ready).
+- **Multi-branch** — one shared menu at one set of prices; per-branch hours,
+  service model, payment methods and pickup codes (`R14` East Rembo, `M14` MYCC)
+  all read from `src/lib/branches.ts`.
+- **Staff queue** — real-time order board (Received → Preparing → Ready), scoped
+  to one branch, behind Supabase Auth with row-level-security branch checks.
 - **Ask Craffé** — warm Taglish barista chatbot grounded in the menu (Gemini).
 - **Loyalty** — digital "buy 9, get 1 free" stamp card.
-- **QR** — printable window card.
+- **QR** — printable table tent per branch.
 
 ## Architecture
 
 - **Next.js 16** (App Router) · **React 19** · **Tailwind v4** · **Motion** · **Phosphor** icons.
-- **Live updates** run over Server-Sent Events (`/api/stream`) backed by an in-memory
-  order store (`src/lib/store.ts`) — no database needed for the demo.
+- **Supabase Postgres** holds orders, staff and the atomic per-branch pickup-code
+  counter. `src/lib/store.ts` is the only module that talks to it.
+- **Live updates** run over Supabase Realtime. Staff use `postgres_changes`
+  filtered by branch (RLS scopes it); customers use a broadcast topic named after
+  their order id, because there is deliberately no anon read policy on `orders`.
+- **Auth** — Supabase Auth for staff, with `src/proxy.ts` refreshing the session
+  and the real branch authorisation in the pages and route handlers.
 - Design tokens, fonts, and motion curves live in `src/app/globals.css`.
 
 ### Going live (future — seams already in place)
 
-- **Supabase** — swap the internals of `src/lib/store.ts` for Postgres tables and
-  Supabase Realtime. The exported functions and the SSE seam stay identical.
 - **Vercel** — deploy target.
 - **Resend** — order-confirmation and order-ready emails. Hook points are marked
   `RESEND HOOK` in `src/lib/store.ts`.
