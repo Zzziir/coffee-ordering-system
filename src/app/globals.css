@@ -98,6 +98,55 @@ body {
   display: none;
 }
 
+/* Hero entrance — elements settle upward into place. Referenced by the `rise`
+   helper in app/page.tsx, which staggers the delay down the column. */
+@keyframes craffe-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Per-character reveal (see components/dia-text-reveal). Each character rises
+   out of a blur, tinted, and sharpens into the colour it inherits.
+
+   `color` is deliberately absent from the 100% frame: a property missing from
+   the final keyframe resolves to the element's underlying value, so the tint
+   interpolates back to the inherited ink or coffee without either being
+   hardcoded here. */
+@keyframes craffe-dia-reveal {
+  0% {
+    opacity: 0;
+    filter: blur(14px);
+    transform: translateY(0.32em);
+    color: var(--dia-tint);
+  }
+  22% {
+    opacity: 1;
+  }
+  55% {
+    filter: blur(4px);
+    color: var(--dia-tint);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+.dia-char {
+  display: inline-block;
+  white-space: pre;
+  animation: craffe-dia-reveal 760ms var(--ease-out) both;
+  /* The blur would otherwise be clipped against the character's own box. */
+  will-change: filter, transform, opacity;
+}
+
 /* Decorative looping rail behind a bento cell (see components/marquee).
    Shifts by its own width plus the 1rem gap so the seam never shows. */
 @keyframes craffe-marquee {
@@ -127,5 +176,10 @@ body {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+    /* Delays have to go too. Collapsing only the duration still leaves a
+       staggered entrance sitting in its backwards fill — for the per-character
+       headline that meant letters missing until their delay elapsed. */
+    animation-delay: 0.001ms !important;
+    transition-delay: 0.001ms !important;
   }
 }

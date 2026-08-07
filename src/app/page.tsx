@@ -19,11 +19,19 @@ import { CupMark } from "@/components/brand";
 import { ItemThumb } from "@/components/item-thumb";
 import { signatureItems, peso } from "@/lib/menu";
 import { BRANCH_LIST, branchAddress, branchFullName, openStatusLabel } from "@/lib/branches";
+import { DiaTextReveal, revealLength } from "@/components/dia-text-reveal";
 
 const rise = (delay: number) => ({
   animation: "craffe-rise 0.7s var(--ease-out) both",
   animationDelay: `${delay}ms`,
 });
+
+/** Split so "love" can carry the coffee accent while the wave runs unbroken. */
+const HEADLINE = {
+  top: "A whole latte",
+  accent: "love",
+  tail: ", in every cup.",
+};
 
 export default function HomePage() {
   const favorites = signatureItems().slice(0, 4);
@@ -43,13 +51,25 @@ export default function HomePage() {
               <CupMark className="size-3.5 text-coffee" />
               {BRANCH_LIST.length} branches · Makati &amp; Bulacan
             </span>
+            {/* The heading carries the real sentence; the reveal spans inside
+                are hidden from assistive tech and animate per character. */}
             <h1
+              aria-label={`${HEADLINE.top} ${HEADLINE.accent}${HEADLINE.tail}`}
               className="mt-5 text-[clamp(3rem,7vw,5.25rem)] font-bold leading-[0.95] tracking-tight text-ink"
-              style={rise(70)}
             >
-              A whole latte
+              <DiaTextReveal text={HEADLINE.top} delay={70} />
               <br />
-              <span className="text-coffee">love</span>, in every cup.
+              <DiaTextReveal
+                text={HEADLINE.accent}
+                className="text-coffee"
+                delay={70}
+                startIndex={revealLength(HEADLINE.top)}
+              />
+              <DiaTextReveal
+                text={HEADLINE.tail}
+                delay={70}
+                startIndex={revealLength(HEADLINE.top) + revealLength(HEADLINE.accent)}
+              />
             </h1>
             <p
               className="mt-6 max-w-[46ch] text-[17px] leading-relaxed text-ink-soft lg:text-[19px]"
