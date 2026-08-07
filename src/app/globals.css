@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+/*
+  Craffé design tokens.
+  Brand identity is warm, paper-light: charcoal wordmark + coffee-brown accent
+  on off-white, drawn straight from the logo and printed menu. The page theme is
+  LOCKED to this warm-light world (Section 4.11) — the brand insists on one mode.
+*/
+@theme {
+  /* Surfaces */
+  --color-paper: #f6f3ec; /* warm off-white page */
+  --color-paper-raised: #fdfbf6; /* cards / sheets */
+  --color-paper-sunk: #efeae0; /* wells, inputs */
+
+  /* Ink */
+  --color-ink: #2b2a28; /* warm charcoal — never pure black */
+  --color-ink-soft: #6b6459; /* secondary text */
+  --color-ink-faint: #9a9186; /* tertiary / placeholder */
+
+  /* Coffee accent */
+  --color-coffee: #8a6a47; /* primary accent */
+  --color-coffee-deep: #5a4130; /* pressed / emphasis */
+  --color-coffee-tint: #eee6db; /* accent wash */
+
+  /* Lines */
+  --color-line: #e6dfd3;
+  --color-line-strong: #d8cfbf;
+
+  /* State */
+  --color-ready: #3f7d54; /* "ready" green, muted to blend */
+  --color-ready-tint: #e3efe6;
+  --color-warn: #b26a3c;
+
+  /* Fonts */
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+
+  /* Motion — strong custom curves (Emil) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Radius scale — one soft system, locked */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+
+  /* Shadows — tinted to the warm ground, never pure black */
+  --shadow-card: 0 1px 2px rgba(74, 58, 40, 0.04), 0 6px 20px rgba(74, 58, 40, 0.06);
+  --shadow-sheet: 0 -8px 40px rgba(58, 44, 28, 0.14);
+  --shadow-pop: 0 4px 24px rgba(58, 44, 28, 0.12);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100%;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+/* Pressable feedback — global reflex (Emil): elements that respond to touch
+   scale down subtly. Applied via the .pressable utility. */
+.pressable {
+  transition: transform 160ms var(--ease-out);
+  touch-action: manipulation;
+}
+.pressable:active {
+  transform: scale(0.97);
+}
+
+/* Wordmark tracking to echo the logo's geometric spacing */
+.wordmark {
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Hide scrollbars on horizontal category rails while keeping scroll */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
