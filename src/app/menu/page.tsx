@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { MenuBrowser } from "@/components/menu-browser";
+import { BranchGate } from "@/components/branch-picker";
 
 export const metadata = {
   title: "Menu — Craffé",
@@ -30,6 +31,10 @@ export default function MenuPage() {
       </main>
 
       <SiteFooter />
+
+      {/* Nothing can be ordered without a branch, so ask before the menu
+          rather than surprising anyone at checkout. */}
+      <BranchGate />
     </div>
   );
 }

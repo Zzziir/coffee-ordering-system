@@ -1,64 +1,55 @@
-"use client";
+import Link from "next/link";
+import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
+import { Wordmark } from "@/components/brand";
+import { BRANCH_LIST, branchAddress, branchFullName } from "@/lib/branches";
 
-import { useEffect, useState } from "react";
-import QRCode from "qrcode";
-import { Wordmark, CupMark } from "@/components/brand";
+export const metadata = {
+  title: "Table tents — Craffé",
+};
 
-export default function QrPage() {
-  const [dataUrl, setDataUrl] = useState<string>("");
-  const [target, setTarget] = useState<string>("");
-
-  useEffect(() => {
-    const url = window.location.origin + "/menu";
-    setTarget(url);
-    QRCode.toDataURL(url, {
-      margin: 1,
-      width: 720,
-      color: { dark: "#2b2a28", light: "#00000000" },
-      errorCorrectionLevel: "M",
-    })
-      .then(setDataUrl)
-      .catch(() => setDataUrl(""));
-  }, []);
-
+/** Which card do you want to print? One per branch, each carrying its own `?b=`. */
+export default function QrIndexPage() {
   return (
-    <div className="grid min-h-[100dvh] place-items-center bg-paper px-5 py-10">
-      {/* Printable table-tent card */}
-      <div className="w-full max-w-sm rounded-[var(--radius-xl)] border border-line bg-paper-raised p-8 text-center shadow-[var(--shadow-card)]">
-        <div className="flex flex-col items-center gap-3">
-          <span className="grid size-12 place-items-center rounded-full bg-ink text-paper">
-            <CupMark className="size-6" />
+    <div className="min-h-[100dvh]">
+      <header className="border-b border-line/70">
+        <div className="mx-auto flex h-16 max-w-2xl items-center gap-3 px-4 md:px-6">
+          <Wordmark className="text-[18px] text-ink" />
+          <span className="rounded-full bg-paper-sunk px-2.5 py-1 text-[12px] font-medium text-ink-soft">
+            Table tents
           </span>
-          <Wordmark className="text-xl text-ink" />
         </div>
+      </header>
 
-        <h1 className="mt-6 text-[26px] font-bold leading-tight tracking-tight text-ink">
-          Scan to order
+      <main className="mx-auto max-w-2xl px-4 pb-16 pt-10 md:px-6">
+        <h1 className="text-[22px] font-bold tracking-tight text-ink">
+          Print a scan card
         </h1>
-        <p className="mx-auto mt-1.5 max-w-[26ch] text-[15px] leading-relaxed text-ink-soft">
-          Skip the line. Order and pay from your phone, pick up at the window.
+        <p className="mt-1.5 text-[15px] text-ink-soft">
+          Each branch gets its own code. Scanning it sends the order to that
+          counter — no one has to pick a store.
         </p>
 
-        <div className="mx-auto mt-6 grid aspect-square w-full max-w-[280px] place-items-center rounded-[var(--radius-lg)] border border-line bg-paper p-4">
-          {dataUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={dataUrl} alt={`QR code linking to ${target}`} className="size-full" />
-          ) : (
-            <span className="size-8 animate-spin rounded-full border-[3px] border-line border-t-coffee" />
-          )}
-        </div>
-
-        <p className="mt-5 text-[13px] font-medium uppercase tracking-[0.14em] text-coffee">
-          Pay ahead · Pick up fast
-        </p>
-      </div>
-
-      <button
-        onClick={() => window.print()}
-        className="pressable mt-6 rounded-full border border-line-strong px-5 py-2.5 text-[14px] font-medium text-ink print:hidden"
-      >
-        Print this
-      </button>
+        <ul className="mt-6 flex flex-col gap-3">
+          {BRANCH_LIST.map((branch) => (
+            <li key={branch.id}>
+              <Link
+                href={`/qr/${branch.id}`}
+                className="pressable flex items-center justify-between gap-4 rounded-[var(--radius-lg)] border border-line bg-paper-raised p-5"
+              >
+                <span>
+                  <span className="block text-[16px] font-semibold text-ink">
+                    {branchFullName(branch)}
+                  </span>
+                  <span className="mt-0.5 block text-[14px] text-ink-soft">
+                    {branchAddress(branch)}
+                  </span>
+                </span>
+                <ArrowRightIcon size={18} weight="bold" className="shrink-0 text-coffee" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </main>
     </div>
   );
 }

@@ -13,14 +13,22 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { ChatLauncher } from "@/components/chat/chat-launcher";
+import {
+  BRANCH_LIST,
+  branchFullName,
+  hoursSummary,
+  openStatusLabel,
+  isOpen,
+  type Branch,
+} from "@/lib/branches";
+import { CHANNEL_LABEL } from "@/lib/types";
+import { clsx } from "@/lib/clsx";
 
 export const metadata = {
   title: "Contact — Craffé",
-  description: "Find Craffé in East Rembo, Makati. Hours, location, and how to reach us.",
+  description:
+    "Both Craffé branches — East Rembo, Makati and Craffé by MYCC in Marilao. Hours, locations, and how to reach us.",
 };
-
-const MAPS_URL =
-  "https://www.google.com/maps/search/?api=1&query=Craffe+East+Rembo+15th+Ave+JP+Rizal";
 
 export default function ContactPage() {
   return (
@@ -36,37 +44,26 @@ export default function ContactPage() {
             Come say hi.
           </h1>
           <p className="mx-auto mt-6 max-w-[46ch] text-[18px] leading-relaxed text-ink-soft">
-            You&apos;ll find us at the window on 15th Ave. Order ahead and we&apos;ll
-            have it ready when you arrive.
+            Three Craffés, one menu. Order ahead at whichever is closest and
+            we&apos;ll have it ready when you arrive.
           </p>
         </section>
 
+        {/* Every branch, straight from the registry — a third Craffé is a new
+            record in lib/branches, not an edit here. */}
         <section className="mx-auto max-w-[1080px] px-5 py-10 lg:px-8">
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {BRANCH_LIST.map((branch, i) => (
+              <Reveal key={branch.id} delay={i * 0.08}>
+                <BranchCard branch={branch} />
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[1080px] px-5 pb-10 lg:px-8">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
-            {/* Info */}
-            <Reveal className="flex flex-col gap-4">
-              <InfoCard icon={<MapPinIcon size={22} weight="fill" />} title="Where">
-                <p className="text-ink">Craffé East Rembo</p>
-                <p className="text-ink-soft">15th Ave JP Rizal Ext., Makati City</p>
-                <a
-                  href={MAPS_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="pressable mt-2 inline-flex items-center gap-1 text-[14.5px] font-medium text-coffee"
-                >
-                  Open in Google Maps
-                  <ArrowUpRightIcon size={15} weight="bold" />
-                </a>
-              </InfoCard>
-
-              <InfoCard icon={<ClockIcon size={22} weight="fill" />} title="When">
-                <p className="text-ink">Mon–Thu · 7:30am – 11:00pm</p>
-                <p className="text-ink">Fri–Sun · 7:30am – 12:00am</p>
-                <p className="mt-1 text-[14px] text-ink-soft">
-                  Craffé 1004, Brgy. Rizal · 1:00pm – 9:00pm
-                </p>
-              </InfoCard>
-
+            <Reveal>
               <InfoCard icon={<ChatCircleDotsIcon size={22} weight="fill" />} title="Reach us">
                 <p className="text-ink-soft">
                   Message us on Facebook or Instagram, or ask our chatbot anything
@@ -83,12 +80,11 @@ export default function ContactPage() {
               </InfoCard>
             </Reveal>
 
-            {/* Photo + directions */}
             <Reveal delay={0.1} className="flex flex-col overflow-hidden rounded-[var(--radius-xl)] border border-line bg-paper-raised">
               <div className="relative aspect-[4/3] w-full">
                 <Image
                   src="/brand/storefront-day.jpg"
-                  alt="The Craffé storefront on 15th Ave"
+                  alt="The Craffé East Rembo storefront on 15th Ave"
                   fill
                   sizes="(max-width: 1024px) 100vw, 540px"
                   className="object-cover"
@@ -97,17 +93,10 @@ export default function ContactPage() {
               <div className="flex items-center justify-between gap-4 p-5">
                 <div className="flex items-center gap-2.5">
                   <StorefrontIcon size={22} weight="fill" className="text-coffee" />
-                  <p className="text-[15px] font-medium text-ink">Look for the takeout window</p>
+                  <p className="text-[15px] font-medium text-ink">
+                    The original, on 15th Ave
+                  </p>
                 </div>
-                <a
-                  href={MAPS_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="pressable inline-flex shrink-0 items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper"
-                >
-                  Directions
-                  <ArrowUpRightIcon size={15} weight="bold" />
-                </a>
               </div>
             </Reveal>
           </div>
@@ -131,6 +120,58 @@ export default function ContactPage() {
 
       <SiteFooter />
       <ChatLauncher />
+    </div>
+  );
+}
+
+function BranchCard({ branch }: { branch: Branch }) {
+  const open = isOpen(branch);
+  return (
+    <div className="flex h-full flex-col rounded-[var(--radius-lg)] border border-line bg-paper-raised p-6">
+      <h2 className="text-[17px] font-semibold text-ink">{branchFullName(branch)}</h2>
+      <p className="mt-1 flex items-start gap-2 text-[14.5px] leading-relaxed text-ink-soft">
+        <MapPinIcon size={17} weight="fill" className="mt-0.5 shrink-0 text-coffee" />
+        <span>
+          {branch.addressLine}
+          <br />
+          {branch.city}
+        </span>
+      </p>
+
+      <p
+        className={clsx(
+          "mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium",
+          open ? "text-ready" : "text-ink-faint",
+        )}
+      >
+        <span className={clsx("size-1.5 rounded-full", open ? "bg-ready" : "bg-ink-faint")} />
+        {openStatusLabel(branch)}
+      </p>
+
+      <div className="mt-3 flex items-start gap-2 text-[14px] text-ink-soft">
+        <ClockIcon size={17} weight="fill" className="mt-0.5 shrink-0 text-coffee" />
+        <span>
+          {hoursSummary(branch).map((line) => (
+            <span key={line} className="block">
+              {line}
+            </span>
+          ))}
+        </span>
+      </div>
+
+      <p className="mt-3 text-[13.5px] text-ink-soft">
+        {branch.channels.map((c) => CHANNEL_LABEL[c]).join(" · ")}
+      </p>
+
+      <a
+        href={branch.mapsUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="pressable mt-auto inline-flex items-center gap-1 pt-4 text-[14.5px] font-medium text-coffee"
+      >
+        Open in Google Maps
+        <ArrowUpRightIcon size={15} weight="bold" />
+      </a>
     </div>
   );
 }

@@ -1,132 +1,244 @@
-import type { Order, OrderLine, OrderStatus, OrderChannel, PaymentMethod } from "./types";
+import type {
+  BranchId,
+  Order,
+  OrderLine,
+  OrderStatus,
+  OrderChannel,
+  PaymentMethod,
+  SelectedGroup,
+} from "./types";
+import { getBranch } from "./branches";
+import { supabaseAdmin } from "./supabase/admin";
 
 /**
- * Order store — demo adapter.
+ * Order store — Postgres.
  *
- * This is an in-memory implementation with a change event-bus so the staff
- * queue and the customer status page update live (via SSE). It runs with zero
- * external services so the pitch prototype works on `npm run dev` alone.
+ * Every read and write here runs on the service role. That is deliberate: a
+ * customer is anonymous and holds only their own order id, and row level
+ * security cannot express "the one row you asked for" (see the note at the foot
+ * of supabase/migrations/0001_multi_branch.sql). Branch scope is therefore
+ * enforced in app code — by the callers in app/api and app/staff — and every
+ * listing here takes a branchId rather than offering an "all branches" read.
  *
- * PRODUCTION PATH (future): replace the internals of this module with Supabase.
- *   - createOrder      -> insert into `orders` + `order_lines`
- *   - updateStatus     -> update row; Supabase Realtime replaces the event bus
- *   - subscribe        -> supabase.channel('orders').on('postgres_changes', ...)
- * The exported function signatures stay identical, so nothing upstream changes.
+ * Writes go through the `create_order` and `advance_order` functions so an
+ * order and its lines and audit trail land in one transaction.
+ *
+ * Nothing here pushes live updates. Supabase Realtime does that, straight from
+ * the database — a trigger broadcasts to the customer's per-order topic, and
+ * staff read `postgres_changes` under RLS (see 0003_realtime.sql and
+ * components/use-order-stream). A change therefore reaches every listener even
+ * when it was made by another process, which an in-app event bus could not do.
  *
  * RESEND HOOKS (future): see the marked call-sites in createOrder / updateStatus.
  */
 
-type Listener = (order: Order) => void;
+/* ------------------------------------------------------------------ */
+/* Reading                                                             */
+/* ------------------------------------------------------------------ */
 
-type Store = {
-  orders: Map<string, Order>;
-  listeners: Set<Listener>;
-  seq: number;
+const ORDER_SELECT = `
+  id, branch_id, code, channel, table_number, customer_name, customer_phone,
+  subtotal, status, payment_method, paid, created_at, updated_at,
+  order_lines ( id, position, item_id, name, base_price, qty, groups, line_total, note ),
+  order_events ( status, at )
+`;
+
+type LineRow = {
+  id: string;
+  position: number;
+  item_id: string;
+  name: string;
+  base_price: number;
+  qty: number;
+  groups: SelectedGroup[];
+  line_total: number;
+  note: string | null;
 };
 
-// Survive Next.js HMR / route-handler module reloads in dev by pinning to global.
-const g = globalThis as unknown as { __craffeStore?: Store };
-const store: Store =
-  g.__craffeStore ??
-  (g.__craffeStore = { orders: new Map(), listeners: new Set(), seq: 13 });
+type OrderRow = {
+  id: string;
+  branch_id: string;
+  code: string;
+  channel: OrderChannel;
+  table_number: string | null;
+  customer_name: string;
+  customer_phone: string | null;
+  subtotal: number;
+  status: OrderStatus;
+  payment_method: PaymentMethod;
+  paid: boolean;
+  created_at: string;
+  updated_at: string;
+  order_lines: LineRow[];
+  order_events: { status: OrderStatus; at: string }[];
+};
 
-function emit(order: Order) {
-  for (const l of store.listeners) {
-    try {
-      l(order);
-    } catch {
-      /* a dead SSE connection shouldn't break the others */
-    }
-  }
+/** Timestamps cross the wire as ISO strings; the app speaks epoch millis. */
+const millis = (iso: string) => new Date(iso).getTime();
+
+function toOrder(row: OrderRow): Order {
+  return {
+    id: row.id,
+    branchId: row.branch_id as BranchId,
+    code: row.code,
+    channel: row.channel,
+    tableNumber: row.table_number ?? undefined,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone ?? undefined,
+    items: [...row.order_lines]
+      .sort((a, b) => a.position - b.position)
+      .map(
+        (l): OrderLine => ({
+          id: l.id,
+          itemId: l.item_id,
+          name: l.name,
+          basePrice: l.base_price,
+          qty: l.qty,
+          groups: l.groups ?? [],
+          lineTotal: l.line_total,
+          note: l.note ?? undefined,
+        }),
+      ),
+    subtotal: row.subtotal,
+    status: row.status,
+    paymentMethod: row.payment_method,
+    paid: row.paid,
+    createdAt: millis(row.created_at),
+    updatedAt: millis(row.updated_at),
+    statusHistory: [...row.order_events]
+      .sort((a, b) => millis(a.at) - millis(b.at))
+      .map((e) => ({ status: e.status, at: millis(e.at) })),
+  };
 }
 
-/** Pickup code like A14, A15 … rolling A–Z then wrapping. */
-function nextCode(): string {
-  store.seq += 1;
-  const letter = String.fromCharCode(65 + (Math.floor(store.seq / 100) % 26));
-  const num = store.seq % 100;
-  return `${letter}${num.toString().padStart(2, "0")}`;
+export async function getOrder(id: string): Promise<Order | undefined> {
+  // An id from a URL is not necessarily a uuid; a malformed one is "not found",
+  // not a 500.
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return undefined;
+
+  const { data, error } = await supabaseAdmin()
+    .from("orders")
+    .select(ORDER_SELECT)
+    .eq("id", id)
+    .maybeSingle<OrderRow>();
+
+  if (error) throw new Error(`Could not read order ${id}: ${error.message}`);
+  return data ? toOrder(data) : undefined;
 }
+
+/**
+ * Orders the barista still needs to act on, oldest first.
+ * Always branch-scoped — a barista must never see another branch's queue.
+ */
+export async function listActiveOrders(branchId: BranchId): Promise<Order[]> {
+  const { data, error } = await supabaseAdmin()
+    .from("orders")
+    .select(ORDER_SELECT)
+    .eq("branch_id", branchId)
+    .neq("status", "completed")
+    .order("created_at", { ascending: true })
+    .returns<OrderRow[]>();
+
+  if (error) throw new Error(`Could not read the ${branchId} queue: ${error.message}`);
+  return (data ?? []).map(toOrder);
+}
+
+export async function listAllOrders(branchId: BranchId): Promise<Order[]> {
+  const { data, error } = await supabaseAdmin()
+    .from("orders")
+    .select(ORDER_SELECT)
+    .eq("branch_id", branchId)
+    .order("created_at", { ascending: false })
+    .returns<OrderRow[]>();
+
+  if (error) throw new Error(`Could not read the ${branchId} history: ${error.message}`);
+  return (data ?? []).map(toOrder);
+}
+
+/* ------------------------------------------------------------------ */
+/* Writing                                                             */
+/* ------------------------------------------------------------------ */
 
 export type CreateOrderInput = {
+  branchId: BranchId;
   channel: OrderChannel;
+  /** required when channel is "dinein" */
+  tableNumber?: string;
   customerName: string;
   customerPhone?: string;
   items: OrderLine[];
   paymentMethod: PaymentMethod;
 };
 
-export function createOrder(input: CreateOrderInput): Order {
-  const now = Date.now();
-  const id = `ord_${now.toString(36)}_${Math.floor(store.seq * 7).toString(36)}`;
-  const subtotal = input.items.reduce((sum, l) => sum + l.lineTotal, 0);
-  const order: Order = {
-    id,
-    code: nextCode(),
-    channel: input.channel,
-    customerName: input.customerName.trim(),
-    customerPhone: input.customerPhone?.trim() || undefined,
-    items: input.items,
-    subtotal,
-    status: "received",
-    paymentMethod: input.paymentMethod,
-    // Simulated payment: gcash/card are "paid" up front, cash settles at pickup.
-    paid: input.paymentMethod !== "cash",
-    createdAt: now,
-    updatedAt: now,
-    statusHistory: [{ status: "received", at: now }],
-  };
-  store.orders.set(id, order);
-  emit(order);
+export async function createOrder(input: CreateOrderInput): Promise<Order> {
+  const { data: id, error } = await supabaseAdmin().rpc("create_order", {
+    p_branch: input.branchId,
+    // The number is the database's; the branch letter in front of it is
+    // presentation, and lives in branches.ts.
+    p_code_prefix: getBranch(input.branchId).codePrefix,
+    p_channel: input.channel,
+    p_table_number:
+      input.channel === "dinein" ? input.tableNumber?.trim() || null : null,
+    p_customer_name: input.customerName.trim(),
+    p_customer_phone: input.customerPhone?.trim() || null,
+    p_payment_method: input.paymentMethod,
+    // Simulated payment: gcash/maya/card are "paid" up front, cash settles at
+    // pickup (advance_order flips it when the order completes).
+    p_paid: input.paymentMethod !== "cash",
+    p_lines: input.items,
+  });
+
+  if (error) throw new Error(`Could not place the order: ${error.message}`);
+
+  const order = await getOrder(id as string);
+  if (!order) throw new Error("Order was written but could not be read back.");
 
   // RESEND HOOK (future): sendOrderConfirmationEmail(order)
 
   return order;
 }
 
-export function getOrder(id: string): Order | undefined {
-  return store.orders.get(id);
-}
+/** Who moved the order on — recorded against the audit trail. */
+export type Actor = { id: string; name: string };
 
-/** Orders the barista still needs to act on, oldest first. */
-export function listActiveOrders(): Order[] {
-  return [...store.orders.values()]
-    .filter((o) => o.status !== "completed")
-    .sort((a, b) => a.createdAt - b.createdAt);
-}
+export async function updateStatus(
+  id: string,
+  status: OrderStatus,
+  actor?: Actor,
+): Promise<Order | undefined> {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return undefined;
 
-export function listAllOrders(): Order[] {
-  return [...store.orders.values()].sort((a, b) => b.createdAt - a.createdAt);
-}
+  const { data: found, error } = await supabaseAdmin().rpc("advance_order", {
+    p_order: id,
+    p_status: status,
+    p_staff: actor?.id ?? null,
+    p_staff_name: actor?.name ?? null,
+  });
 
-export function updateStatus(id: string, status: OrderStatus): Order | undefined {
-  const order = store.orders.get(id);
-  if (!order) return undefined;
-  order.status = status;
-  order.updatedAt = Date.now();
-  order.statusHistory.push({ status, at: order.updatedAt });
-  if (status === "completed" && order.paymentMethod === "cash") {
-    order.paid = true;
-  }
-  store.orders.set(id, order);
-  emit(order);
+  if (error) throw new Error(`Could not advance order ${id}: ${error.message}`);
+  if (!found) return undefined;
 
   // RESEND HOOK (future): if (status === "ready") sendOrderReadyEmail(order)
 
-  return order;
+  return getOrder(id);
 }
 
-/** Subscribe to every order change. Returns an unsubscribe function. */
-export function subscribe(listener: Listener): () => void {
-  store.listeners.add(listener);
-  return () => store.listeners.delete(listener);
-}
+/* ------------------------------------------------------------------ */
+/* Demo seed                                                           */
+/* ------------------------------------------------------------------ */
 
-/** Demo helper: seed a couple of in-flight orders so the staff screen isn't
- *  empty during a first-time pitch walkthrough. Safe to call repeatedly. */
-export function ensureDemoSeed() {
-  if (store.orders.size > 0) return;
-  createOrder({
+/** Seed a couple of in-flight orders so the staff screen isn't empty during a
+ *  first-time pitch walkthrough. Only fires on a genuinely empty shop. */
+export async function ensureDemoSeed(): Promise<void> {
+  const { count, error } = await supabaseAdmin()
+    .from("orders")
+    .select("id", { count: "exact", head: true });
+
+  if (error) throw new Error(`Could not check for existing orders: ${error.message}`);
+  if ((count ?? 0) > 0) return;
+
+  await createOrder({
+    branchId: "east-rembo",
     channel: "onsite",
     customerName: "Marison",
     items: [
@@ -145,7 +257,9 @@ export function ensureDemoSeed() {
     ],
     paymentMethod: "gcash",
   });
-  const second = createOrder({
+
+  const second = await createOrder({
+    branchId: "east-rembo",
     channel: "pickup",
     customerName: "JP",
     items: [
@@ -170,5 +284,26 @@ export function ensureDemoSeed() {
     ],
     paymentMethod: "card",
   });
-  updateStatus(second.id, "preparing");
+  await updateStatus(second.id, "preparing");
+
+  // A MYCC order too, so switching branches on the staff screen isn't a blank
+  // page — and so the dine-in + Maya path has a worked example.
+  await createOrder({
+    branchId: "mycc",
+    channel: "dinein",
+    tableNumber: "4",
+    customerName: "Ate Nen",
+    items: [
+      {
+        id: "seed4",
+        itemId: "spanish-latte",
+        name: "Spanish Latte",
+        basePrice: 105,
+        qty: 2,
+        groups: [],
+        lineTotal: 210,
+      },
+    ],
+    paymentMethod: "maya",
+  });
 }

@@ -18,6 +18,7 @@ import { ChatLauncher } from "@/components/chat/chat-launcher";
 import { CupMark } from "@/components/brand";
 import { ItemThumb } from "@/components/item-thumb";
 import { signatureItems, peso } from "@/lib/menu";
+import { BRANCH_LIST, branchAddress, branchFullName, openStatusLabel } from "@/lib/branches";
 
 const rise = (delay: number) => ({
   animation: "craffe-rise 0.7s var(--ease-out) both",
@@ -40,7 +41,7 @@ export default function HomePage() {
               style={rise(0)}
             >
               <CupMark className="size-3.5 text-coffee" />
-              East Rembo, Makati
+              {BRANCH_LIST.length} branches · Makati &amp; Bulacan
             </span>
             <h1
               className="mt-5 text-[clamp(3rem,7vw,5.25rem)] font-bold leading-[0.95] tracking-tight text-ink"
@@ -203,8 +204,9 @@ export default function HomePage() {
               <p className="mt-5 max-w-[46ch] text-[16px] leading-relaxed text-paper/70">
                 Craffé started as a neighborhood window on 15th Ave with one
                 idea: seriously good coffee, served warm and fast, for the people
-                right around us. Freshly pulled espresso, house syrups, and a
-                menu we&apos;re always tinkering with.
+                right around us. A second shop later, that&apos;s still the whole
+                plan — freshly pulled espresso, house syrups, and a menu
+                we&apos;re always tinkering with.
               </p>
               <Link
                 href="/story"
@@ -295,16 +297,27 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={0.1}>
               <h2 className="text-[clamp(2rem,4vw,3rem)] font-bold leading-tight tracking-tight text-ink">
-                Come see us on 15th Ave.
+                Come see us.
               </h2>
               <div className="mt-6 flex flex-col gap-4">
-                <p className="flex items-start gap-3 text-[16px] text-ink">
-                  <MapPinIcon size={22} weight="fill" className="mt-0.5 shrink-0 text-coffee" />
-                  Craffé East Rembo, 15th Ave JP Rizal Ext., Makati
-                </p>
-                <p className="flex items-start gap-3 text-[16px] text-ink-soft">
+                {BRANCH_LIST.map((branch) => (
+                  <p key={branch.id} className="flex items-start gap-3 text-[16px] text-ink">
+                    <MapPinIcon size={22} weight="fill" className="mt-0.5 shrink-0 text-coffee" />
+                    <span>
+                      {branchFullName(branch)}
+                      <span className="block text-[14.5px] text-ink-soft">
+                        {branchAddress(branch)} · {openStatusLabel(branch)}
+                      </span>
+                    </span>
+                  </p>
+                ))}
+                <p className="flex items-start gap-3 text-[15px] text-ink-soft">
                   <ClockIcon size={22} weight="fill" className="mt-0.5 shrink-0 text-coffee" />
-                  Mon–Thu 7:30am–11pm · Fri–Sun 7:30am–12am
+                  Full hours for every branch are on the{" "}
+                  <Link href="/contact" className="font-medium text-coffee underline-offset-2 hover:underline">
+                    contact page
+                  </Link>
+                  .
                 </p>
               </div>
               <div className="mt-8 flex flex-wrap gap-3">

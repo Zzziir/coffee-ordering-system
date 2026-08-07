@@ -9,19 +9,52 @@ import {
   CircleIcon,
   StorefrontIcon,
   ClockCountdownIcon,
+  ArmchairIcon,
 } from "@phosphor-icons/react";
 import type { Order, OrderStatus as Status } from "@/lib/types";
+import { PAYMENT_LABEL } from "@/lib/types";
+import { branchAddress, getBranch, type Branch } from "@/lib/branches";
 import { useOrderStream } from "./use-order-stream";
+import { BranchLockup } from "./branch-lockup";
 import { describeLine } from "@/lib/cart";
 import { peso } from "@/lib/menu";
 import { StampCard } from "./stamp-card";
 import { clsx } from "@/lib/clsx";
 
-const STEPS: { key: Status; label: string; hint: string }[] = [
-  { key: "received", label: "Order received", hint: "We've got your order." },
-  { key: "preparing", label: "Preparing", hint: "Your drinks are being made." },
-  { key: "ready", label: "Ready for pickup", hint: "Come grab it at the window!" },
-];
+/** The last step reads differently depending on how the order is being taken. */
+function steps(order: Order, branch: Branch): { key: Status; label: string; hint: string }[] {
+  const ready =
+    order.channel === "dinein"
+      ? {
+          label: "On its way over",
+          hint: `Bringing it to table ${order.tableNumber ?? "you"}.`,
+        }
+      : {
+          label: "Ready for pickup",
+          hint: `Come grab it at the ${branch.pickupNoun}!`,
+        };
+
+  return [
+    { key: "received", label: "Order received", hint: "We've got your order." },
+    { key: "preparing", label: "Preparing", hint: "Your drinks are being made." },
+    { key: "ready", ...ready },
+  ];
+}
+
+/** How the customer is taking it, in one line, in this branch's words. */
+function channelLine(order: Order, branch: Branch) {
+  switch (order.channel) {
+    case "dinein":
+      return {
+        Icon: ArmchairIcon,
+        text: order.tableNumber ? `Table ${order.tableNumber}` : "Dine in",
+      };
+    case "onsite":
+      return { Icon: StorefrontIcon, text: `Pickup at the ${branch.pickupNoun}` };
+    case "pickup":
+      return { Icon: ClockCountdownIcon, text: "Order ahead" };
+  }
+}
 
 function chime() {
   try {
@@ -50,9 +83,7 @@ export function OrderStatus({ initial }: { initial: Order }) {
   const [order, setOrder] = useState<Order>(initial);
   const prevStatus = useRef<Status>(initial.status);
 
-  useOrderStream((o) => {
-    if (o.id === order.id) setOrder(o);
-  });
+  useOrderStream({ order: order.id }, (o) => setOrder(o));
 
   // Celebrate the moment it turns ready (rare event → delight is earned).
   useEffect(() => {
@@ -63,13 +94,22 @@ export function OrderStatus({ initial }: { initial: Order }) {
     prevStatus.current = order.status;
   }, [order.status]);
 
+  const branch = getBranch(order.branchId);
+  const STEPS = steps(order, branch);
   const activeIndex = STEPS.findIndex((s) => s.key === order.status);
   const isReady = order.status === "ready" || order.status === "completed";
   // When ready/completed the whole timeline is done — no lingering spinner.
   const currentIndex = isReady ? STEPS.length : activeIndex;
+  const { Icon: ChannelIcon, text: channelText } = channelLine(order, branch);
 
   return (
     <div className="px-5 pb-16 pt-4">
+      {/* Which shop this order belongs to — a partner branch signs itself. */}
+      <div className="mb-4 flex items-center gap-3">
+        <BranchLockup branch={branch} className="h-6 text-[15px] text-ink" />
+        <span className="text-[13px] text-ink-soft">{branchAddress(branch)}</span>
+      </div>
+
       {/* Pickup code card */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -93,12 +133,8 @@ export function OrderStatus({ initial }: { initial: Order }) {
           {order.code}
         </motion.p>
         <p className="mt-2 flex items-center justify-center gap-1.5 text-[14px] text-ink-soft">
-          {order.channel === "onsite" ? (
-            <StorefrontIcon size={16} weight="fill" />
-          ) : (
-            <ClockCountdownIcon size={16} weight="fill" />
-          )}
-          {order.channel === "onsite" ? "Pickup at the window" : "Order ahead"}
+          <ChannelIcon size={16} weight="fill" />
+          {channelText}
           {" · "}
           <span className="font-medium text-ink">{order.customerName}</span>
         </p>
@@ -111,7 +147,13 @@ export function OrderStatus({ initial }: { initial: Order }) {
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ready px-4 py-2 text-[14px] font-semibold text-paper-raised"
           >
             <CheckCircleIcon size={18} weight="fill" />
-            {order.status === "completed" ? "Picked up" : "Ready — come on over!"}
+            {order.status === "completed"
+              ? order.channel === "dinein"
+                ? "Delivered to your table"
+                : "Picked up"
+              : order.channel === "dinein"
+                ? "Ready — on its way over!"
+                : "Ready — come on over!"}
           </motion.div>
         )}
       </motion.div>
@@ -196,12 +238,8 @@ export function OrderStatus({ initial }: { initial: Order }) {
         </ul>
         <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
           <span className="text-[14px] text-ink-soft">
-            {order.paid ? "Paid" : "Pay at window"} ·{" "}
-            {order.paymentMethod === "gcash"
-              ? "GCash"
-              : order.paymentMethod === "card"
-                ? "Card"
-                : "Cash"}
+            {order.paid ? "Paid" : `Pay at the ${branch.pickupNoun}`} ·{" "}
+            {PAYMENT_LABEL[order.paymentMethod]}
           </span>
           <span className="text-lg font-bold tabular-nums text-ink">
             {peso(order.subtotal)}

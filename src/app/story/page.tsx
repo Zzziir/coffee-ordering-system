@@ -33,7 +33,8 @@ export default function StoryPage() {
           <p className="mx-auto mt-6 max-w-[54ch] text-[18px] leading-relaxed text-ink-soft">
             Craffé began as a single takeout window on 15th Ave, with one idea:
             seriously good coffee, served warm and fast, for the neighborhood
-            right around us.
+            right around us. A second shop later, that hasn&apos;t changed —
+            there are just more tables to sit at.
           </p>
         </section>
 
@@ -42,7 +43,7 @@ export default function StoryPage() {
           <Reveal className="relative aspect-[16/9] overflow-hidden rounded-[var(--radius-xl)] shadow-[var(--shadow-card)]">
             <Image
               src="/brand/storefront-day.jpg"
-              alt="The Craffé takeout window on 15th Ave"
+              alt="The Craffé East Rembo storefront on 15th Ave"
               fill
               priority
               sizes="(max-width: 1080px) 100vw, 1080px"
@@ -65,9 +66,10 @@ export default function StoryPage() {
               they matter. Because they do.
             </p>
             <p>
-              What started as a grab-and-go window is now a handful of branches
-              and a community of regulars who&apos;ve made Craffé part of their
-              day. We&apos;re still that same window at heart: warm, quick, and
+              What started as a grab-and-go window is now two shops — East Rembo
+              and Craffé by MYCC in Marilao — with dine-in seating and a
+              community of regulars who&apos;ve made Craffé part of their day.
+              We&apos;re still that same window at heart: warm, quick, and
               genuinely glad you stopped by.
             </p>
           </Reveal>
@@ -85,7 +87,7 @@ export default function StoryPage() {
               {[
                 { icon: <CoffeeBeanIcon size={26} weight="fill" />, title: "Freshly pulled", body: "Espresso shots pulled to order, never sitting around." },
                 { icon: <HandHeartIcon size={26} weight="fill" />, title: "Made by hand", body: "House syrups and creams, mixed by baristas who care." },
-                { icon: <HeartIcon size={26} weight="fill" />, title: "For the 'hood", body: "Fair prices and a friendly window for our neighbors." },
+                { icon: <HeartIcon size={26} weight="fill" />, title: "For the 'hood", body: "Fair prices and a friendly counter for our neighbors." },
               ].map((v, i) => (
                 <Reveal key={v.title} delay={i * 0.08}>
                   <span className="grid size-12 place-items-center rounded-full bg-coffee text-paper">
@@ -108,7 +110,8 @@ export default function StoryPage() {
               Taste it for yourself.
             </h2>
             <p className="mx-auto mt-4 max-w-[40ch] text-[16px] text-ink-soft">
-              Order ahead and pick up at the window, or come say hi in person.
+              Order ahead at whichever branch is closest, or come say hi in
+              person.
             </p>
             <Link
               href="/menu"

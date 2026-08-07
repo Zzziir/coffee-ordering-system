@@ -7,6 +7,7 @@ import {
   ArrowUpRightIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { Wordmark, CupMark } from "./brand";
+import { BRANCH_LIST, branchAddress, branchFullName } from "@/lib/branches";
 
 export function SiteFooter() {
   return (
@@ -22,7 +23,7 @@ export function SiteFooter() {
           </div>
           <p className="mt-4 max-w-[32ch] text-[14.5px] leading-relaxed text-paper/60">
             Sending you a whole latte love. Order ahead, made fresh, ready the
-            moment you reach the window.
+            moment you arrive.
           </p>
           <div className="mt-5 flex gap-2.5">
             <a
@@ -53,7 +54,7 @@ export function SiteFooter() {
         {/* Order */}
         <FooterCol title="Order">
           <FooterLink href="/menu">Order ahead</FooterLink>
-          <FooterLink href="/qr">Scan at the window</FooterLink>
+          <FooterLink href="/qr">Table tents</FooterLink>
           <FooterLink href="/cart">Your bag</FooterLink>
         </FooterCol>
 
@@ -63,16 +64,24 @@ export function SiteFooter() {
             Visit
           </h3>
           <div className="mt-4 flex flex-col gap-3 text-[14.5px] text-paper/80">
-            <p className="flex items-start gap-2.5">
-              <MapPinIcon size={18} weight="fill" className="mt-0.5 shrink-0 text-coffee" />
-              Craffé East Rembo, 15th Ave JP Rizal Ext., Makati
-            </p>
-            <p className="flex items-start gap-2.5">
-              <ClockIcon size={18} weight="fill" className="mt-0.5 shrink-0 text-coffee" />
-              Mon–Thu 7:30am–11pm
-              <br />
-              Fri–Sun 7:30am–12am
-            </p>
+            {BRANCH_LIST.map((branch) => (
+              <p key={branch.id} className="flex items-start gap-2.5">
+                <MapPinIcon size={18} weight="fill" className="mt-0.5 shrink-0 text-coffee" />
+                <span>
+                  {branchFullName(branch)}
+                  <br />
+                  <span className="text-paper/60">{branchAddress(branch)}</span>
+                </span>
+              </p>
+            ))}
+            <Link
+              href="/contact"
+              className="pressable inline-flex items-center gap-1.5 text-[14px] font-medium text-paper/80 hover:text-paper"
+            >
+              <ClockIcon size={16} weight="fill" className="shrink-0 text-coffee" />
+              Hours &amp; directions
+              <ArrowUpRightIcon size={13} weight="bold" />
+            </Link>
           </div>
         </div>
       </div>

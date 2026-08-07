@@ -33,8 +33,8 @@ export default function GalleryPage() {
             Moments &amp; memories
           </h1>
           <p className="mx-auto mt-6 max-w-[48ch] text-[18px] leading-relaxed text-ink-soft">
-            A little look at the drinks, the sweets, and the corner of East Rembo
-            we call home.
+            A little look at the drinks, the sweets, and the corners we call
+            home.
           </p>
         </section>
 

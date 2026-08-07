@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { BagIcon, ListIcon, XIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { Wordmark } from "./brand";
 import { useCart } from "./cart-provider";
+import { BranchChip } from "./branch-picker";
 import { clsx } from "@/lib/clsx";
 
 const LINKS = [
@@ -72,6 +73,9 @@ export function SiteNav() {
 
         {/* Right cluster */}
         <div className="flex items-center gap-2">
+          {/* Only appears once a branch is chosen — it's the way to switch. */}
+          <BranchChip />
+
           <Link
             href="/cart"
             aria-label={`Bag, ${hydrated ? count : 0} items`}

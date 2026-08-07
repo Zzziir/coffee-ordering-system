@@ -5,23 +5,24 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   StorefrontIcon,
   ClockCountdownIcon,
+  ArmchairIcon,
   ArrowRightIcon,
   CheckIcon,
   BellRingingIcon,
 } from "@phosphor-icons/react";
-import type { Order, OrderStatus } from "@/lib/types";
+import type { BranchId, Order, OrderStatus } from "@/lib/types";
 import { useOrderStream } from "./use-order-stream";
 import { describeLine } from "@/lib/cart";
 import { peso } from "@/lib/menu";
 import { clsx } from "@/lib/clsx";
 
-export function StaffQueue({ initial }: { initial: Order[] }) {
+export function StaffQueue({ branchId, initial }: { branchId: BranchId; initial: Order[] }) {
   const [orders, setOrders] = useState<Record<string, Order>>(
     () => Object.fromEntries(initial.map((o) => [o.id, o])),
   );
   const [now, setNow] = useState(() => Date.now());
 
-  useOrderStream((o) => {
+  useOrderStream({ branch: branchId }, (o) => {
     setOrders((prev) => {
       const next = { ...prev };
       if (o.status === "completed") delete next[o.id];
@@ -129,6 +130,16 @@ function SectionHeader({
   );
 }
 
+function ChannelIcon({ channel }: { channel: Order["channel"] }) {
+  const Icon =
+    channel === "dinein"
+      ? ArmchairIcon
+      : channel === "onsite"
+        ? StorefrontIcon
+        : ClockCountdownIcon;
+  return <Icon size={14} weight="fill" />;
+}
+
 function minsAgo(from: number, now: number): string {
   const m = Math.max(0, Math.round((now - from) / 60000));
   if (m < 1) return "just now";
@@ -171,12 +182,14 @@ function OrderCard({
             {order.code}
           </span>
           <p className="mt-1 flex items-center gap-1.5 text-[13.5px] text-ink-soft">
-            {order.channel === "onsite" ? (
-              <StorefrontIcon size={14} weight="fill" />
-            ) : (
-              <ClockCountdownIcon size={14} weight="fill" />
-            )}
+            <ChannelIcon channel={order.channel} />
             <span className="font-medium text-ink">{order.customerName}</span>
+            {/* Dine-in is useless to a barista without the table. */}
+            {order.channel === "dinein" && order.tableNumber && (
+              <span className="rounded-full bg-paper-sunk px-2 py-0.5 text-[12px] font-semibold text-ink">
+                Table {order.tableNumber}
+              </span>
+            )}
           </p>
         </div>
         <span className="text-[12.5px] tabular-nums text-ink-faint">

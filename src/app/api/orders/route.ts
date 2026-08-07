@@ -1,16 +1,36 @@
 import { NextResponse } from "next/server";
 import { createOrder, listActiveOrders, listAllOrders } from "@/lib/store";
 import { lineTotal } from "@/lib/cart";
+import { getBranch, isBranchId } from "@/lib/branches";
+import { canAccessBranch, getStaffMember } from "@/lib/staff";
 import type { OrderChannel, OrderLine, PaymentMethod, SelectedGroup } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const CHANNELS: OrderChannel[] = ["onsite", "pickup"];
-const METHODS: PaymentMethod[] = ["gcash", "card", "cash"];
-
 export async function GET(req: Request) {
-  const scope = new URL(req.url).searchParams.get("scope");
-  const orders = scope === "all" ? listAllOrders() : listActiveOrders();
+  const params = new URL(req.url).searchParams;
+  const branchId = params.get("branch");
+
+  // Branch-scoped by design: there is no "every branch" listing here, so a
+  // barista's screen can't be pointed at another store's queue.
+  if (!isBranchId(branchId)) {
+    return NextResponse.json({ error: "Unknown branch." }, { status: 400 });
+  }
+
+  // A queue carries customer names and phone numbers, so this is staff-only —
+  // gating the page but not the endpoint behind it would protect nothing.
+  const staff = await getStaffMember();
+  if (!staff) {
+    return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  }
+  if (!canAccessBranch(staff, branchId)) {
+    return NextResponse.json({ error: "Not your branch." }, { status: 403 });
+  }
+
+  const orders =
+    params.get("scope") === "all"
+      ? await listAllOrders(branchId)
+      : await listActiveOrders(branchId);
   return NextResponse.json({ orders });
 }
 
@@ -26,16 +46,34 @@ export async function POST(req: Request) {
   const customerName = typeof b.customerName === "string" ? b.customerName.trim() : "";
   const channel = b.channel as OrderChannel;
   const paymentMethod = b.paymentMethod as PaymentMethod;
+  const tableNumber = typeof b.tableNumber === "string" ? b.tableNumber.trim() : "";
   const rawItems = Array.isArray(b.items) ? b.items : [];
+
+  if (!isBranchId(b.branchId)) {
+    return NextResponse.json({ error: "Unknown branch." }, { status: 400 });
+  }
+  const branch = getBranch(b.branchId);
 
   if (!customerName) {
     return NextResponse.json({ error: "A name is required." }, { status: 400 });
   }
-  if (!CHANNELS.includes(channel)) {
-    return NextResponse.json({ error: "Invalid channel." }, { status: 400 });
+  // Channels and payment methods are per-branch config. Validate against this
+  // branch's list, not a global union — the client renders from the same source
+  // but must never be the thing that decides.
+  if (!branch.channels.includes(channel)) {
+    return NextResponse.json(
+      { error: `${branch.name} doesn't offer that order type.` },
+      { status: 400 },
+    );
   }
-  if (!METHODS.includes(paymentMethod)) {
-    return NextResponse.json({ error: "Invalid payment method." }, { status: 400 });
+  if (!branch.payments.includes(paymentMethod)) {
+    return NextResponse.json(
+      { error: `${branch.name} doesn't accept that payment method.` },
+      { status: 400 },
+    );
+  }
+  if (channel === "dinein" && !tableNumber) {
+    return NextResponse.json({ error: "A table number is required." }, { status: 400 });
   }
   if (rawItems.length === 0) {
     return NextResponse.json({ error: "Your bag is empty." }, { status: 400 });
@@ -59,6 +97,14 @@ export async function POST(req: Request) {
     };
   });
 
-  const order = createOrder({ channel, customerName, customerPhone: typeof b.customerPhone === "string" ? b.customerPhone : undefined, items, paymentMethod });
+  const order = await createOrder({
+    branchId: branch.id,
+    channel,
+    tableNumber: tableNumber || undefined,
+    customerName,
+    customerPhone: typeof b.customerPhone === "string" ? b.customerPhone : undefined,
+    items,
+    paymentMethod,
+  });
   return NextResponse.json({ order }, { status: 201 });
 }
