@@ -287,6 +287,14 @@ struck from this list and the matching `TODO(owner)` deleted.
 | 3 | **Does East Rembo have its own logo lockup?** | no, it uses the shared Craffé mark | Co-branding looks wrong at that branch |
 | 4 | **Staff accounts** — who works where, and their emails | three `.test` accounts, see [Test staff accounts](#test-staff-accounts) | Real baristas still can't sign in |
 | 5 | **Rotate the service_role key** | still the original | It was pasted into a chat transcript on 2026-08-07 |
+| 6 | **Re-drop five branch photos** | lost — see `assets/reference/branches/README.md` | Nothing breaks; the facts they carried are already in `branches.ts`. Only needed for design work |
+
+Source material Lance has already supplied lives in
+`assets/reference/branches/` — reference only, never served. Look there before
+asking him for a photo or a logo again. The MYCC lockup is the one file that
+survived; the other five were lost when the conversation's image cache was
+cleared, and that README names them so they can be re-dropped under stable
+filenames.
 
 Confirmed and *not* open (don't re-ask): **there are exactly two branches** —
 East Rembo and MYCC; East Rembo has dine-in as well as the window; East Rembo
