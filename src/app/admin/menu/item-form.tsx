@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { ImageIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { saveItem, type ItemFormState } from "./actions";
 import type { Category, DietTag, MenuItem } from "@/lib/menu";
 
@@ -28,7 +29,11 @@ export function ItemForm({
   const editing = !!item;
 
   return (
-    <form action={formAction} className="mt-8 flex flex-col gap-4">
+    <form
+      action={formAction}
+      encType="multipart/form-data"
+      className="mt-8 flex flex-col gap-4"
+    >
       {editing && <input type="hidden" name="id" value={item.id} />}
 
       <Label label="Name" htmlFor="name">
@@ -74,15 +79,7 @@ export function ItemForm({
         />
       </Label>
 
-      <Label label="Photo path" htmlFor="image" optional>
-        <input
-          id="image"
-          name="image"
-          placeholder="/brand/spanish-latte.jpg"
-          defaultValue={item?.image ?? ""}
-          className={inputClass}
-        />
-      </Label>
+      <PhotoField current={item?.image} />
 
       <fieldset>
         <legend className="text-[14px] font-medium text-ink">Tags</legend>
@@ -128,6 +125,79 @@ export function ItemForm({
 
       <SubmitButton editing={editing} />
     </form>
+  );
+}
+
+/** Upload, replace or remove the item's photo. Stores the file for the server
+ *  action and shows a live preview of what will be saved. */
+function PhotoField({ current }: { current?: string }) {
+  const [preview, setPreview] = useState<string | null>(null);
+  const [removed, setRemoved] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // What the card shows: a freshly picked file wins, otherwise the saved photo
+  // (unless it has been removed).
+  const shown = preview ?? (removed ? null : current ?? null);
+
+  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setPreview(file ? URL.createObjectURL(file) : null);
+    if (file) setRemoved(false);
+  };
+
+  const onRemove = () => {
+    setPreview(null);
+    setRemoved(true);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="flex items-center gap-2 text-[14px] font-medium text-ink">
+        Photo
+        <span className="text-[12px] font-normal text-ink-faint">Optional</span>
+      </span>
+
+      {/* Carries the existing photo through, and whether to clear it. */}
+      <input type="hidden" name="currentImage" value={current ?? ""} />
+      <input type="hidden" name="removePhoto" value={removed ? "on" : ""} />
+
+      <div className="flex items-center gap-4">
+        <div className="relative grid size-20 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-md)] border border-line bg-paper-sunk">
+          {shown ? (
+            // eslint-disable-next-line @next/next/no-img-element -- object-URL / preview, not an optimized asset
+            <img src={shown} alt="" className="size-full object-cover" />
+          ) : (
+            <ImageIcon size={24} className="text-ink-faint" />
+          )}
+        </div>
+
+        <div className="flex flex-col items-start gap-2">
+          <label className="pressable inline-flex h-10 cursor-pointer items-center gap-2 rounded-full border border-line bg-paper-raised px-4 text-[13.5px] font-medium text-ink">
+            <UploadSimpleIcon size={16} weight="bold" />
+            {shown ? "Change photo" : "Upload photo"}
+            <input
+              ref={inputRef}
+              type="file"
+              name="imageFile"
+              accept="image/png,image/jpeg,image/webp,image/avif"
+              onChange={onPick}
+              className="hidden"
+            />
+          </label>
+          {shown && (
+            <button
+              type="button"
+              onClick={onRemove}
+              className="pressable text-[13px] font-medium text-warn"
+            >
+              Remove photo
+            </button>
+          )}
+        </div>
+      </div>
+      <p className="text-[12px] text-ink-faint">PNG, JPG or WebP, up to 5 MB.</p>
+    </div>
   );
 }
 

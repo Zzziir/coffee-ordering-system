@@ -3,8 +3,35 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getStaffMember, isAdmin } from "@/lib/staff";
 import type { DietTag } from "@/lib/menu";
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Upload a chosen photo to the public `menu` storage bucket and return its URL.
+ * Runs on the service role (the admin gate upstream is the authorisation), so
+ * no storage write policy is needed. Returns a { url } or an { error } string.
+ */
+async function uploadImage(
+  file: File,
+  itemId: string,
+): Promise<{ url: string } | { error: string }> {
+  if (!file.type.startsWith("image/")) return { error: "Please choose an image file." };
+  if (file.size > MAX_IMAGE_BYTES) return { error: "Image must be under 5 MB." };
+
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `${itemId}-${Date.now()}.${ext}`;
+
+  const admin = supabaseAdmin();
+  const { error } = await admin.storage
+    .from("menu")
+    .upload(path, file, { contentType: file.type, upsert: true });
+  if (error) return { error: `Could not upload the image: ${error.message}` };
+
+  return { url: admin.storage.from("menu").getPublicUrl(path).data.publicUrl };
+}
 
 /**
  * Menu edits, run by an admin (owner or manager). Writes go through the
@@ -70,13 +97,17 @@ export async function saveItem(
   const categoryId = String(formData.get("categoryId") ?? "").trim();
   const priceRaw = String(formData.get("price") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const image = String(formData.get("image") ?? "").trim();
   const signature = formData.get("signature") === "on";
   const available = formData.get("available") === "on";
   const tags = formData
     .getAll("tags")
     .map(String)
     .filter((t): t is DietTag => (DIET_TAGS as string[]).includes(t));
+
+  // Photo: keep the current one, drop it, or replace it with a new upload.
+  const currentImage = String(formData.get("currentImage") ?? "").trim() || null;
+  const removePhoto = formData.get("removePhoto") === "on";
+  const file = formData.get("imageFile");
 
   if (!name) return { error: "A name is required." };
   if (!categoryId) return { error: "Pick a category." };
@@ -85,12 +116,33 @@ export async function saveItem(
     return { error: "Price must be a whole number of pesos." };
   }
 
+  // Resolve the id up front: an upload's filename needs it, and a new item also
+  // needs its end-of-section position.
+  let finalId = existingId;
+  let position = 0;
+  if (!existingId) {
+    const { data: rows } = await supabase.from("menu_items").select("id, position");
+    const ids = new Set((rows ?? []).map((r) => r.id));
+    let id = slugify(name) || "item";
+    let n = 2;
+    while (ids.has(id)) id = `${slugify(name)}-${n++}`;
+    finalId = id;
+    position = (rows ?? []).reduce((m, r) => Math.max(m, r.position), -1) + 1;
+  }
+
+  let image = removePhoto ? null : currentImage;
+  if (file instanceof File && file.size > 0) {
+    const result = await uploadImage(file, finalId);
+    if ("error" in result) return result;
+    image = result.url;
+  }
+
   const fields = {
     name,
     price,
     category_id: categoryId,
     description: description || null,
-    image: image || null,
+    image,
     signature,
     available,
     tags,
@@ -103,17 +155,9 @@ export async function saveItem(
       .eq("id", existingId);
     if (error) return { error: `Could not save: ${error.message}` };
   } else {
-    // New item: derive a unique slug id, and place it at the end of its section.
-    const { data: rows } = await supabase.from("menu_items").select("id, position");
-    const ids = new Set((rows ?? []).map((r) => r.id));
-    let id = slugify(name) || "item";
-    let n = 2;
-    while (ids.has(id)) id = `${slugify(name)}-${n++}`;
-    const maxPos = (rows ?? []).reduce((m, r) => Math.max(m, r.position), -1);
-
     const { error } = await supabase
       .from("menu_items")
-      .insert({ id, ...fields, position: maxPos + 1 });
+      .insert({ id: finalId, ...fields, position });
     if (error) return { error: `Could not create the item: ${error.message}` };
   }
 
