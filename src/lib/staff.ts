@@ -53,6 +53,15 @@ export function canAccessBranch(staff: StaffMember, branchId: BranchId): boolean
   return staff.role === "owner" || staff.branchId === branchId;
 }
 
+/**
+ * Admins run the back office: sales analytics, manual order logging, and the
+ * menu. Owners and managers qualify; a barista does not. Mirrors is_staff_admin()
+ * in the database (0005_menu.sql), which guards the same writes under RLS.
+ */
+export function isAdmin(staff: StaffMember): boolean {
+  return staff.role === "owner" || staff.role === "manager";
+}
+
 /** Where signing in should land this person: their board, or the branch list. */
 export function landingPath(staff: StaffMember): string {
   return staff.branchId ? `/staff/${staff.branchId}` : "/staff";
