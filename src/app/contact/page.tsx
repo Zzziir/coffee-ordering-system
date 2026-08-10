@@ -29,9 +29,9 @@ import { signatureItems, peso } from "@/lib/menu";
 import { clsx } from "@/lib/clsx";
 
 export const metadata = {
-  title: "Contact — Craffé",
+  title: "Contact · Craffé",
   description:
-    "Both Craffé branches — East Rembo, Makati and Craffé by MYCC in Marilao. Hours, locations, and how to reach us.",
+    "Both Craffé branches: East Rembo, Makati and Craffé by MYCC in Marilao. Hours, locations, and how to reach us.",
 };
 
 export default function ContactPage() {

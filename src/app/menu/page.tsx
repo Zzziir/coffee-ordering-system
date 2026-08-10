@@ -5,7 +5,7 @@ import { MenuBrowser } from "@/components/menu-browser";
 import { BranchGate } from "@/components/branch-picker";
 
 export const metadata = {
-  title: "Menu — Craffé",
+  title: "Menu · Craffé",
   description: "Espresso, frappés, Thai tea, refreshers, cookies, and more. Order ahead.",
 };
 

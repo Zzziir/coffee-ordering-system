@@ -11,7 +11,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Craffé — Order Ahead",
+  title: "Craffé · Order Ahead",
   description:
     "Skip the line at Craffé. Order and pay ahead, pick up at the window when it's ready.",
   applicationName: "Craffé",

@@ -33,6 +33,10 @@
 - **TDD / test-first** — Write tests before implementation where it fits.
 - **Tests as documentation** — Tests should clearly describe intended behavior.
 
+# Content & Copy
+
+- **No em/en-dashes in copy.** Do not use `—` or `–` in any user-facing text (page copy, headings, metadata, alt text, UI strings). They read as AI-generated. Rewrite with a period, comma, colon, parentheses, or the word "to" for ranges. This applies to prose only; a hyphen `-` in code, IDs, or class names is fine.
+
 # Commit Conventions
 
 - **Conventional Commits** — Format: `<type>(<optional scope>): <description>`. Common types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `build`, `ci`. Use imperative mood ("add", not "added"). Keep the subject line ≤72 chars.

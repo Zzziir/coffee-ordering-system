@@ -203,7 +203,7 @@ export default function CheckoutPage() {
             <MoonIcon size={19} weight="fill" className="mt-0.5 shrink-0 text-ink-soft" />
             <p className="text-[14px] leading-relaxed text-ink-soft">
               <span className="font-semibold text-ink">Closed right now.</span>{" "}
-              {openStatusLabel(branch)} — you can still order ahead, and they&apos;ll
+              {openStatusLabel(branch)}. You can still order ahead, and they&apos;ll
               start it when the {branch.pickupNoun} opens.
             </p>
           </div>
@@ -293,7 +293,7 @@ export default function CheckoutPage() {
           })}
         </div>
         <p className="mt-3 text-[12.5px] leading-relaxed text-ink-faint">
-          Demo mode — no real charge is made. This is where GCash, Maya and card
+          Demo mode: no real charge is made. This is where GCash, Maya and card
           payments connect in the live version.
         </p>
 

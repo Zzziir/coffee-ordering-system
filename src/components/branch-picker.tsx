@@ -114,7 +114,7 @@ export function BranchGate() {
           Which Craffé today?
         </h2>
         <p className="mt-1 text-[14.5px] leading-relaxed text-ink-soft">
-          We&apos;ll send your order to that counter — same menu, same prices at
+          We&apos;ll send your order to that counter. Same menu, same prices at
           both.
         </p>
         <div className="mt-5">
@@ -196,7 +196,7 @@ export function BranchChip() {
                   </h2>
                   <p className="mt-1.5 text-[14.5px] leading-relaxed text-ink-soft">
                     Your {count} {count === 1 ? "item" : "items"} will come
-                    along — every branch makes the same menu at the same prices.
+                    along, and every branch makes the same menu at the same prices.
                   </p>
                   <div className="mt-6 flex gap-3">
                     <button

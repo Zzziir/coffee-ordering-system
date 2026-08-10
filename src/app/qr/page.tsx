@@ -4,7 +4,7 @@ import { Wordmark } from "@/components/brand";
 import { BRANCH_LIST, branchAddress, branchFullName } from "@/lib/branches";
 
 export const metadata = {
-  title: "Table tents — Craffé",
+  title: "Table tents · Craffé",
 };
 
 /** Which card do you want to print? One per branch, each carrying its own `?b=`. */
@@ -26,7 +26,7 @@ export default function QrIndexPage() {
         </h1>
         <p className="mt-1.5 text-[15px] text-ink-soft">
           Each branch gets its own code. Scanning it sends the order to that
-          counter — no one has to pick a store.
+          counter. No one has to pick a store.
         </p>
 
         <ul className="mt-6 flex flex-col gap-3">

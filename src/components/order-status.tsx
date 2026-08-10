@@ -152,8 +152,8 @@ export function OrderStatus({ initial }: { initial: Order }) {
                 ? "Delivered to your table"
                 : "Picked up"
               : order.channel === "dinein"
-                ? "Ready — on its way over!"
-                : "Ready — come on over!"}
+                ? "Ready, on its way over!"
+                : "Ready, come on over!"}
           </motion.div>
         )}
       </motion.div>

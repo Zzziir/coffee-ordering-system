@@ -257,9 +257,9 @@ export function hoursSummary(branch: Branch): string[] {
         ? "Every day"
         : from === to
           ? names[from]
-          : `${names[from]}–${names[to]}`;
+          : `${names[from]}-${names[to]}`;
     if (!hours) return `${span} · Closed`;
-    return `${span} · ${formatTime(hours.open)} – ${formatTime(hours.close)}`;
+    return `${span} · ${formatTime(hours.open)} to ${formatTime(hours.close)}`;
   });
 }
 
