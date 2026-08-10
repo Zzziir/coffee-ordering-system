@@ -18,8 +18,12 @@ import { ChatLauncher } from "@/components/chat/chat-launcher";
 import { CupMark } from "@/components/brand";
 import { ItemThumb } from "@/components/item-thumb";
 import { signatureItems, peso } from "@/lib/menu";
+import { getMenu } from "@/lib/menu-store";
 import { BRANCH_LIST, branchAddress, branchFullName, openStatusLabel } from "@/lib/branches";
 import { DiaTextReveal, revealLength } from "@/components/dia-text-reveal";
+
+// Fan favorites come from the (admin-editable) menu, so render per request.
+export const dynamic = "force-dynamic";
 
 const rise = (delay: number) => ({
   animation: "craffe-rise 0.7s var(--ease-out) both",
@@ -36,8 +40,9 @@ const HEADLINE = {
 const SUBHEAD =
   "Handcrafted espresso, frappés, and Dubai chewy cookies. Order and pay ahead, then skip the line and pick up at the window.";
 
-export default function HomePage() {
-  const favorites = signatureItems().slice(0, 4);
+export default async function HomePage() {
+  const menu = await getMenu();
+  const favorites = signatureItems(menu).slice(0, 4);
 
   return (
     <div className="flex min-h-[100dvh] flex-col">

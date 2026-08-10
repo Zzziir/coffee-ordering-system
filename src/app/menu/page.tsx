@@ -3,13 +3,19 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { MenuBrowser } from "@/components/menu-browser";
 import { BranchGate } from "@/components/branch-picker";
+import { getMenu } from "@/lib/menu-store";
 
 export const metadata = {
   title: "Menu · Craffé",
   description: "Espresso, frappés, Thai tea, refreshers, cookies, and more. Order ahead.",
 };
 
-export default function MenuPage() {
+// The menu is edited from the admin screen, so render it per request rather than
+// baking it into the build.
+export const dynamic = "force-dynamic";
+
+export default async function MenuPage() {
+  const menu = await getMenu();
   return (
     <div className="flex min-h-[100dvh] flex-col">
       <SiteNav />
@@ -26,7 +32,7 @@ export default function MenuPage() {
 
       <main className="flex-1">
         <Suspense fallback={null}>
-          <MenuBrowser />
+          <MenuBrowser menu={menu} />
         </Suspense>
       </main>
 

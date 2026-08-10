@@ -26,6 +26,7 @@ import {
 } from "@/lib/branches";
 import { CHANNEL_LABEL } from "@/lib/types";
 import { signatureItems, peso } from "@/lib/menu";
+import { getMenu } from "@/lib/menu-store";
 import { clsx } from "@/lib/clsx";
 
 export const metadata = {
@@ -34,7 +35,10 @@ export const metadata = {
     "Both Craffé branches: East Rembo, Makati and Craffé by MYCC in Marilao. Hours, locations, and how to reach us.",
 };
 
-export default function ContactPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ContactPage() {
+  const signatures = signatureItems(await getMenu());
   const [flagship, partner] = BRANCH_LIST;
 
   return (
@@ -117,7 +121,7 @@ export default function ContactPage() {
                       className="absolute inset-x-0 bottom-[5.5rem] hidden lg:flex [mask-image:linear-gradient(to_right,transparent,#000_16%,#000_84%,transparent)]"
                       duration={46}
                     >
-                      {signatureItems().map((item) => (
+                      {signatures.map((item) => (
                         <span
                           key={item.id}
                           className="flex shrink-0 items-center gap-2 rounded-full border border-line bg-paper px-4 py-2 text-[13px] font-medium text-ink-soft"

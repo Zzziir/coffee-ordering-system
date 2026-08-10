@@ -6,21 +6,27 @@ import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { PlusIcon, BagIcon } from "@phosphor-icons/react";
 import {
-  CATEGORIES,
   itemsByCategory,
   getItem,
   peso,
   type MenuItem,
+  type MenuData,
 } from "@/lib/menu";
 import { CustomizeSheet } from "./customize-sheet";
 import { ItemThumb } from "./item-thumb";
 import { useCart } from "./cart-provider";
 import { clsx } from "@/lib/clsx";
 
-export function MenuBrowser() {
+export function MenuBrowser({ menu }: { menu: MenuData }) {
   const params = useSearchParams();
   const { addLine, count, subtotal, hydrated } = useCart();
-  const [active, setActive] = useState(CATEGORIES[0].id);
+
+  // Only show categories that have something available to order right now.
+  const categories = menu.categories.filter((c) =>
+    menu.items.some((i) => i.categoryId === c.id && i.available),
+  );
+
+  const [active, setActive] = useState(categories[0]?.id ?? "");
   const [sheetItem, setSheetItem] = useState<MenuItem | null>(null);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -29,10 +35,10 @@ export function MenuBrowser() {
   useEffect(() => {
     const id = params.get("item");
     if (id) {
-      const item = getItem(id);
-      if (item) setSheetItem(item);
+      const item = getItem(menu, id);
+      if (item?.available) setSheetItem(item);
     }
-  }, [params]);
+  }, [params, menu]);
 
   // Track which section is in view to highlight the tab.
   useEffect(() => {
@@ -68,7 +74,7 @@ export function MenuBrowser() {
       {/* Category rail */}
       <div className="sticky top-[72px] z-30 border-b border-line/70 bg-paper/90 backdrop-blur-md">
         <div className="no-scrollbar mx-auto flex max-w-[1280px] gap-2 overflow-x-auto px-5 py-3 lg:px-8">
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <button
               key={c.id}
               ref={(el) => {
@@ -90,8 +96,8 @@ export function MenuBrowser() {
 
       {/* Sections */}
       <div className="mx-auto max-w-[1280px] px-5 pb-32 pt-4 lg:px-8">
-        {CATEGORIES.map((cat) => {
-          const items = itemsByCategory(cat.id);
+        {categories.map((cat) => {
+          const items = itemsByCategory(menu, cat.id).filter((i) => i.available);
           return (
             <section
               key={cat.id}
@@ -181,6 +187,7 @@ export function MenuBrowser() {
       </AnimatePresence>
 
       <CustomizeSheet
+        menu={menu}
         item={sheetItem}
         onClose={() => setSheetItem(null)}
         onAdd={(payload) => {

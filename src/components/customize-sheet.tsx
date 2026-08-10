@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CheckIcon, MinusIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
-import type { MenuItem } from "@/lib/menu";
+import type { MenuItem, MenuData } from "@/lib/menu";
 import { addOnGroupsForItem, peso } from "@/lib/menu";
 import { ItemThumb } from "./item-thumb";
 import type { SelectedGroup } from "@/lib/types";
@@ -18,16 +18,21 @@ type AddPayload = {
 };
 
 export function CustomizeSheet({
+  menu,
   item,
   onClose,
   onAdd,
 }: {
+  menu: MenuData;
   item: MenuItem | null;
   onClose: () => void;
   onAdd: (payload: AddPayload) => void;
 }) {
   const reduce = useReducedMotion();
-  const groups = useMemo(() => (item ? addOnGroupsForItem(item) : []), [item]);
+  const groups = useMemo(
+    () => (item ? addOnGroupsForItem(menu, item) : []),
+    [menu, item],
+  );
   const [selected, setSelected] = useState<Record<string, Set<string>>>({});
   const [qty, setQty] = useState(1);
 
@@ -35,14 +40,14 @@ export function CustomizeSheet({
   useEffect(() => {
     if (!item) return;
     const init: Record<string, Set<string>> = {};
-    for (const g of addOnGroupsForItem(item)) {
+    for (const g of addOnGroupsForItem(menu, item)) {
       init[g.id] = new Set(
         g.type === "single" && g.defaultOptionId ? [g.defaultOptionId] : [],
       );
     }
     setSelected(init);
     setQty(1);
-  }, [item]);
+  }, [menu, item]);
 
   // Lock body scroll while open.
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { getItem, menuForPrompt } from "@/lib/menu";
+import { getItem, menuForPrompt, type MenuData } from "@/lib/menu";
+import { getMenu } from "@/lib/menu-store";
 import { branchesForPrompt } from "@/lib/branches";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,9 @@ type ProductCard = {
   quantity?: number;
 };
 
-const SYSTEM = `You are the friendly barista behind "Ask Craffé", the chat assistant for Craffé Coffee (Philippines).
+// Built per request: the menu is admin-editable and loaded from the database.
+function buildSystem(menu: MenuData): string {
+  return `You are the friendly barista behind "Ask Craffé", the chat assistant for Craffé Coffee (Philippines).
 
 Craffé is not one shop. There are two branches, and they differ:
 
@@ -47,18 +50,22 @@ Rules:
 
 Here is the full current menu (use these exact ids in markers):
 
-${menuForPrompt()}`;
+${menuForPrompt(menu)}`;
+}
 
 const MARKER = /\[\[(show|add):([a-z0-9-]+)(?:\|(\d+))?\]\]/g;
 
-function parseMarkers(raw: string): { text: string; products: ProductCard[] } {
+function parseMarkers(
+  raw: string,
+  menu: MenuData,
+): { text: string; products: ProductCard[] } {
   const products: ProductCard[] = [];
   const seen = new Map<string, ProductCard>();
 
   let m: RegExpExecArray | null;
   while ((m = MARKER.exec(raw)) !== null) {
     const [, kind, id, qty] = m;
-    const item = getItem(id);
+    const item = getItem(menu, id);
     if (!item) continue;
     const action = kind === "add" ? "add" : "recommend";
     const card: ProductCard = {
@@ -108,10 +115,11 @@ export async function POST(req: Request) {
   }
 
   try {
+    const menu = await getMenu();
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: "gemini-flash-latest",
-      systemInstruction: SYSTEM,
+      systemInstruction: buildSystem(menu),
     });
 
     const history = messages.slice(0, -1).map((m) => ({
@@ -130,7 +138,7 @@ export async function POST(req: Request) {
       raw = "";
     }
 
-    const { text, products } = parseMarkers(raw);
+    const { text, products } = parseMarkers(raw, menu);
     const reply =
       text ||
       (products.some((p) => p.action === "add")
