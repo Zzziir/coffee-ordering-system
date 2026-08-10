@@ -227,11 +227,12 @@ export default function HomePage() {
                 More than coffee. It&apos;s a little ritual.
               </h2>
               <p className="mt-5 max-w-[46ch] text-[16px] leading-relaxed text-paper/70">
-                Craffé started as a neighborhood window on 15th Ave with one
-                idea: seriously good coffee, served warm and fast, for the people
-                right around us. A second shop later, that&apos;s still the whole
-                plan — freshly pulled espresso, house syrups, and a menu
-                we&apos;re always tinkering with.
+                Craffé started as a tiny shop in Barangay Rizal, Makati, back
+                then called Craffé 1004, with one idea: seriously good coffee,
+                served warm and fast, for the people right around us. Two
+                branches later, that&apos;s still the whole plan: freshly pulled
+                espresso, house syrups, and a menu we&apos;re always tinkering
+                with.
               </p>
               <Link
                 href="/story"

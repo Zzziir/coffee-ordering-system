@@ -12,8 +12,8 @@ import { Reveal } from "@/components/reveal";
 import { ChatLauncher } from "@/components/chat/chat-launcher";
 
 export const metadata = {
-  title: "Our Story — Craffé",
-  description: "How Craffé grew from one neighborhood window into a whole latte love.",
+  title: "Our Story · Craffé",
+  description: "How Craffé grew from one neighborhood shop into a whole latte love.",
 };
 
 export default function StoryPage() {
@@ -31,10 +31,11 @@ export default function StoryPage() {
             More than coffee. It&apos;s a little ritual.
           </h1>
           <p className="mx-auto mt-6 max-w-[54ch] text-[18px] leading-relaxed text-ink-soft">
-            Craffé began as a single takeout window on 15th Ave, with one idea:
+            Craffé started as a tiny coffee shop in Barangay Rizal, Makati.
+            Back then we went by Craffé 1004, one counter with a single idea:
             seriously good coffee, served warm and fast, for the neighborhood
-            right around us. A second shop later, that hasn&apos;t changed —
-            there are just more tables to sit at.
+            right around us. That hasn&apos;t changed. There are just more
+            counters to line up at now.
           </p>
         </section>
 
@@ -56,7 +57,7 @@ export default function StoryPage() {
         <section className="mx-auto grid max-w-[1080px] gap-10 px-5 py-8 lg:grid-cols-2 lg:gap-16 lg:px-8">
           <Reveal>
             <h2 className="text-[clamp(1.7rem,3vw,2.25rem)] font-bold leading-tight tracking-tight text-ink">
-              From one window to a whole lot of love
+              From one little shop to a whole lot of love
             </h2>
           </Reveal>
           <Reveal delay={0.1} className="flex flex-col gap-4 text-[16px] leading-relaxed text-ink-soft">
@@ -66,11 +67,11 @@ export default function StoryPage() {
               they matter. Because they do.
             </p>
             <p>
-              What started as a grab-and-go window is now two shops — East Rembo
-              and Craffé by MYCC in Marilao — with dine-in seating and a
-              community of regulars who&apos;ve made Craffé part of their day.
-              We&apos;re still that same window at heart: warm, quick, and
-              genuinely glad you stopped by.
+              What started as Craffé 1004 in Barangay Rizal is now two branches,
+              Craffé East Rembo and Craffé by MYCC in Marilao, Bulacan, both with
+              dine-in seating and a community of regulars who&apos;ve made Craffé
+              part of their day. We&apos;re still that same little shop at heart:
+              warm, quick, and genuinely glad you stopped by.
             </p>
           </Reveal>
         </section>
