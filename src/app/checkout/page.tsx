@@ -16,6 +16,7 @@ import {
 import { SiteNav } from "@/components/site-nav";
 import { BranchGate } from "@/components/branch-picker";
 import { useCart } from "@/components/cart-provider";
+import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { describeLine, lineTotal } from "@/lib/cart";
 import { peso } from "@/lib/menu";
 import type { OrderChannel, PaymentMethod } from "@/lib/types";
@@ -89,16 +90,41 @@ export default function CheckoutPage() {
   const [phase, setPhase] = useState<"idle" | "paying" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
 
-  // Prefill from a previous order (guest-first, optional save).
+  // Prefill the details: a signed-in customer's profile first, otherwise the
+  // name and phone saved from a previous guest order.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(GUEST_KEY);
-      if (raw) {
-        const g = JSON.parse(raw);
-        if (g.name) setName(g.name);
-        if (g.phone) setPhone(g.phone);
+    const supabase = createBrowserSupabase();
+    let active = true;
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!active) return;
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("first_name, phone")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (!active) return;
+        if (data) {
+          setName(data.first_name);
+          setPhone(data.phone ?? "");
+          return;
+        }
       }
-    } catch {}
+      try {
+        const raw = localStorage.getItem(GUEST_KEY);
+        if (raw) {
+          const g = JSON.parse(raw);
+          if (g.name) setName(g.name);
+          if (g.phone) setPhone(g.phone);
+        }
+      } catch {}
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Keep the selection inside what this branch offers. Switching from East

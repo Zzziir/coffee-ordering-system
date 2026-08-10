@@ -9,22 +9,31 @@ import { clsx } from "@/lib/clsx";
 const STAMP_KEY = "craffe.stamps";
 const GOAL = 9;
 
-/** Digital "buy 9, get 1 free" card. Reads the local stamp count. */
-export function StampCard() {
-  const [stamps, setStamps] = useState<number | null>(null);
+/**
+ * Digital "buy 9, get 1 free" card.
+ *
+ * Signed-in customers pass a server-computed `stamps` count (one per drink they
+ * have bought). With no prop it falls back to the guest count in localStorage,
+ * which is how it renders for people who haven't made an account.
+ */
+export function StampCard({ stamps: stampsProp }: { stamps?: number } = {}) {
+  const [localStamps, setLocalStamps] = useState<number | null>(null);
+  const stamps = stampsProp ?? localStamps;
 
   useEffect(() => {
+    // When the count is supplied by the server, ignore local storage entirely.
+    if (stampsProp !== undefined) return;
     const read = () => {
       try {
-        setStamps(Number(localStorage.getItem(STAMP_KEY) || "0"));
+        setLocalStamps(Number(localStorage.getItem(STAMP_KEY) || "0"));
       } catch {
-        setStamps(0);
+        setLocalStamps(0);
       }
     };
     read();
     window.addEventListener("storage", read);
     return () => window.removeEventListener("storage", read);
-  }, []);
+  }, [stampsProp]);
 
   const filled = stamps ?? 0;
   const earned = Math.floor(filled / (GOAL + 1)); // free drinks unlocked

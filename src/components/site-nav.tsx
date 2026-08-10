@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { BagIcon, ListIcon, XIcon, ArrowRightIcon } from "@phosphor-icons/react";
+import { BagIcon, ListIcon, XIcon, ArrowRightIcon, UserIcon, GaugeIcon } from "@phosphor-icons/react";
 import { Wordmark } from "./brand";
 import { useCart } from "./cart-provider";
 import { BranchChip } from "./branch-picker";
+import { useAccountNav } from "./use-account-nav";
 import { clsx } from "@/lib/clsx";
 
 const LINKS = [
@@ -25,6 +26,8 @@ function isActive(pathname: string, href: string) {
 export function SiteNav() {
   const pathname = usePathname();
   const { count, hydrated } = useCart();
+  const account = useAccountNav();
+  const accountHref = account.isCustomer ? "/account" : "/account/sign-in";
   const [open, setOpen] = useState(false);
 
   // Close the mobile menu on route change.
@@ -92,6 +95,24 @@ export function SiteNav() {
             </span>
           </Link>
 
+          {account.isAdmin && (
+            <Link
+              href="/admin"
+              aria-label="Admin"
+              className="pressable grid size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk"
+            >
+              <GaugeIcon size={22} weight="regular" />
+            </Link>
+          )}
+
+          <Link
+            href={accountHref}
+            aria-label={account.isCustomer ? "Your account" : "Sign in"}
+            className="pressable grid size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk"
+          >
+            <UserIcon size={22} weight="regular" />
+          </Link>
+
           <Link
             href="/menu"
             className="pressable hidden h-11 items-center gap-1.5 rounded-full bg-ink pl-5 pr-4 text-[15px] font-semibold text-paper md:inline-flex"
@@ -153,6 +174,43 @@ export function SiteNav() {
                   </Link>
                 </motion.li>
               ))}
+
+              <motion.li
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.05 + LINKS.length * 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                className="mt-2 border-t border-line/70 pt-2"
+              >
+                <Link
+                  href={accountHref}
+                  className={clsx(
+                    "flex items-center gap-3 py-3 text-[28px] font-bold tracking-tight",
+                    isActive(pathname, "/account") ? "text-coffee" : "text-ink",
+                  )}
+                >
+                  <UserIcon size={26} weight="bold" />
+                  {account.isCustomer ? "Account" : "Sign in"}
+                </Link>
+              </motion.li>
+
+              {account.isAdmin && (
+                <motion.li
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 + (LINKS.length + 1) * 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                >
+                  <Link
+                    href="/admin"
+                    className={clsx(
+                      "flex items-center gap-3 py-3 text-[28px] font-bold tracking-tight",
+                      isActive(pathname, "/admin") ? "text-coffee" : "text-ink",
+                    )}
+                  >
+                    <GaugeIcon size={26} weight="bold" />
+                    Admin
+                  </Link>
+                </motion.li>
+              )}
             </ul>
             <div className="mt-auto p-5">
               <Link

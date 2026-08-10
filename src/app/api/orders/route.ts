@@ -3,6 +3,7 @@ import { createOrder, listActiveOrders, listAllOrders } from "@/lib/store";
 import { lineTotal } from "@/lib/cart";
 import { getBranch, isBranchId } from "@/lib/branches";
 import { canAccessBranch, getStaffMember } from "@/lib/staff";
+import { getCustomer } from "@/lib/customer";
 import type { OrderChannel, OrderLine, PaymentMethod, SelectedGroup } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -97,6 +98,11 @@ export async function POST(req: Request) {
     };
   });
 
+  // Attach the order to the signed-in customer, if there is one. Identity comes
+  // from the session cookie, never the request body — a guest simply has none,
+  // and their order stays anonymous.
+  const customer = await getCustomer();
+
   const order = await createOrder({
     branchId: branch.id,
     channel,
@@ -105,6 +111,7 @@ export async function POST(req: Request) {
     customerPhone: typeof b.customerPhone === "string" ? b.customerPhone : undefined,
     items,
     paymentMethod,
+    customerId: customer?.id,
   });
   return NextResponse.json({ order }, { status: 201 });
 }

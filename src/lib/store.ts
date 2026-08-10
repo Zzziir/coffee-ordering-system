@@ -143,6 +143,25 @@ export async function listActiveOrders(branchId: BranchId): Promise<Order[]> {
   return (data ?? []).map(toOrder);
 }
 
+/**
+ * A customer's own orders, newest first, across every branch.
+ *
+ * Runs on the service role and scopes to the caller's id in app code — the same
+ * pattern the rest of this file uses. The caller (the account page) has already
+ * resolved the id from the session, so a customer can only ever ask for theirs.
+ */
+export async function listCustomerOrders(customerId: string): Promise<Order[]> {
+  const { data, error } = await supabaseAdmin()
+    .from("orders")
+    .select(ORDER_SELECT)
+    .eq("customer_id", customerId)
+    .order("created_at", { ascending: false })
+    .returns<OrderRow[]>();
+
+  if (error) throw new Error(`Could not read your orders: ${error.message}`);
+  return (data ?? []).map(toOrder);
+}
+
 export async function listAllOrders(branchId: BranchId): Promise<Order[]> {
   const { data, error } = await supabaseAdmin()
     .from("orders")
@@ -152,6 +171,23 @@ export async function listAllOrders(branchId: BranchId): Promise<Order[]> {
     .returns<OrderRow[]>();
 
   if (error) throw new Error(`Could not read the ${branchId} history: ${error.message}`);
+  return (data ?? []).map(toOrder);
+}
+
+/**
+ * Every branch's orders, newest first, for the admin analytics screen. This is
+ * the one deliberately cross-branch read — it exists only behind the admin gate
+ * (owner/manager), never on a barista's branch-scoped board.
+ */
+export async function listRecentOrders(limit = 500): Promise<Order[]> {
+  const { data, error } = await supabaseAdmin()
+    .from("orders")
+    .select(ORDER_SELECT)
+    .order("created_at", { ascending: false })
+    .limit(limit)
+    .returns<OrderRow[]>();
+
+  if (error) throw new Error(`Could not read orders: ${error.message}`);
   return (data ?? []).map(toOrder);
 }
 
@@ -168,6 +204,8 @@ export type CreateOrderInput = {
   customerPhone?: string;
   items: OrderLine[];
   paymentMethod: PaymentMethod;
+  /** the signed-in customer this order belongs to, or undefined for a guest */
+  customerId?: string;
 };
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
@@ -186,6 +224,8 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     // pickup (advance_order flips it when the order completes).
     p_paid: input.paymentMethod !== "cash",
     p_lines: input.items,
+    // null for a guest; a uuid when the customer was signed in at checkout.
+    p_customer_id: input.customerId ?? null,
   });
 
   if (error) throw new Error(`Could not place the order: ${error.message}`);
