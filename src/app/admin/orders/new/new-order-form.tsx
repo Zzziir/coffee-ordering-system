@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
+import { MinusIcon, PlusIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { peso, type MenuData } from "@/lib/menu";
 import { BRANCH_LIST } from "@/lib/branches";
 import { PAYMENT_LABEL, type BranchId } from "@/lib/types";
@@ -19,6 +19,7 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
   const [branchId, setBranchId] = useState<BranchId>(BRANCH_LIST[0].id);
   const branch = BRANCH_LIST.find((b) => b.id === branchId)!;
   const [qtys, setQtys] = useState<Record<string, number>>({});
+  const [query, setQuery] = useState("");
 
   const available = useMemo(() => menu.items.filter((i) => i.available), [menu]);
 
@@ -29,6 +30,31 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
       else copy[id] = Math.min(20, next);
       return copy;
     });
+
+  // Items already added stay pinned at the top so searching never hides them.
+  const selectedItems = available.filter((i) => (qtys[i.id] ?? 0) > 0);
+  const q = query.trim().toLowerCase();
+  const catalog = menu.categories
+    .map((cat) => ({
+      cat,
+      items: available.filter(
+        (i) =>
+          i.categoryId === cat.id &&
+          (qtys[i.id] ?? 0) === 0 &&
+          (!q || i.name.toLowerCase().includes(q)),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
+
+  const renderRow = (item: (typeof available)[number]) => (
+    <div key={item.id} className="flex items-center gap-3">
+      <span className="min-w-0 flex-1 truncate text-[14.5px] text-ink">
+        {item.name}
+        <span className="ml-2 text-[12.5px] text-ink-soft">{peso(item.price)}</span>
+      </span>
+      <Stepper qty={qtys[item.id] ?? 0} onChange={(n) => set(item.id, n)} />
+    </div>
+  );
 
   const total = available.reduce((sum, i) => sum + (qtys[i.id] ?? 0) * i.price, 0);
   const count = Object.values(qtys).reduce((n, q) => n + q, 0);
@@ -72,34 +98,50 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
 
       <div>
         <p className="text-[15px] font-semibold text-ink">Items</p>
-        <div className="mt-3 flex max-h-[46vh] flex-col gap-6 overflow-y-auto rounded-[var(--radius-md)] border border-line bg-paper-raised p-4">
-          {menu.categories.map((cat) => {
-            const items = available.filter((i) => i.categoryId === cat.id);
-            if (items.length === 0) return null;
-            return (
+        <div className="mt-3 rounded-[var(--radius-md)] border border-line bg-paper-raised">
+          <div className="border-b border-line p-3">
+            <div className="relative">
+              <MagnifyingGlassIcon
+                size={17}
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
+              />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search items..."
+                aria-label="Search items"
+                className="h-11 w-full rounded-full border border-line bg-paper pl-10 pr-4 text-[14.5px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee"
+              />
+            </div>
+          </div>
+
+          <div className="flex max-h-[42vh] flex-col gap-6 overflow-y-auto p-4">
+            {selectedItems.length > 0 && (
+              <section>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-coffee">
+                  In this order
+                </h3>
+                <div className="mt-2 flex flex-col gap-1.5">
+                  {selectedItems.map(renderRow)}
+                </div>
+              </section>
+            )}
+
+            {catalog.map(({ cat, items }) => (
               <section key={cat.id}>
                 <h3 className="text-[13px] font-semibold uppercase tracking-wide text-ink-faint">
                   {cat.name}
                 </h3>
-                <div className="mt-2 flex flex-col gap-1.5">
-                  {items.map((item) => {
-                    const qty = qtys[item.id] ?? 0;
-                    return (
-                      <div key={item.id} className="flex items-center gap-3">
-                        <span className="min-w-0 flex-1 truncate text-[14.5px] text-ink">
-                          {item.name}
-                          <span className="ml-2 text-[12.5px] text-ink-soft">
-                            {peso(item.price)}
-                          </span>
-                        </span>
-                        <Stepper qty={qty} onChange={(n) => set(item.id, n)} />
-                      </div>
-                    );
-                  })}
-                </div>
+                <div className="mt-2 flex flex-col gap-1.5">{items.map(renderRow)}</div>
               </section>
-            );
-          })}
+            ))}
+
+            {catalog.length === 0 && (
+              <p className="py-6 text-center text-[14px] text-ink-soft">
+                {q ? `No items match "${query.trim()}".` : "No items available."}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
