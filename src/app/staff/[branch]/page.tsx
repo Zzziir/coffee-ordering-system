@@ -5,8 +5,9 @@ import { BranchLockup } from "@/components/branch-lockup";
 import { StaffQueue } from "@/components/staff-queue";
 import { ensureDemoSeed, listActiveOrders } from "@/lib/store";
 import { getBranch, isBranchId } from "@/lib/branches";
-import { canAccessBranch, getStaffMember, landingPath } from "@/lib/staff";
+import { canAccessBranch, getStaffMember, isAdmin, landingPath } from "@/lib/staff";
 import { SignOutButton } from "../sign-out-button";
+import { AdminLink } from "../admin-link";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,7 @@ export default async function StaffBranchPage({
               </span>
               Live
             </span>
+            {isAdmin(staff) && <AdminLink />}
             <SignOutButton name={staff.name} />
           </div>
         </div>

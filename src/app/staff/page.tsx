@@ -3,8 +3,9 @@ import { redirect } from "next/navigation";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Wordmark } from "@/components/brand";
 import { BRANCH_LIST, branchFullName, openStatusLabel } from "@/lib/branches";
-import { getStaffMember, landingPath } from "@/lib/staff";
+import { getStaffMember, isAdmin, landingPath } from "@/lib/staff";
 import { SignOutButton } from "./sign-out-button";
+import { AdminLink } from "./admin-link";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,10 @@ export default async function StaffIndexPage() {
               Owner view
             </span>
           </div>
-          <SignOutButton name={staff.name} />
+          <div className="flex items-center gap-3">
+            {isAdmin(staff) && <AdminLink />}
+            <SignOutButton name={staff.name} />
+          </div>
         </div>
       </header>
 
