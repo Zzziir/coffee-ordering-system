@@ -1,17 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
+import { GalleryGrid, type GalleryPhoto } from "@/components/gallery-grid";
 import { ChatLauncher } from "@/components/chat/chat-launcher";
 
 export const metadata = {
-  title: "Gallery — Craffé",
+  title: "Gallery · Craffé",
   description: "Drinks, pastries, and moments from the Craffé window.",
 };
 
-const PHOTOS = [
+const PHOTOS: GalleryPhoto[] = [
   { src: "/brand/hero-drinks.jpg", alt: "Three Craffé signature drinks in warm light", span: "lg:col-span-2 lg:row-span-2", ratio: "aspect-[4/5] lg:aspect-auto" },
   { src: "/brand/storefront-day.jpg", alt: "The Craffé storefront by day", span: "", ratio: "aspect-[4/3]" },
   { src: "/brand/truffles.jpg", alt: "Trays of dusted chocolate truffles", span: "", ratio: "aspect-[4/3]" },
@@ -39,23 +39,7 @@ export default function GalleryPage() {
         </section>
 
         <section className="mx-auto max-w-[1280px] px-5 py-10 lg:px-8">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4">
-            {PHOTOS.map((p, i) => (
-              <Reveal
-                key={p.src + i}
-                delay={(i % 3) * 0.06}
-                className={`relative overflow-hidden rounded-[var(--radius-md)] ${p.span} ${p.ratio}`}
-              >
-                <Image
-                  src={p.src}
-                  alt={p.alt}
-                  fill
-                  sizes="(max-width: 1024px) 50vw, 400px"
-                  className="object-cover transition-transform duration-500 hover:scale-105"
-                />
-              </Reveal>
-            ))}
-          </div>
+          <GalleryGrid photos={PHOTOS} />
         </section>
 
         <section className="mx-auto max-w-[820px] px-5 py-16 text-center">
