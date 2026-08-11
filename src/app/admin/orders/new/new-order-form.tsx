@@ -138,12 +138,12 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
         />
       </Field>
 
-      <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr] lg:items-start">
+      <div className="grid gap-4 lg:h-[60vh] lg:grid-cols-[1.35fr_1fr]">
         {/* Picker: search the catalog and tap to configure */}
-        <div>
+        <div className="flex flex-col lg:h-full">
           <p className="text-[15px] font-semibold text-ink">Items</p>
-          <div className="mt-3 rounded-[var(--radius-md)] border border-line bg-paper-raised">
-            <div className="border-b border-line p-3">
+          <div className="mt-3 flex flex-col rounded-[var(--radius-md)] border border-line bg-paper-raised lg:min-h-0 lg:flex-1">
+            <div className="shrink-0 border-b border-line p-3">
               <div className="relative">
                 <MagnifyingGlassIcon
                   size={17}
@@ -159,7 +159,7 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
               </div>
             </div>
 
-            <div className="flex max-h-[52vh] flex-col gap-6 overflow-y-auto p-4">
+            <div className="flex max-h-[52vh] flex-col gap-6 overflow-y-auto p-4 lg:max-h-none lg:min-h-0 lg:flex-1">
               {catalog.map(({ cat, items }) => (
                 <section key={cat.id}>
                   <h3 className="text-[13px] font-semibold uppercase tracking-wide text-ink-faint">
@@ -197,8 +197,8 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
           </div>
         </div>
 
-        {/* Order summary: always in view, pinned alongside the picker on desktop */}
-        <div>
+        {/* Order summary: matches the picker's height, scrolls on its own */}
+        <div className="flex flex-col lg:h-full">
           <div className="flex items-baseline justify-between">
             <p className="text-[15px] font-semibold text-ink">In this order</p>
             {count > 0 && (
@@ -207,13 +207,15 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
               </span>
             )}
           </div>
-          <div className="mt-3 rounded-[var(--radius-md)] border border-line bg-paper-raised lg:sticky lg:top-28">
+          <div className="mt-3 flex flex-col rounded-[var(--radius-md)] border border-line bg-paper-raised lg:min-h-0 lg:flex-1">
             {lines.length === 0 ? (
-              <p className="px-4 py-12 text-center text-[14px] text-ink-soft">
-                No items yet. Search on the left and tap to add.
-              </p>
+              <div className="grid place-items-center px-4 py-12 lg:flex-1">
+                <p className="text-center text-[14px] text-ink-soft">
+                  No items yet. Search on the left and tap to add.
+                </p>
+              </div>
             ) : (
-              <div className="flex max-h-[52vh] flex-col divide-y divide-line overflow-y-auto">
+              <div className="flex max-h-[52vh] flex-col divide-y divide-line overflow-y-auto lg:max-h-none lg:min-h-0 lg:flex-1">
                 {lines.map((line) => (
                   <div key={line.id} className="flex items-start gap-3 px-4 py-3">
                     <div className="min-w-0 flex-1">
