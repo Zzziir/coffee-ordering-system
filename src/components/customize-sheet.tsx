@@ -128,6 +128,7 @@ export function CustomizeSheet({
         >
           {/* Backdrop */}
           <button
+            type="button"
             aria-label="Close"
             onClick={onClose}
             className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]"
@@ -148,6 +149,7 @@ export function CustomizeSheet({
             <div className="relative shrink-0 pt-3">
               <span className="mx-auto block h-1.5 w-10 rounded-full bg-line-strong" />
               <button
+                type="button"
                 onClick={onClose}
                 aria-label="Close"
                 className="pressable absolute right-3 top-2 grid size-9 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk"
@@ -194,6 +196,7 @@ export function CustomizeSheet({
                       return (
                         <button
                           key={o.id}
+                          type="button"
                           onClick={() => toggle(g.id, o.id, g.type)}
                           className={clsx(
                             "pressable flex items-center justify-between rounded-[var(--radius-sm)] border px-4 py-3 text-left transition-colors duration-150",
@@ -235,6 +238,7 @@ export function CustomizeSheet({
                 <h3 className="text-[15px] font-semibold text-ink">Quantity</h3>
                 <div className="flex items-center gap-1 rounded-full border border-line bg-paper-raised p-1">
                   <button
+                    type="button"
                     onClick={() => setQty((q) => Math.max(1, q - 1))}
                     disabled={qty <= 1}
                     aria-label="Decrease quantity"
@@ -246,6 +250,7 @@ export function CustomizeSheet({
                     {qty}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setQty((q) => Math.min(20, q + 1))}
                     aria-label="Increase quantity"
                     className="pressable grid size-9 place-items-center rounded-full text-ink"
@@ -259,6 +264,7 @@ export function CustomizeSheet({
             {/* Sticky add button */}
             <div className="shrink-0 border-t border-line bg-paper px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
               <button
+                type="button"
                 onClick={handleAdd}
                 className="pressable flex h-14 w-full items-center justify-between rounded-full bg-ink px-6 text-[16px] font-semibold text-paper"
               >
