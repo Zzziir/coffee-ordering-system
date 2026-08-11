@@ -113,23 +113,22 @@ html.dark .dashboard-surface {
 }
 
 /* The theme toggle reveals the new theme with a circular clip-path wipe from the
-   button (see components/animated-theme-toggler). Driving it from a keyframe on
-   the pseudo-element — rather than a WAAPI animation attached after ready —
-   keeps the transition alive for the whole wipe, so it can't finish early and
-   snap. The button feeds its centre and radius in via these variables. */
+   button (see components/animated-theme-toggler). The visible clip is driven by
+   the Web Animations API off the button's exact centre; this keep-alive keyframe
+   only holds the new snapshot fully painted for the same duration, so the
+   transition can't finish and tear the pseudo-elements down before the wipe
+   completes (which was making it snap). The old snapshot stays put underneath. */
 ::view-transition-old(root) {
   animation: none;
 }
 ::view-transition-new(root) {
-  animation: craffe-theme-reveal 640ms var(--ease-out);
+  animation: craffe-theme-hold 640ms linear;
   mix-blend-mode: normal;
 }
-@keyframes craffe-theme-reveal {
-  from {
-    clip-path: circle(0% at var(--theme-x, 50%) var(--theme-y, 50%));
-  }
+@keyframes craffe-theme-hold {
+  from,
   to {
-    clip-path: circle(var(--theme-r, 150%) at var(--theme-x, 50%) var(--theme-y, 50%));
+    opacity: 1;
   }
 }
 

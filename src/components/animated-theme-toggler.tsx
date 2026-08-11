@@ -53,8 +53,7 @@ export function AnimatedThemeToggler({ className }: { className?: string }) {
       return;
     }
 
-    // Feed the wipe's centre (this button) and the radius that reaches the
-    // farthest corner into the CSS keyframe on ::view-transition-new(root).
+    // The wipe grows from this button's exact centre out to the farthest corner.
     const { top, left, width, height } = ref.current.getBoundingClientRect();
     const x = left + width / 2;
     const y = top + height / 2;
@@ -62,12 +61,24 @@ export function AnimatedThemeToggler({ className }: { className?: string }) {
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y),
     );
-    const root = document.documentElement.style;
-    root.setProperty("--theme-x", `${x}px`);
-    root.setProperty("--theme-y", `${y}px`);
-    root.setProperty("--theme-r", `${radius}px`);
 
-    doc.startViewTransition(() => flushSync(() => apply(next)));
+    const transition = doc.startViewTransition(() => flushSync(() => apply(next)));
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${radius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 640,
+          easing: "cubic-bezier(0.23, 1, 0.32, 1)",
+          fill: "forwards",
+          pseudoElement: "::view-transition-new(root)",
+        },
+      );
+    });
   };
 
   return (
