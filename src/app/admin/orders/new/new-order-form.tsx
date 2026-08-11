@@ -259,8 +259,8 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
       )}
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center gap-4">
-          <div className="flex-1">
+        <div className="mx-auto flex max-w-5xl items-center justify-end gap-4">
+          <div className="text-right">
             <p className="text-[12.5px] text-ink-soft">
               {count} {count === 1 ? "item" : "items"}
             </p>
