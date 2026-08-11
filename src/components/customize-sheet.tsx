@@ -22,11 +22,14 @@ export function CustomizeSheet({
   item,
   onClose,
   onAdd,
+  addLabel = "Add to bag",
 }: {
   menu: MenuData;
   item: MenuItem | null;
   onClose: () => void;
   onAdd: (payload: AddPayload) => void;
+  /** Primary button copy. The customer adds to their bag; staff add to the order. */
+  addLabel?: string;
 }) {
   const reduce = useReducedMotion();
   const groups = useMemo(
@@ -259,7 +262,7 @@ export function CustomizeSheet({
                 onClick={handleAdd}
                 className="pressable flex h-14 w-full items-center justify-between rounded-full bg-ink px-6 text-[16px] font-semibold text-paper"
               >
-                <span>Add to bag</span>
+                <span>{addLabel}</span>
                 <span className="tabular-nums">{peso(unit * qty)}</span>
               </button>
             </div>

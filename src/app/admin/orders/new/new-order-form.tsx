@@ -4,9 +4,17 @@ import { useMemo, useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { MinusIcon, PlusIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
-import { peso, type MenuData } from "@/lib/menu";
+import { peso, type MenuData, type MenuItem } from "@/lib/menu";
 import { BRANCH_LIST } from "@/lib/branches";
 import { PAYMENT_LABEL, type BranchId } from "@/lib/types";
+import {
+  cartCount,
+  cartSubtotal,
+  describeLine,
+  lineTotal,
+  type CartLine,
+} from "@/lib/cart";
+import { CustomizeSheet } from "@/components/customize-sheet";
 import { logOrder, type LogOrderState } from "./actions";
 import { clsx } from "@/lib/clsx";
 
@@ -18,48 +26,46 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
 
   const [branchId, setBranchId] = useState<BranchId>(BRANCH_LIST[0].id);
   const branch = BRANCH_LIST.find((b) => b.id === branchId)!;
-  const [qtys, setQtys] = useState<Record<string, number>>({});
+  const [lines, setLines] = useState<CartLine[]>([]);
+  const [sheetItem, setSheetItem] = useState<MenuItem | null>(null);
   const [query, setQuery] = useState("");
 
   const available = useMemo(() => menu.items.filter((i) => i.available), [menu]);
 
-  const set = (id: string, next: number) =>
-    setQtys((prev) => {
-      const copy = { ...prev };
-      if (next <= 0) delete copy[id];
-      else copy[id] = Math.min(20, next);
-      return copy;
-    });
+  const addLine = (line: Omit<CartLine, "id">) =>
+    setLines((prev) => [...prev, { ...line, id: crypto.randomUUID() }]);
 
-  // Items already added stay pinned at the top so searching never hides them.
-  const selectedItems = available.filter((i) => (qtys[i.id] ?? 0) > 0);
+  const setQty = (id: string, next: number) =>
+    setLines((prev) =>
+      next <= 0
+        ? prev.filter((l) => l.id !== id)
+        : prev.map((l) => (l.id === id ? { ...l, qty: Math.min(20, next) } : l)),
+    );
+
   const q = query.trim().toLowerCase();
   const catalog = menu.categories
     .map((cat) => ({
       cat,
       items: available.filter(
-        (i) =>
-          i.categoryId === cat.id &&
-          (qtys[i.id] ?? 0) === 0 &&
-          (!q || i.name.toLowerCase().includes(q)),
+        (i) => i.categoryId === cat.id && (!q || i.name.toLowerCase().includes(q)),
       ),
     }))
     .filter((group) => group.items.length > 0);
 
-  const renderRow = (item: (typeof available)[number]) => (
-    <div key={item.id} className="flex items-center gap-3">
-      <span className="min-w-0 flex-1 truncate text-[14.5px] text-ink">
-        {item.name}
-        <span className="ml-2 text-[12.5px] text-ink-soft">{peso(item.price)}</span>
-      </span>
-      <Stepper qty={qtys[item.id] ?? 0} onChange={(n) => set(item.id, n)} />
-    </div>
-  );
+  const total = cartSubtotal(lines);
+  const count = cartCount(lines);
 
-  const total = available.reduce((sum, i) => sum + (qtys[i.id] ?? 0) * i.price, 0);
-  const count = Object.values(qtys).reduce((n, q) => n + q, 0);
+  // Only ids cross the wire; the server re-reads every name and price from the
+  // menu, so the form can never talk the till into the wrong total.
   const payload = JSON.stringify(
-    Object.entries(qtys).map(([itemId, qty]) => ({ itemId, qty })),
+    lines.map((l) => ({
+      itemId: l.itemId,
+      qty: l.qty,
+      selections: l.groups.map((g) => ({
+        groupId: g.groupId,
+        optionIds: g.addOns.map((a) => a.id),
+      })),
+    })),
   );
 
   return (
@@ -116,13 +122,28 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
           </div>
 
           <div className="flex max-h-[42vh] flex-col gap-6 overflow-y-auto p-4">
-            {selectedItems.length > 0 && (
+            {lines.length > 0 && (
               <section>
                 <h3 className="text-[13px] font-semibold uppercase tracking-wide text-coffee">
                   In this order
                 </h3>
-                <div className="mt-2 flex flex-col gap-1.5">
-                  {selectedItems.map(renderRow)}
+                <div className="mt-2 flex flex-col gap-3">
+                  {lines.map((line) => (
+                    <div key={line.id} className="flex items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[14.5px] text-ink">{line.name}</p>
+                        {describeLine(line) && (
+                          <p className="mt-0.5 text-[12.5px] text-ink-soft">
+                            {describeLine(line)}
+                          </p>
+                        )}
+                        <p className="mt-0.5 text-[12.5px] font-medium tabular-nums text-ink-soft">
+                          {peso(lineTotal(line))}
+                        </p>
+                      </div>
+                      <Stepper qty={line.qty} onChange={(n) => setQty(line.id, n)} />
+                    </div>
+                  ))}
                 </div>
               </section>
             )}
@@ -132,7 +153,26 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
                 <h3 className="text-[13px] font-semibold uppercase tracking-wide text-ink-faint">
                   {cat.name}
                 </h3>
-                <div className="mt-2 flex flex-col gap-1.5">{items.map(renderRow)}</div>
+                <div className="mt-2 flex flex-col gap-1">
+                  {items.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setSheetItem(item)}
+                      className="pressable flex items-center gap-3 rounded-[var(--radius-sm)] px-2 py-1.5 text-left transition-colors hover:bg-paper-sunk"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-[14.5px] text-ink">
+                        {item.name}
+                        <span className="ml-2 text-[12.5px] text-ink-soft">
+                          {peso(item.price)}
+                        </span>
+                      </span>
+                      <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-ink">
+                        <PlusIcon size={15} weight="bold" />
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </section>
             ))}
 
@@ -165,6 +205,19 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
           <SubmitButton disabled={count === 0} />
         </div>
       </div>
+
+      {/* Same customize step the customer uses, so sizes, milk, and extras are
+          captured identically. Staff add to the order rather than a bag. */}
+      <CustomizeSheet
+        menu={menu}
+        item={sheetItem}
+        onClose={() => setSheetItem(null)}
+        onAdd={(payload) => {
+          addLine(payload);
+          setSheetItem(null);
+        }}
+        addLabel="Add to order"
+      />
     </form>
   );
 }
@@ -180,9 +233,8 @@ function Stepper({ qty, onChange }: { qty: number; onChange: (n: number) => void
       <button
         type="button"
         onClick={() => onChange(qty - 1)}
-        disabled={qty === 0}
         aria-label="Remove one"
-        className="pressable grid size-8 place-items-center rounded-full text-ink disabled:opacity-25"
+        className="pressable grid size-8 place-items-center rounded-full text-ink"
       >
         <MinusIcon size={15} weight="bold" />
       </button>

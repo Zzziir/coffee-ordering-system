@@ -4,9 +4,17 @@ import { redirect } from "next/navigation";
 import { getStaffMember, isAdmin } from "@/lib/staff";
 import { getBranch, isBranchId } from "@/lib/branches";
 import { getMenu } from "@/lib/menu-store";
-import { getItem } from "@/lib/menu";
+import { getItem, addOnGroupsForItem, type AddOn } from "@/lib/menu";
 import { createOrder } from "@/lib/store";
-import type { OrderLine, PaymentMethod } from "@/lib/types";
+import { lineTotal } from "@/lib/cart";
+import type { OrderLine, PaymentMethod, SelectedGroup } from "@/lib/types";
+
+/** What the form sends per line: an item, a quantity, and the ids it chose. */
+type ItemPick = {
+  itemId: string;
+  qty: number;
+  selections?: { groupId: string; optionIds: string[] }[];
+};
 
 /**
  * Logs an in-store / physical sale the admin rings up by hand. It's a normal
@@ -35,7 +43,7 @@ export async function logOrder(
 
   const customerName = String(formData.get("customerName") ?? "").trim() || "Walk-in";
 
-  let picks: { itemId: string; qty: number }[];
+  let picks: ItemPick[];
   try {
     picks = JSON.parse(String(formData.get("payload") ?? "[]"));
   } catch {
@@ -48,15 +56,33 @@ export async function logOrder(
     const qty = Math.max(0, Math.min(20, Math.floor(Number(p.qty) || 0)));
     if (qty === 0) return;
     const item = getItem(menu, p.itemId);
-    if (!item) return;
+    if (!item || !item.available) return;
+
+    // Re-resolve every chosen modifier from the menu: the form sends only ids,
+    // and each add-on's name and price are read here, never trusted from it. A
+    // group that doesn't apply to the item, or an unknown option, is dropped.
+    const allowed = new Map(addOnGroupsForItem(menu, item).map((g) => [g.id, g]));
+    const groups: SelectedGroup[] = [];
+    for (const sel of p.selections ?? []) {
+      const group = allowed.get(sel.groupId);
+      if (!group) continue;
+      const addOns = (sel.optionIds ?? [])
+        .map((id) => group.options.find((o) => o.id === id))
+        .filter((o): o is AddOn => Boolean(o))
+        .map((o) => ({ id: o.id, name: o.name, price: o.price }));
+      if (addOns.length > 0) {
+        groups.push({ groupId: group.id, groupName: group.name, addOns });
+      }
+    }
+
     items.push({
       id: `line_${i}`,
       itemId: item.id,
       name: item.name,
       basePrice: item.price,
       qty,
-      groups: [],
-      lineTotal: item.price * qty,
+      groups,
+      lineTotal: lineTotal({ basePrice: item.price, groups, qty }),
     });
   });
 
