@@ -4,6 +4,7 @@ import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Wordmark } from "@/components/brand";
 import { BRANCH_LIST, branchFullName, openStatusLabel } from "@/lib/branches";
 import { ViewSwitch } from "@/components/view-switch";
+import { AnimatedThemeToggler } from "@/components/animated-theme-toggler";
 import { getStaffMember, isAdmin, landingPath } from "@/lib/staff";
 import { SignOutButton } from "./sign-out-button";
 
@@ -19,7 +20,7 @@ export default async function StaffIndexPage() {
   if (staff.branchId) redirect(landingPath(staff));
 
   return (
-    <div className="min-h-[100dvh]">
+    <div className="dashboard-surface min-h-[100dvh]">
       <header className="border-b border-line/70">
         <div className="mx-auto flex h-16 max-w-2xl items-center justify-between gap-3 px-4 md:px-6">
           <div className="flex items-center gap-3">
@@ -30,6 +31,7 @@ export default async function StaffIndexPage() {
           </div>
           <div className="flex items-center gap-3">
             {isAdmin(staff) && <ViewSwitch current="staff" staffHref={landingPath(staff)} />}
+            <AnimatedThemeToggler />
             <SignOutButton name={staff.name} />
           </div>
         </div>

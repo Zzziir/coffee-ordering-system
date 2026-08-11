@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Wordmark } from "@/components/brand";
 import { ViewSwitch } from "@/components/view-switch";
+import { AnimatedThemeToggler } from "@/components/animated-theme-toggler";
 import { getStaffMember, isAdmin, landingPath } from "@/lib/staff";
 import { SignOutButton } from "../staff/sign-out-button";
 import { AdminNav } from "./admin-nav";
@@ -23,7 +24,7 @@ export default async function AdminLayout({
   if (!isAdmin(staff)) redirect(landingPath(staff));
 
   return (
-    <div className="flex min-h-[100dvh] flex-col">
+    <div className="dashboard-surface flex min-h-[100dvh] flex-col">
       <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
           <Link href="/admin" className="pressable flex items-center gap-2.5">
@@ -34,6 +35,7 @@ export default async function AdminLayout({
           </Link>
           <div className="flex items-center gap-3">
             <ViewSwitch current="admin" staffHref={landingPath(staff)} />
+            <AnimatedThemeToggler />
             <SignOutButton name={staff.name} />
           </div>
         </div>

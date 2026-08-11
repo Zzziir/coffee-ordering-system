@@ -72,6 +72,54 @@ body {
   overscroll-behavior-y: none;
 }
 
+/*
+  Dark mode is scoped to the staff / admin dashboard only — the customer-facing
+  brand pages stay locked to the warm-light world above (Section 4.11). The
+  dashboard wraps its shell in `.dashboard-surface`; when `.dark` is on <html>,
+  we redefine the design tokens *inside* that surface, so every `bg-paper`,
+  `text-ink`, etc. flips without a single `dark:` utility, while anything outside
+  the dashboard is untouched.
+*/
+.dashboard-surface {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+html.dark .dashboard-surface {
+  color-scheme: dark;
+
+  --color-paper: #1b1a17;
+  --color-paper-raised: #26241f;
+  --color-paper-sunk: #131210;
+
+  --color-ink: #f1ece2;
+  --color-ink-soft: #b3aa9b;
+  --color-ink-faint: #827a6d;
+
+  --color-coffee: #cba071;
+  --color-coffee-deep: #ddbd95;
+  --color-coffee-tint: #322a20;
+
+  --color-line: #343029;
+  --color-line-strong: #47423a;
+
+  --color-ready: #58a674;
+  --color-ready-tint: #20302a;
+  --color-warn: #d68d54;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.36);
+  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.5);
+  --shadow-pop: 0 4px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* The theme toggle drives its own circular clip-path reveal (see
+   components/animated-theme-toggler), so silence the default root cross-fade. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 /* Pressable feedback — global reflex (Emil): elements that respond to touch
    scale down subtly. Applied via the .pressable utility. */
 .pressable {

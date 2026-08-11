@@ -5,6 +5,7 @@ import { BranchLockup } from "@/components/branch-lockup";
 import { BranchSwitch } from "@/components/branch-switch";
 import { StaffQueue } from "@/components/staff-queue";
 import { ViewSwitch } from "@/components/view-switch";
+import { AnimatedThemeToggler } from "@/components/animated-theme-toggler";
 import { ensureDemoSeed, listActiveOrders } from "@/lib/store";
 import { getBranch, isBranchId } from "@/lib/branches";
 import { canAccessBranch, getStaffMember, isAdmin, landingPath } from "@/lib/staff";
@@ -40,7 +41,7 @@ export default async function StaffBranchPage({
   const orders = await listActiveOrders(branch.id);
 
   return (
-    <div className="min-h-[100dvh]">
+    <div className="dashboard-surface min-h-[100dvh]">
       <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-3">
@@ -64,6 +65,7 @@ export default async function StaffBranchPage({
               Live
             </span>
             {isAdmin(staff) && <ViewSwitch current="staff" staffHref={landingPath(staff)} />}
+            <AnimatedThemeToggler />
             <SignOutButton name={staff.name} />
           </div>
         </div>

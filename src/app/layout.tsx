@@ -25,12 +25,18 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
+// Applies the saved dashboard theme before first paint, so a staff member who
+// chose dark never sees a light flash on reload. Dark styling is scoped to the
+// dashboard (.dashboard-surface), so this class is inert on customer pages.
+const THEME_INIT = `try{if(localStorage.getItem('craffe-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${outfit.variable} h-full`}>
       <body className="min-h-full antialiased">
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
         <CartProvider>{children}</CartProvider>
       </body>
     </html>
