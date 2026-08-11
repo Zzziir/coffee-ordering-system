@@ -50,8 +50,20 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
 
   const available = useMemo(() => menu.items.filter((i) => i.available), [menu]);
 
+  // A drink rung up the same way twice is one line at a higher count, not two
+  // rows to tally by hand. Identical item + identical modifiers merge; anything
+  // different (a size, a syrup) stays its own line.
   const addLine = (line: Omit<CartLine, "id">) =>
-    setLines((prev) => [...prev, { ...line, id: crypto.randomUUID() }]);
+    setLines((prev) => {
+      const sig = lineSignature(line);
+      const match = prev.find((l) => lineSignature(l) === sig);
+      if (match) {
+        return prev.map((l) =>
+          l.id === match.id ? { ...l, qty: Math.min(20, l.qty + line.qty) } : l,
+        );
+      }
+      return [...prev, { ...line, id: crypto.randomUUID() }];
+    });
 
   const setQty = (id: string, next: number) =>
     setLines((prev) =>
@@ -257,6 +269,16 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
       />
     </form>
   );
+}
+
+/** A canonical key for a line's configuration — same item, same chosen options,
+ *  in any order. Two lines with equal signatures are the exact same drink. */
+function lineSignature(line: Pick<CartLine, "itemId" | "groups">): string {
+  const groups = line.groups
+    .map((g) => `${g.groupId}:${g.addOns.map((a) => a.id).sort().join(",")}`)
+    .sort()
+    .join("|");
+  return `${line.itemId}#${groups}`;
 }
 
 function Stepper({ qty, onChange }: { qty: number; onChange: (n: number) => void }) {
