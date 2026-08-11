@@ -42,42 +42,32 @@ export function AnimatedThemeToggler({ className }: { className?: string }) {
     }
   };
 
-  const toggle = async () => {
+  const toggle = () => {
     const next = !isDark;
     const doc = document as ViewTransitionDocument;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // Progressive enhancement: no View Transitions (or reduced motion) just flips.
-    if (!doc.startViewTransition || reduce) {
+    if (!doc.startViewTransition || reduce || !ref.current) {
       apply(next);
       return;
     }
 
-    await doc.startViewTransition(() => flushSync(() => apply(next))).ready;
-
-    const button = ref.current;
-    if (!button) return;
-    const { top, left, width, height } = button.getBoundingClientRect();
+    // Feed the wipe's centre (this button) and the radius that reaches the
+    // farthest corner into the CSS keyframe on ::view-transition-new(root).
+    const { top, left, width, height } = ref.current.getBoundingClientRect();
     const x = left + width / 2;
     const y = top + height / 2;
-    const maxRadius = Math.hypot(
-      Math.max(left, window.innerWidth - left),
-      Math.max(top, window.innerHeight - top),
+    const radius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
     );
+    const root = document.documentElement.style;
+    root.setProperty("--theme-x", `${x}px`);
+    root.setProperty("--theme-y", `${y}px`);
+    root.setProperty("--theme-r", `${radius}px`);
 
-    document.documentElement.animate(
-      {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${maxRadius}px at ${x}px ${y}px)`,
-        ],
-      },
-      {
-        duration: 650,
-        easing: "cubic-bezier(0.23, 1, 0.32, 1)",
-        pseudoElement: "::view-transition-new(root)",
-      },
-    );
+    doc.startViewTransition(() => flushSync(() => apply(next)));
   };
 
   return (

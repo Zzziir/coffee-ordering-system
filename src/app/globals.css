@@ -112,12 +112,25 @@ html.dark .dashboard-surface {
   --shadow-pop: 0 4px 24px rgba(0, 0, 0, 0.45);
 }
 
-/* The theme toggle drives its own circular clip-path reveal (see
-   components/animated-theme-toggler), so silence the default root cross-fade. */
-::view-transition-old(root),
-::view-transition-new(root) {
+/* The theme toggle reveals the new theme with a circular clip-path wipe from the
+   button (see components/animated-theme-toggler). Driving it from a keyframe on
+   the pseudo-element — rather than a WAAPI animation attached after ready —
+   keeps the transition alive for the whole wipe, so it can't finish early and
+   snap. The button feeds its centre and radius in via these variables. */
+::view-transition-old(root) {
   animation: none;
+}
+::view-transition-new(root) {
+  animation: craffe-theme-reveal 640ms var(--ease-out);
   mix-blend-mode: normal;
+}
+@keyframes craffe-theme-reveal {
+  from {
+    clip-path: circle(0% at var(--theme-x, 50%) var(--theme-y, 50%));
+  }
+  to {
+    clip-path: circle(var(--theme-r, 150%) at var(--theme-x, 50%) var(--theme-y, 50%));
+  }
 }
 
 /* Pressable feedback — global reflex (Emil): elements that respond to touch
