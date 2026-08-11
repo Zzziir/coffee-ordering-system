@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { StorefrontIcon } from "@phosphor-icons/react/dist/ssr";
 import { Wordmark } from "@/components/brand";
 import { getStaffMember, isAdmin, landingPath } from "@/lib/staff";
 import { SignOutButton } from "../staff/sign-out-button";
@@ -31,7 +32,16 @@ export default async function AdminLayout({
               Admin
             </span>
           </Link>
-          <SignOutButton name={staff.name} />
+          <div className="flex items-center gap-3">
+            <Link
+              href={landingPath(staff)}
+              className="pressable flex items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-[13px] font-medium text-ink-soft hover:text-ink"
+            >
+              <StorefrontIcon size={15} weight="bold" />
+              Staff
+            </Link>
+            <SignOutButton name={staff.name} />
+          </div>
         </div>
         <AdminNav />
       </header>
