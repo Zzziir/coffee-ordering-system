@@ -2,12 +2,13 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Wordmark } from "@/components/brand";
 import { BranchLockup } from "@/components/branch-lockup";
+import { BranchSwitch } from "@/components/branch-switch";
 import { StaffQueue } from "@/components/staff-queue";
+import { ViewSwitch } from "@/components/view-switch";
 import { ensureDemoSeed, listActiveOrders } from "@/lib/store";
 import { getBranch, isBranchId } from "@/lib/branches";
 import { canAccessBranch, getStaffMember, isAdmin, landingPath } from "@/lib/staff";
 import { SignOutButton } from "../sign-out-button";
-import { AdminLink } from "../admin-link";
 
 export const dynamic = "force-dynamic";
 
@@ -43,12 +44,16 @@ export default async function StaffBranchPage({
       <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-3">
-            <Link href="/staff" className="pressable">
+            <Link href={landingPath(staff)} className="pressable">
               <BranchLockup branch={branch} className="h-6 text-[18px] text-ink" />
             </Link>
-            <span className="rounded-full bg-paper-sunk px-2.5 py-1 text-[12px] font-medium text-ink-soft">
-              {branch.name}
-            </span>
+            {staff.role === "owner" ? (
+              <BranchSwitch current={branch.id} />
+            ) : (
+              <span className="rounded-full bg-paper-sunk px-2.5 py-1 text-[12px] font-medium text-ink-soft">
+                {branch.name}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-2 text-[13px] font-medium text-ink-soft">
@@ -58,7 +63,7 @@ export default async function StaffBranchPage({
               </span>
               Live
             </span>
-            {isAdmin(staff) && <AdminLink />}
+            {isAdmin(staff) && <ViewSwitch current="staff" staffHref={landingPath(staff)} />}
             <SignOutButton name={staff.name} />
           </div>
         </div>
