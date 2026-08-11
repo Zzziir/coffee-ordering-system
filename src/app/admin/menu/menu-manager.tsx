@@ -150,14 +150,14 @@ function ItemRow({
             onClick={toggle}
             disabled={pending}
             className={clsx(
-              "pressable relative h-6 w-11 rounded-full transition-colors disabled:opacity-50",
+              "pressable inline-flex h-6 w-11 shrink-0 items-center rounded-full px-0.5 transition-colors disabled:opacity-50",
               available ? "bg-ready" : "bg-line-strong",
             )}
           >
             <span
               className={clsx(
-                "absolute top-0.5 size-5 rounded-full bg-paper shadow-sm transition-transform",
-                available ? "translate-x-[22px]" : "translate-x-0.5",
+                "size-5 rounded-full bg-paper shadow-sm transition-transform",
+                available ? "translate-x-5" : "translate-x-0",
               )}
             />
           </button>
