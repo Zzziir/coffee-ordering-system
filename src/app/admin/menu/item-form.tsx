@@ -109,7 +109,7 @@ export function ItemForm({
         <Toggle name="signature" label="Signature (bestseller)" defaultChecked={item?.signature} />
         <Toggle
           name="available"
-          label="Available to order"
+          label="Listed at all branches"
           defaultChecked={item ? item.available : true}
         />
       </div>

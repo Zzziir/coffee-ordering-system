@@ -9,6 +9,8 @@
  * the menu the server handed them.
  */
 
+import type { BranchId } from "./types";
+
 export type AddOn = { id: string; name: string; price: number };
 
 export type AddOnGroup = {
@@ -52,8 +54,13 @@ export type MenuItem = {
   /** Optional product photo (path under /public). When unset, a warm branded
    *  placeholder is shown. Set this per item to swap in real photography. */
   image?: string;
-  /** false when an admin has marked it sold out; hidden from the customer menu */
+  /** The owner's master switch. false retires the item everywhere; hidden from
+   *  the customer menu at every branch. Per-branch sold-out is `unavailableAt`. */
   available: boolean;
+  /** Branches where the item is currently sold out. A branch that runs out marks
+   *  itself here without touching the others. Empty means available everywhere
+   *  the master switch is on. */
+  unavailableAt: BranchId[];
 };
 
 /** A fully loaded menu: categories in display order, every item, and the
@@ -85,6 +92,17 @@ export function getItem(menu: MenuData, id: string): MenuItem | undefined {
  *  render the customer menu filter those out (see MenuBrowser). */
 export function itemsByCategory(menu: MenuData, categoryId: string): MenuItem[] {
   return menu.items.filter((i) => i.categoryId === categoryId);
+}
+
+/**
+ * Is this item orderable at a given branch? The master switch must be on and the
+ * branch must not have marked it sold out. With no branch chosen yet (a cold
+ * visit before the branch gate), fall back to the master switch so the menu
+ * isn't empty.
+ */
+export function isAvailableAt(item: MenuItem, branchId: BranchId | null): boolean {
+  if (!item.available) return false;
+  return branchId ? !item.unavailableAt.includes(branchId) : true;
 }
 
 export function addOnGroupsForItem(menu: MenuData, item: MenuItem): AddOnGroup[] {

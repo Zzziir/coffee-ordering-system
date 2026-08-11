@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "./supabase/admin";
 import type { AddOn, AddOnGroup, Category, DietTag, MenuData, MenuItem } from "./menu";
+import type { BranchId } from "./types";
 
 /**
  * Loads the whole menu from Postgres and assembles it into a `MenuData` bundle
@@ -14,7 +15,7 @@ import type { AddOn, AddOnGroup, Category, DietTag, MenuData, MenuItem } from ".
 export async function getMenu(): Promise<MenuData> {
   const sb = supabaseAdmin();
 
-  const [cats, groups, addOns, catGroups, items] = await Promise.all([
+  const [cats, groups, addOns, catGroups, items, soldOut] = await Promise.all([
     sb.from("menu_categories").select("id, name, note, kind, position").order("position"),
     sb.from("menu_add_on_groups").select("id, name, type, default_option_id"),
     sb.from("menu_add_ons").select("id, group_id, name, price, position").order("position"),
@@ -23,11 +24,20 @@ export async function getMenu(): Promise<MenuData> {
       .from("menu_items")
       .select("id, name, price, category_id, signature, description, image, tags, available, position")
       .order("position"),
+    sb.from("menu_item_unavailable").select("item_id, branch_id"),
   ]);
 
   const firstError =
-    cats.error || groups.error || addOns.error || catGroups.error || items.error;
+    cats.error || groups.error || addOns.error || catGroups.error || items.error || soldOut.error;
   if (firstError) throw new Error(`Could not load the menu: ${firstError.message}`);
+
+  // Branches where each item is currently sold out.
+  const unavailableByItem = new Map<string, BranchId[]>();
+  for (const row of soldOut.data ?? []) {
+    const list = unavailableByItem.get(row.item_id) ?? [];
+    list.push(row.branch_id as BranchId);
+    unavailableByItem.set(row.item_id, list);
+  }
 
   // Options grouped under their add-on group, in position order.
   const optionsByGroup = new Map<string, AddOn[]>();
@@ -74,6 +84,7 @@ export async function getMenu(): Promise<MenuData> {
     tags: (i.tags ?? []) as DietTag[],
     image: i.image ?? undefined,
     available: i.available,
+    unavailableAt: unavailableByItem.get(i.id) ?? [],
   }));
 
   return { categories, items: menuItems, addOnGroups };

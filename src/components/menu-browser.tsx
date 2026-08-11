@@ -8,6 +8,7 @@ import { PlusIcon, BagIcon } from "@phosphor-icons/react";
 import {
   itemsByCategory,
   getItem,
+  isAvailableAt,
   peso,
   type MenuItem,
   type MenuData,
@@ -19,11 +20,13 @@ import { clsx } from "@/lib/clsx";
 
 export function MenuBrowser({ menu }: { menu: MenuData }) {
   const params = useSearchParams();
-  const { addLine, count, subtotal, hydrated } = useCart();
+  const { addLine, count, subtotal, hydrated, branchId } = useCart();
 
-  // Only show categories that have something available to order right now.
+  // Availability is per branch: a drink sold out at this store drops from the
+  // menu here but stays live at the other. Before a branch is chosen, the gate
+  // is up, so we fall back to the master switch.
   const categories = menu.categories.filter((c) =>
-    menu.items.some((i) => i.categoryId === c.id && i.available),
+    menu.items.some((i) => i.categoryId === c.id && isAvailableAt(i, branchId)),
   );
 
   const [active, setActive] = useState(categories[0]?.id ?? "");
@@ -36,9 +39,9 @@ export function MenuBrowser({ menu }: { menu: MenuData }) {
     const id = params.get("item");
     if (id) {
       const item = getItem(menu, id);
-      if (item?.available) setSheetItem(item);
+      if (item && isAvailableAt(item, branchId)) setSheetItem(item);
     }
-  }, [params, menu]);
+  }, [params, menu, branchId]);
 
   // Track which section is in view to highlight the tab.
   useEffect(() => {
@@ -97,7 +100,9 @@ export function MenuBrowser({ menu }: { menu: MenuData }) {
       {/* Sections */}
       <div className="mx-auto max-w-[1280px] px-5 pb-32 pt-4 lg:px-8">
         {categories.map((cat) => {
-          const items = itemsByCategory(menu, cat.id).filter((i) => i.available);
+          const items = itemsByCategory(menu, cat.id).filter((i) =>
+            isAvailableAt(i, branchId),
+          );
           return (
             <section
               key={cat.id}

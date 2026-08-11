@@ -9,7 +9,7 @@ import {
   MagnifyingGlassIcon,
   CheckCircleIcon,
 } from "@phosphor-icons/react";
-import { peso, type MenuData, type MenuItem } from "@/lib/menu";
+import { isAvailableAt, peso, type MenuData, type MenuItem } from "@/lib/menu";
 import { BRANCH_LIST } from "@/lib/branches";
 import { PAYMENT_LABEL, type BranchId } from "@/lib/types";
 import {
@@ -48,7 +48,11 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
     }
   }, [logged]);
 
-  const available = useMemo(() => menu.items.filter((i) => i.available), [menu]);
+  // A till can only ring up what its branch actually has today.
+  const available = useMemo(
+    () => menu.items.filter((i) => isAvailableAt(i, branchId)),
+    [menu, branchId],
+  );
 
   // A drink rung up the same way twice is one line at a higher count, not two
   // rows to tally by hand. Identical item + identical modifiers merge; anything

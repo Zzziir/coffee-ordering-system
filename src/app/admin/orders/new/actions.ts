@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getStaffMember, isAdmin } from "@/lib/staff";
 import { getBranch, isBranchId } from "@/lib/branches";
 import { getMenu } from "@/lib/menu-store";
-import { getItem, addOnGroupsForItem, type AddOn } from "@/lib/menu";
+import { getItem, addOnGroupsForItem, isAvailableAt, type AddOn } from "@/lib/menu";
 import { createOrder } from "@/lib/store";
 import { lineTotal } from "@/lib/cart";
 import type { OrderLine, PaymentMethod, SelectedGroup } from "@/lib/types";
@@ -59,7 +59,7 @@ export async function logOrder(
     const qty = Math.max(0, Math.min(20, Math.floor(Number(p.qty) || 0)));
     if (qty === 0) return;
     const item = getItem(menu, p.itemId);
-    if (!item || !item.available) return;
+    if (!item || !isAvailableAt(item, branchId)) return;
 
     // Re-resolve every chosen modifier from the menu: the form sends only ids,
     // and each add-on's name and price are read here, never trusted from it. A

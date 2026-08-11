@@ -4,8 +4,10 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { getStaffMember, isAdmin } from "@/lib/staff";
+import { getStaffMember, isAdmin, canAccessBranch } from "@/lib/staff";
+import { isBranchId } from "@/lib/branches";
 import type { DietTag } from "@/lib/menu";
+import type { BranchId } from "@/lib/types";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -61,14 +63,33 @@ function revalidateMenu() {
   revalidatePath("/contact");
 }
 
-/** The sold-out switch. */
-export async function setAvailability(id: string, available: boolean) {
-  await assertAdmin();
+/**
+ * The per-branch sold-out switch. A missing row means available, so turning an
+ * item on deletes the row and turning it off inserts one. The RLS policy on
+ * menu_item_unavailable (is_staff_admin_for_branch) is the real gate — a manager
+ * can only write their own branch; the checks here fail fast with a clean error.
+ */
+export async function setBranchAvailability(
+  itemId: string,
+  branchId: BranchId,
+  available: boolean,
+) {
+  const staff = await getStaffMember();
+  if (!staff || !isAdmin(staff)) redirect("/staff/sign-in?next=/admin/menu");
+  if (!isBranchId(branchId) || !canAccessBranch(staff, branchId)) {
+    throw new Error("That branch isn't yours to change.");
+  }
+
   const supabase = await createServerSupabase();
-  const { error } = await supabase
-    .from("menu_items")
-    .update({ available })
-    .eq("id", id);
+  const { error } = available
+    ? await supabase
+        .from("menu_item_unavailable")
+        .delete()
+        .eq("item_id", itemId)
+        .eq("branch_id", branchId)
+    : await supabase
+        .from("menu_item_unavailable")
+        .upsert({ item_id: itemId, branch_id: branchId });
   if (error) throw new Error(`Could not update availability: ${error.message}`);
   revalidateMenu();
 }
