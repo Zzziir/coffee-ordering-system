@@ -138,84 +138,99 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
         />
       </Field>
 
-      <div>
-        <p className="text-[15px] font-semibold text-ink">Items</p>
-        <div className="mt-3 rounded-[var(--radius-md)] border border-line bg-paper-raised">
-          <div className="border-b border-line p-3">
-            <div className="relative">
-              <MagnifyingGlassIcon
-                size={17}
-                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
-              />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search items..."
-                aria-label="Search items"
-                className="h-11 w-full rounded-full border border-line bg-paper pl-10 pr-4 text-[14.5px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee"
-              />
+      <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr] lg:items-start">
+        {/* Picker: search the catalog and tap to configure */}
+        <div>
+          <p className="text-[15px] font-semibold text-ink">Items</p>
+          <div className="mt-3 rounded-[var(--radius-md)] border border-line bg-paper-raised">
+            <div className="border-b border-line p-3">
+              <div className="relative">
+                <MagnifyingGlassIcon
+                  size={17}
+                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
+                />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search items..."
+                  aria-label="Search items"
+                  className="h-11 w-full rounded-full border border-line bg-paper pl-10 pr-4 text-[14.5px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee"
+                />
+              </div>
+            </div>
+
+            <div className="flex max-h-[52vh] flex-col gap-6 overflow-y-auto p-4">
+              {catalog.map(({ cat, items }) => (
+                <section key={cat.id}>
+                  <h3 className="text-[13px] font-semibold uppercase tracking-wide text-ink-faint">
+                    {cat.name}
+                  </h3>
+                  <div className="mt-2 flex flex-col gap-1">
+                    {items.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setSheetItem(item)}
+                        className="pressable flex items-center gap-3 rounded-[var(--radius-sm)] px-2 py-1.5 text-left transition-colors hover:bg-paper-sunk"
+                      >
+                        <span className="min-w-0 flex-1 truncate text-[14.5px] text-ink">
+                          {item.name}
+                          <span className="ml-2 text-[12.5px] text-ink-soft">
+                            {peso(item.price)}
+                          </span>
+                        </span>
+                        <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-ink">
+                          <PlusIcon size={15} weight="bold" />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ))}
+
+              {catalog.length === 0 && (
+                <p className="py-6 text-center text-[14px] text-ink-soft">
+                  {q ? `No items match "${query.trim()}".` : "No items available."}
+                </p>
+              )}
             </div>
           </div>
+        </div>
 
-          <div className="flex max-h-[42vh] flex-col gap-6 overflow-y-auto p-4">
-            {lines.length > 0 && (
-              <section>
-                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-coffee">
-                  In this order
-                </h3>
-                <div className="mt-2 flex flex-col gap-3">
-                  {lines.map((line) => (
-                    <div key={line.id} className="flex items-start gap-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[14.5px] text-ink">{line.name}</p>
-                        {describeLine(line) && (
-                          <p className="mt-0.5 text-[12.5px] text-ink-soft">
-                            {describeLine(line)}
-                          </p>
-                        )}
-                        <p className="mt-0.5 text-[12.5px] font-medium tabular-nums text-ink-soft">
-                          {peso(lineTotal(line))}
-                        </p>
-                      </div>
-                      <Stepper qty={line.qty} onChange={(n) => setQty(line.id, n)} />
-                    </div>
-                  ))}
-                </div>
-              </section>
+        {/* Order summary: always in view, pinned alongside the picker on desktop */}
+        <div>
+          <div className="flex items-baseline justify-between">
+            <p className="text-[15px] font-semibold text-ink">In this order</p>
+            {count > 0 && (
+              <span className="text-[12.5px] text-ink-soft">
+                {count} {count === 1 ? "item" : "items"}
+              </span>
             )}
-
-            {catalog.map(({ cat, items }) => (
-              <section key={cat.id}>
-                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-ink-faint">
-                  {cat.name}
-                </h3>
-                <div className="mt-2 flex flex-col gap-1">
-                  {items.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setSheetItem(item)}
-                      className="pressable flex items-center gap-3 rounded-[var(--radius-sm)] px-2 py-1.5 text-left transition-colors hover:bg-paper-sunk"
-                    >
-                      <span className="min-w-0 flex-1 truncate text-[14.5px] text-ink">
-                        {item.name}
-                        <span className="ml-2 text-[12.5px] text-ink-soft">
-                          {peso(item.price)}
-                        </span>
-                      </span>
-                      <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-ink">
-                        <PlusIcon size={15} weight="bold" />
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            ))}
-
-            {catalog.length === 0 && (
-              <p className="py-6 text-center text-[14px] text-ink-soft">
-                {q ? `No items match "${query.trim()}".` : "No items available."}
+          </div>
+          <div className="mt-3 rounded-[var(--radius-md)] border border-line bg-paper-raised lg:sticky lg:top-28">
+            {lines.length === 0 ? (
+              <p className="px-4 py-12 text-center text-[14px] text-ink-soft">
+                No items yet. Search on the left and tap to add.
               </p>
+            ) : (
+              <div className="flex max-h-[52vh] flex-col divide-y divide-line overflow-y-auto">
+                {lines.map((line) => (
+                  <div key={line.id} className="flex items-start gap-3 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[14.5px] font-medium text-ink">{line.name}</p>
+                      {describeLine(line) && (
+                        <p className="mt-0.5 text-[12.5px] text-ink-soft">
+                          {describeLine(line)}
+                        </p>
+                      )}
+                      <p className="mt-0.5 text-[12.5px] font-medium tabular-nums text-ink-soft">
+                        {peso(lineTotal(line))}
+                      </p>
+                    </div>
+                    <Stepper qty={line.qty} onChange={(n) => setQty(line.id, n)} />
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
