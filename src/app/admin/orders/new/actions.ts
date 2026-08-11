@@ -23,7 +23,10 @@ type ItemPick = {
  * trusted from the form.
  */
 
-export type LogOrderState = { error: string } | null;
+export type LogOrderState =
+  | { error: string }
+  | { ok: true; code: string; branchName: string }
+  | null;
 
 export async function logOrder(
   _previous: LogOrderState,
@@ -98,5 +101,8 @@ export async function logOrder(
     paymentMethod,
   });
 
-  redirect(`/order/${order.id}`);
+  // Staff stay in the back office — the customer status page is the wrong place
+  // for a till. The order is already on the barista board; hand the code back so
+  // the form can confirm it and reset for the next sale.
+  return { ok: true, code: order.code, branchName: branch.name };
 }

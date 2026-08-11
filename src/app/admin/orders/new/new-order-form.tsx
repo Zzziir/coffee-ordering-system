@@ -1,9 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { MinusIcon, PlusIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
+import {
+  MinusIcon,
+  PlusIcon,
+  MagnifyingGlassIcon,
+  CheckCircleIcon,
+} from "@phosphor-icons/react";
 import { peso, type MenuData, type MenuItem } from "@/lib/menu";
 import { BRANCH_LIST } from "@/lib/branches";
 import { PAYMENT_LABEL, type BranchId } from "@/lib/types";
@@ -27,8 +32,21 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
   const [branchId, setBranchId] = useState<BranchId>(BRANCH_LIST[0].id);
   const branch = BRANCH_LIST.find((b) => b.id === branchId)!;
   const [lines, setLines] = useState<CartLine[]>([]);
+  const [customerName, setCustomerName] = useState("");
   const [sheetItem, setSheetItem] = useState<MenuItem | null>(null);
   const [query, setQuery] = useState("");
+
+  const error = state && "error" in state ? state.error : null;
+  const logged = state && "ok" in state ? state : null;
+
+  // A logged order clears the slate so the till is ready for the next sale, but
+  // keeps the branch and payment set for a quick run of walk-ins.
+  useEffect(() => {
+    if (logged) {
+      setLines([]);
+      setCustomerName("");
+    }
+  }, [logged]);
 
   const available = useMemo(() => menu.items.filter((i) => i.available), [menu]);
 
@@ -99,7 +117,13 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
       </div>
 
       <Field label="Customer name (optional)">
-        <input name="customerName" placeholder="Walk-in" className={inputClass} />
+        <input
+          name="customerName"
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+          placeholder="Walk-in"
+          className={inputClass}
+        />
       </Field>
 
       <div>
@@ -185,13 +209,26 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
         </div>
       </div>
 
-      {state?.error && (
+      {error && (
         <p
           role="alert"
           className="rounded-[var(--radius-sm)] bg-warn/10 px-4 py-3 text-[14px] text-warn"
         >
-          {state.error}
+          {error}
         </p>
+      )}
+
+      {logged && (
+        <div
+          role="status"
+          className="flex items-center gap-3 rounded-[var(--radius-sm)] border border-ready/30 bg-ready/10 px-4 py-3 text-[14px] text-ink"
+        >
+          <CheckCircleIcon size={20} weight="fill" className="shrink-0 text-ready" />
+          <span>
+            <span className="font-semibold">{logged.code}</span> is on the{" "}
+            {logged.branchName} board. Ring up the next one below.
+          </span>
+        </div>
       )}
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md">
