@@ -116,7 +116,7 @@ export function MenuBrowser({ menu }: { menu: MenuData }) {
                 )}
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3">
+              <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {items.map((item) => (
                   <button
                     key={item.id}
