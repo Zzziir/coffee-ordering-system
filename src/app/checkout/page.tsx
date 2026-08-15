@@ -193,10 +193,14 @@ export default function CheckoutPage() {
     if (!branch.payments.includes(method)) setMethod(branch.payments[0]);
   }, [branch, channel, method]);
 
-  // Bounce to menu if the bag is empty (e.g. refresh after clearing).
+  // Bounce to menu if the bag is empty (e.g. refresh after clearing). Not while
+  // the guest "save your stamps" prompt is up: the bag was just cleared by a
+  // successful order, and that prompt navigates to the order itself on dismiss.
   useEffect(() => {
-    if (hydrated && count === 0 && phase === "idle") router.replace("/menu");
-  }, [hydrated, count, phase, router]);
+    if (hydrated && count === 0 && phase === "idle" && !savePrompt) {
+      router.replace("/menu");
+    }
+  }, [hydrated, count, phase, savePrompt, router]);
 
   const pay = async () => {
     if (!branch) return;
@@ -255,9 +259,11 @@ export default function CheckoutPage() {
       await new Promise((r) => setTimeout(r, 650));
       clear();
       // A guest lands on their order via the "save your progress" prompt; a
-      // signed-in customer goes straight through.
+      // signed-in customer goes straight through. Drop the payment overlay first
+      // so the prompt (which sits below it) is what the guest actually sees.
       if (guest) {
         setSavePrompt({ orderId: order.id, stamps: guestStamps });
+        setPhase("idle");
       } else {
         router.replace(`/order/${order.id}`);
       }
