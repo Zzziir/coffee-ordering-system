@@ -126,7 +126,7 @@ export function MenuBrowser({ menu }: { menu: MenuData }) {
                   <button
                     key={item.id}
                     onClick={() => setSheetItem(item)}
-                    className="group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-paper-raised text-left transition-colors duration-200 hover:border-coffee/40"
+                    className="menu-card group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-paper-raised text-left"
                   >
                     <div className="relative aspect-[4/3] overflow-hidden">
                       <ItemThumb item={item} iconClassName="size-14" />

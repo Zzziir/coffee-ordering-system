@@ -174,6 +174,29 @@ html.dark .dashboard-surface {
   }
 }
 
+/* Menu card — on pointer devices the whole card lifts with a soft shadow and a
+   coffee-tinted border, and its photo gently zooms inside the fixed frame. The
+   zoom runs a touch slower than the lift on purpose: a slow Ken Burns creep
+   reads as premium where a snappy one feels twitchy. Touch is excluded so a tap
+   doesn't leave a card stuck hovered (the tap opens the item sheet anyway). */
+.menu-card {
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out),
+    border-color 200ms var(--ease-out);
+}
+.menu-card img {
+  transition: transform 400ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .menu-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card);
+    border-color: color-mix(in srgb, var(--color-coffee) 40%, transparent);
+  }
+  .menu-card:hover img {
+    transform: scale(1.06);
+  }
+}
+
 /* Wordmark tracking to echo the logo's geometric spacing */
 .wordmark {
   font-weight: 700;

@@ -1,5 +1,18 @@
 @AGENTS.md
 
+# Supabase
+
+- **Project name:** Craffe
+- **Project ID (ref):** `rdfdoyqueynwddswgbwk`
+- **Project URL:** https://rdfdoyqueynwddswgbwk.supabase.co
+- **MCP server:** `Craffe-Supabase-MCP` (configured locally for this project). Use its tools for all Supabase interactions.
+
+# Menu Item Photos
+
+- **Mock product photos** live in `public/menu/` and are placeholders, not final photography. Current mocks (JPEG, local static files): `americano.jpg`, `flat-white.jpg`, `caramel-macchiato.jpg`, `mocha.jpg`.
+- The `menu_items.image` column for those four rows points at the local paths (e.g. `/menu/americano.jpg`); every other item has `image = null` and shows the warm branded placeholder from `ItemThumb`.
+- Real photography is meant to be uploaded from the admin menu editor into the `menu` storage bucket (see `supabase/migrations/0006_menu_images.sql`), which sets `image` to a public storage URL. Swapping a mock for a real photo is just updating that row's `image`.
+
 # Developer Best Practices
 
 - **YAGNI (You Aren't Gonna Need It)** — Build only what the current requirement needs. Don't add speculative abstractions, config options, or generality for hypothetical future cases.
