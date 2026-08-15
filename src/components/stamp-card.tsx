@@ -4,19 +4,24 @@ import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { CoffeeIcon, GiftIcon } from "@phosphor-icons/react";
 import { CupMark } from "./brand";
+import { STAMPS_PER_REWARD } from "@/lib/menu";
 import { clsx } from "@/lib/clsx";
 
 const STAMP_KEY = "craffe.stamps";
-const GOAL = 9;
+const CUPS = STAMPS_PER_REWARD - 1; // nine cups, then the reward slot
 
 /**
- * Digital "buy 9, get 1 free" card.
+ * Digital "10 stamps, 1 free drink" card.
  *
  * Signed-in customers pass a server-computed `stamps` count (one per drink they
- * have bought). With no prop it falls back to the guest count in localStorage,
- * which is how it renders for people who haven't made an account.
+ * have bought) and `free` (rewards they can redeem now). With no props it falls
+ * back to the guest tally in localStorage — how it renders for people who
+ * haven't made an account, where free drinks are simply derived from the count.
  */
-export function StampCard({ stamps: stampsProp }: { stamps?: number } = {}) {
+export function StampCard({
+  stamps: stampsProp,
+  free: freeProp,
+}: { stamps?: number; free?: number } = {}) {
   const [localStamps, setLocalStamps] = useState<number | null>(null);
   const stamps = stampsProp ?? localStamps;
 
@@ -36,10 +41,9 @@ export function StampCard({ stamps: stampsProp }: { stamps?: number } = {}) {
   }, [stampsProp]);
 
   const filled = stamps ?? 0;
-  const earned = Math.floor(filled / (GOAL + 1)); // free drinks unlocked
-  const progress = filled % (GOAL + 1);
-  const remaining = GOAL - progress;
-  const rewardReady = progress === GOAL;
+  const progress = filled % STAMPS_PER_REWARD; // 0..9 on the current card
+  const free = freeProp ?? Math.floor(filled / STAMPS_PER_REWARD);
+  const remaining = STAMPS_PER_REWARD - progress; // drinks until the next free one
 
   return (
     <div className="overflow-hidden rounded-[var(--radius-lg)] border border-line bg-ink text-paper">
@@ -50,24 +54,24 @@ export function StampCard({ stamps: stampsProp }: { stamps?: number } = {}) {
             Craffé Rewards
           </span>
         </div>
-        {earned > 0 && (
+        {free > 0 && (
           <span className="flex items-center gap-1 rounded-full bg-paper/15 px-2.5 py-1 text-[12px] font-medium">
             <GiftIcon size={13} weight="fill" />
-            {earned} free
+            {free} free
           </span>
         )}
       </div>
 
       <p className="px-5 pt-2 text-[13.5px] text-paper/70">
-        {rewardReady
-          ? "You've earned a free drink! Claim it on your next order."
+        {free > 0
+          ? `You've earned ${free} free ${free === 1 ? "drink" : "drinks"}. Redeem ${free === 1 ? "it" : "one"} on your next order.`
           : `${remaining} more ${remaining === 1 ? "drink" : "drinks"} until a free one.`}
       </p>
 
       <div className="grid grid-cols-5 gap-2.5 p-5">
-        {Array.from({ length: GOAL + 1 }).map((_, i) => {
-          const isReward = i === GOAL;
-          const active = i < progress || (rewardReady && isReward);
+        {Array.from({ length: STAMPS_PER_REWARD }).map((_, i) => {
+          const isReward = i === CUPS;
+          const active = isReward ? free > 0 : i < progress;
           return (
             <div
               key={i}
@@ -81,7 +85,9 @@ export function StampCard({ stamps: stampsProp }: { stamps?: number } = {}) {
             >
               {active && stamps !== null ? (
                 <motion.span
-                  initial={i === progress - 1 ? { scale: 0.4, opacity: 0 } : false}
+                  initial={
+                    !isReward && i === progress - 1 ? { scale: 0.4, opacity: 0 } : false
+                  }
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
                 >

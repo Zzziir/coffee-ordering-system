@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/cart-provider";
+import { LoyaltyMigrator } from "@/components/loyalty-migrator";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className="min-h-full antialiased">
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
         <CartProvider>{children}</CartProvider>
+        <LoyaltyMigrator />
       </body>
     </html>
   );

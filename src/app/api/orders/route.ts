@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { createOrder, listActiveOrders, listAllOrders } from "@/lib/store";
-import { lineTotal } from "@/lib/cart";
+import { lineTotal, unitPrice } from "@/lib/cart";
 import { getBranch, isBranchId } from "@/lib/branches";
 import { canAccessBranch, getStaffMember } from "@/lib/staff";
 import { getCustomer } from "@/lib/customer";
+import { getMenu } from "@/lib/menu-store";
+import { drinkStickers, isDrinkItem } from "@/lib/menu";
+import { getLoyalty } from "@/lib/loyalty";
 import type { OrderChannel, OrderLine, PaymentMethod, SelectedGroup } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -80,12 +83,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Your bag is empty." }, { status: 400 });
   }
 
-  // Rebuild lines with server-recomputed totals (never trust client math).
+  // Rebuild lines with server-recomputed totals (never trust client math). The
+  // client's line id is kept only so a redeemed line can be pointed at below.
+  const clientIds: string[] = [];
   const items: OrderLine[] = rawItems.map((raw, i) => {
     const r = raw as Record<string, unknown>;
     const groups = (Array.isArray(r.groups) ? r.groups : []) as SelectedGroup[];
     const basePrice = Number(r.basePrice) || 0;
     const qty = Math.max(1, Math.min(20, Number(r.qty) || 1));
+    clientIds[i] = String(r.id ?? "");
     return {
       id: `line_${i}_${Math.random().toString(36).slice(2, 8)}`,
       itemId: String(r.itemId ?? ""),
@@ -102,6 +108,29 @@ export async function POST(req: Request) {
   // from the session cookie, never the request body — a guest simply has none,
   // and their order stays anonymous.
   const customer = await getCustomer();
+  const menu = await getMenu();
+
+  // Redeeming a free drink: the client names the cart line to comp. Everything
+  // that decides the discount is checked here, never trusted from the client —
+  // the customer must actually have a reward, and the line must be a drink.
+  let rewardDiscount = 0;
+  const redeemLineId = typeof b.redeemLineId === "string" ? b.redeemLineId : null;
+  if (redeemLineId) {
+    if (!customer) {
+      return NextResponse.json({ error: "Sign in to redeem a reward." }, { status: 401 });
+    }
+    const idx = clientIds.indexOf(redeemLineId);
+    const line = idx >= 0 ? items[idx] : null;
+    if (!line || !isDrinkItem(menu, line.itemId)) {
+      return NextResponse.json({ error: "That item can't be a free drink." }, { status: 400 });
+    }
+    const { free } = await getLoyalty(customer.id);
+    if (free < 1) {
+      return NextResponse.json({ error: "You don't have a free drink yet." }, { status: 400 });
+    }
+    // One unit is free, even if the line's quantity is greater.
+    rewardDiscount = unitPrice(line);
+  }
 
   const order = await createOrder({
     branchId: branch.id,
@@ -112,6 +141,18 @@ export async function POST(req: Request) {
     items,
     paymentMethod,
     customerId: customer?.id,
+    rewardDiscount,
   });
-  return NextResponse.json({ order }, { status: 201 });
+
+  // One loyalty stamp per drink (food never earns). The signed-in card recounts
+  // this from paid order history; a guest keeps a running tally on the device,
+  // so we hand it the authoritative per-order figure to add. `guest` tells the
+  // client which path it is: only a guest bumps that local tally or is nudged
+  // to sign in.
+  const stampsEarned = drinkStickers(menu, items);
+
+  return NextResponse.json(
+    { order, stampsEarned, guest: !customer },
+    { status: 201 },
+  );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -12,14 +12,16 @@ import {
   CreditCardIcon,
   MoneyIcon,
   MoonIcon,
+  GiftIcon,
 } from "@phosphor-icons/react";
 import { SiteNav } from "@/components/site-nav";
 import { BranchGate } from "@/components/branch-picker";
+import { RewardSaveModal } from "@/components/reward-save-modal";
 import { useCart } from "@/components/cart-provider";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
-import { describeLine, lineTotal } from "@/lib/cart";
+import { describeLine, lineTotal, unitPrice } from "@/lib/cart";
 import { peso } from "@/lib/menu";
-import type { OrderChannel, PaymentMethod } from "@/lib/types";
+import type { OrderChannel, PaymentMethod, SelectedGroup } from "@/lib/types";
 import {
   branchAddress,
   branchFullName,
@@ -89,6 +91,62 @@ export default function CheckoutPage() {
   const [method, setMethod] = useState<PaymentMethod>("gcash");
   const [phase, setPhase] = useState<"idle" | "paying" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
+
+  // Loyalty: how many free drinks the signed-in customer can redeem, and which
+  // menu items count as drinks (so only drinks can be picked as the free one).
+  const [reward, setReward] = useState<{ free: number; drinkItemIds: string[] }>({
+    free: 0,
+    drinkItemIds: [],
+  });
+  // Redeeming is opt-in: a customer can bank rewards and spend them later.
+  const [useReward, setUseReward] = useState(false);
+  const [redeemLineId, setRedeemLineId] = useState<string | null>(null);
+  // After a guest checks out, prompt them to sign in and keep their stamps.
+  const [savePrompt, setSavePrompt] = useState<{ orderId: string; stamps: number } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/rewards")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!active || !d) return;
+        setReward({
+          free: Number(d.free) || 0,
+          drinkItemIds: Array.isArray(d.drinkItemIds) ? d.drinkItemIds : [],
+        });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // The drinks in the bag are the only lines a free drink can land on. Default
+  // the reward to the priciest one; the customer can point it at any other.
+  const drinkLines = useMemo(
+    () => lines.filter((l) => reward.drinkItemIds.includes(l.itemId)),
+    [lines, reward.drinkItemIds],
+  );
+  const defaultRedeemId = useMemo(
+    () =>
+      drinkLines.length
+        ? drinkLines.reduce((best, l) => (unitPrice(l) > unitPrice(best) ? l : best)).id
+        : null,
+    [drinkLines],
+  );
+  const canRedeem = reward.free > 0 && drinkLines.length > 0;
+  const activeRedeemId =
+    redeemLineId && drinkLines.some((l) => l.id === redeemLineId)
+      ? redeemLineId
+      : defaultRedeemId;
+  const redeemedLine =
+    useReward && canRedeem && activeRedeemId
+      ? lines.find((l) => l.id === activeRedeemId) ?? null
+      : null;
+  const discount = redeemedLine ? unitPrice(redeemedLine) : 0;
+  const payable = Math.max(0, subtotal - discount);
 
   // Prefill the details: a signed-in customer's profile first, otherwise the
   // name and phone saved from a previous guest order.
@@ -172,25 +230,37 @@ export default function CheckoutPage() {
           customerPhone: phone.trim() || undefined,
           paymentMethod: method,
           items: lines,
+          redeemLineId: redeemedLine ? redeemedLine.id : undefined,
         }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.error || "Something went wrong.");
       }
-      const { order } = await res.json();
+      const { order, stampsEarned, guest } = await res.json();
 
-      // Loyalty: one stamp per order (buy 9, get 1 free). Brand-wide — earn at
-      // any branch, redeem at any branch.
-      try {
-        const current = Number(localStorage.getItem(STAMP_KEY) || "0");
-        localStorage.setItem(STAMP_KEY, String(current + 1));
-      } catch {}
+      // Loyalty: one stamp per drink (food doesn't count). A signed-in customer's
+      // stamps live server-side, so only a guest keeps this running tally on the
+      // device, which is exactly why it can be lost, hence the prompt below.
+      const earned = Number(stampsEarned) || 0;
+      let guestStamps = 0;
+      if (guest) {
+        try {
+          guestStamps = Number(localStorage.getItem(STAMP_KEY) || "0") + earned;
+          localStorage.setItem(STAMP_KEY, String(guestStamps));
+        } catch {}
+      }
 
       setPhase("done");
       await new Promise((r) => setTimeout(r, 650));
       clear();
-      router.replace(`/order/${order.id}`);
+      // A guest lands on their order via the "save your progress" prompt; a
+      // signed-in customer goes straight through.
+      if (guest) {
+        setSavePrompt({ orderId: order.id, stamps: guestStamps });
+      } else {
+        router.replace(`/order/${order.id}`);
+      }
     } catch (e) {
       setPhase("idle");
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -198,7 +268,7 @@ export default function CheckoutPage() {
   };
 
   const payLabel =
-    method === "cash" ? `Place order · ${peso(subtotal)}` : `Pay ${peso(subtotal)}`;
+    method === "cash" ? `Place order · ${peso(payable)}` : `Pay ${peso(payable)}`;
 
   // Without a branch there is nothing to render against — the gate is asking.
   if (!branch) {
@@ -343,6 +413,34 @@ export default function CheckoutPage() {
           ))}
         </ul>
 
+        {canRedeem && (
+          <RewardPicker
+            free={reward.free}
+            on={useReward}
+            onToggle={() => setUseReward((v) => !v)}
+            drinkLines={drinkLines}
+            activeId={activeRedeemId}
+            onPick={setRedeemLineId}
+          />
+        )}
+
+        {discount > 0 && (
+          <dl className="mt-4 flex flex-col gap-1.5 border-t border-line pt-3 text-[14.5px]">
+            <div className="flex justify-between text-ink-soft">
+              <dt>Subtotal</dt>
+              <dd className="tabular-nums">{peso(subtotal)}</dd>
+            </div>
+            <div className="flex justify-between text-coffee">
+              <dt>Free drink reward</dt>
+              <dd className="tabular-nums">-{peso(discount)}</dd>
+            </div>
+            <div className="flex justify-between pt-0.5 text-[15.5px] font-semibold text-ink">
+              <dt>Total</dt>
+              <dd className="tabular-nums">{peso(payable)}</dd>
+            </div>
+          </dl>
+        )}
+
         {error && (
           <p className="mt-5 rounded-[var(--radius-sm)] bg-warn/10 px-4 py-3 text-[14px] text-warn">
             {error}
@@ -363,6 +461,120 @@ export default function CheckoutPage() {
 
       {/* Payment overlay */}
       <PaymentOverlay phase={phase} method={method} />
+
+      {/* Guests: keep your stamps by signing in */}
+      <RewardSaveModal
+        open={savePrompt !== null}
+        stamps={savePrompt?.stamps ?? 0}
+        onCreateAccount={() =>
+          savePrompt && router.push(`/account/sign-up?next=/order/${savePrompt.orderId}`)
+        }
+        onSignIn={() =>
+          savePrompt && router.push(`/account/sign-in?next=/order/${savePrompt.orderId}`)
+        }
+        onDismiss={() => savePrompt && router.replace(`/order/${savePrompt.orderId}`)}
+      />
+    </div>
+  );
+}
+
+function RewardPicker({
+  free,
+  on,
+  onToggle,
+  drinkLines,
+  activeId,
+  onPick,
+}: {
+  free: number;
+  on: boolean;
+  onToggle: () => void;
+  drinkLines: { id: string; name: string; basePrice: number; groups: SelectedGroup[] }[];
+  activeId: string | null;
+  onPick: (id: string) => void;
+}) {
+  return (
+    <div className="mt-4 overflow-hidden rounded-[var(--radius-md)] border border-coffee/40 bg-coffee-tint/40">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-pressed={on}
+        className="pressable flex w-full items-center gap-3 p-4 text-left"
+      >
+        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-coffee text-paper">
+          <GiftIcon size={18} weight="fill" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[14.5px] font-semibold text-ink">
+            Use a free drink
+          </span>
+          <span className="block text-[12.5px] text-ink-soft">
+            {free} ready. Or keep saving them for later.
+          </span>
+        </span>
+        <span
+          className={clsx(
+            "relative h-6 w-10 shrink-0 rounded-full transition-colors duration-200",
+            on ? "bg-coffee" : "bg-line-strong",
+          )}
+        >
+          <span
+            className={clsx(
+              "absolute top-0.5 size-5 rounded-full bg-paper shadow-sm transition-[left] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]",
+              on ? "left-[1.125rem]" : "left-0.5",
+            )}
+          />
+        </span>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {on && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-coffee/25 p-4">
+              <p className="mb-2.5 text-[12.5px] font-medium text-ink-soft">
+                Which drink is on us?
+              </p>
+              <div className="flex flex-col gap-2">
+                {drinkLines.map((line) => {
+                  const active = line.id === activeId;
+                  return (
+                    <button
+                      key={line.id}
+                      type="button"
+                      onClick={() => onPick(line.id)}
+                      className={clsx(
+                        "pressable flex items-center gap-3 rounded-[var(--radius-sm)] border bg-paper px-3.5 py-2.5 text-left transition-colors duration-150",
+                        active ? "border-coffee" : "border-line",
+                      )}
+                    >
+                      <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-ink">
+                        {line.name}
+                      </span>
+                      <span className="shrink-0 text-[13px] tabular-nums text-ink-soft">
+                        {peso(unitPrice(line))}
+                      </span>
+                      <span
+                        className={clsx(
+                          "grid size-5 shrink-0 place-items-center rounded-full border transition-colors",
+                          active ? "border-coffee bg-coffee text-paper" : "border-line-strong",
+                        )}
+                      >
+                        {active && <CheckIcon size={12} weight="bold" />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

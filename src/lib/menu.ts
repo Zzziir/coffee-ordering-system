@@ -120,6 +120,9 @@ export function signatureItems(menu: MenuData): MenuItem[] {
 /* Loyalty                                                             */
 /* ------------------------------------------------------------------ */
 
+/** Stamps that make one free drink. The card shows nine cups plus the reward. */
+export const STAMPS_PER_REWARD = 10;
+
 /** A sticker is earned per drink bought; food (cookies, snacks, pastries) isn't. */
 export function isDrinkItem(menu: MenuData, itemId: string): boolean {
   const item = getItem(menu, itemId);

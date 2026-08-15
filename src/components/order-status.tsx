@@ -101,7 +101,14 @@ function celebrate() {
   setTimeout(shoot, 200);
 }
 
-export function OrderStatus({ initial }: { initial: Order }) {
+export function OrderStatus({
+  initial,
+  loyalty,
+}: {
+  initial: Order;
+  /** The signed-in viewer's stamp balance, or null for a guest (localStorage). */
+  loyalty: { stamps: number; free: number } | null;
+}) {
   const [order, setOrder] = useState<Order>(initial);
   const prevStatus = useRef<Status>(initial.status);
 
@@ -277,6 +284,12 @@ export function OrderStatus({ initial }: { initial: Order }) {
             </li>
           ))}
         </ul>
+        {order.rewardDiscount > 0 && (
+          <div className="mt-3 flex items-center justify-between text-[13.5px] text-coffee">
+            <span>Free drink reward</span>
+            <span className="tabular-nums">-{peso(order.rewardDiscount)}</span>
+          </div>
+        )}
         <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
           <span className="text-[14px] text-ink-soft">
             {order.paid ? "Paid" : `Pay at the ${branch.pickupNoun}`} ·{" "}
@@ -290,7 +303,11 @@ export function OrderStatus({ initial }: { initial: Order }) {
 
       {/* Loyalty */}
       <div className="mt-6">
-        <StampCard />
+        {loyalty ? (
+          <StampCard stamps={loyalty.stamps} free={loyalty.free} />
+        ) : (
+          <StampCard />
+        )}
       </div>
 
       <Link

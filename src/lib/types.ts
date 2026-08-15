@@ -49,6 +49,8 @@ export type Order = {
   customerPhone?: string;
   items: OrderLine[];
   subtotal: number;
+  /** Pesos comped on this order by a redeemed loyalty reward. 0 when none. */
+  rewardDiscount: number;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
   paid: boolean;

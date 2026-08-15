@@ -14,9 +14,17 @@ import { getCustomer } from "@/lib/customer";
 
 export type AuthState = { error: string } | null;
 
-/** Land a `?next=` hop only if it stays inside the account area. */
+/**
+ * Land a `?next=` hop only if it stays on a known internal page: the account
+ * area, or an order the customer just placed (the "save your stamps" prompt
+ * signs them in and returns them to their order). Anything else falls back to
+ * the account page, so this can never bounce to an external URL.
+ */
 function safeNext(next: string | null): string {
-  return next && next.startsWith("/account") ? next : "/account";
+  if (next && (next.startsWith("/account") || /^\/order\/[\w-]+$/.test(next))) {
+    return next;
+  }
+  return "/account";
 }
 
 export async function signIn(

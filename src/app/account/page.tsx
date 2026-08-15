@@ -9,8 +9,8 @@ import { SiteHeader } from "@/components/site-header";
 import { StampCard } from "@/components/stamp-card";
 import { getCustomer } from "@/lib/customer";
 import { listCustomerOrders } from "@/lib/store";
-import { getMenu } from "@/lib/menu-store";
-import { drinkStickers, peso } from "@/lib/menu";
+import { getLoyalty } from "@/lib/loyalty";
+import { peso } from "@/lib/menu";
 import { getBranch } from "@/lib/branches";
 import { STATUS_LABEL, type Order } from "@/lib/types";
 import { SignOutButton } from "./sign-out-button";
@@ -22,15 +22,10 @@ export default async function AccountPage() {
   // proxy.ts already gates this route; this is the belt-and-braces check.
   if (!customer) redirect("/account/sign-in?next=/account");
 
-  const [orders, menu] = await Promise.all([
+  const [orders, loyalty] = await Promise.all([
     listCustomerOrders(customer.id),
-    getMenu(),
+    getLoyalty(customer.id),
   ]);
-
-  // One sticker per drink bought, counted from orders that have been paid for.
-  const stamps = orders
-    .filter((o) => o.paid)
-    .reduce((total, o) => total + drinkStickers(menu, o.items), 0);
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
@@ -44,7 +39,7 @@ export default async function AccountPage() {
 
         {/* Loyalty */}
         <div className="mt-6">
-          <StampCard stamps={stamps} />
+          <StampCard stamps={loyalty.stamps} free={loyalty.free} />
         </div>
 
         {/* Profile */}

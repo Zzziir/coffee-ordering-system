@@ -38,7 +38,7 @@ import { supabaseAdmin } from "./supabase/admin";
 
 const ORDER_SELECT = `
   id, branch_id, code, channel, table_number, customer_name, customer_phone,
-  subtotal, status, payment_method, paid, created_at, updated_at,
+  subtotal, reward_discount, status, payment_method, paid, created_at, updated_at,
   order_lines ( id, position, item_id, name, base_price, qty, groups, line_total, note ),
   order_events ( status, at )
 `;
@@ -64,6 +64,7 @@ type OrderRow = {
   customer_name: string;
   customer_phone: string | null;
   subtotal: number;
+  reward_discount: number;
   status: OrderStatus;
   payment_method: PaymentMethod;
   paid: boolean;
@@ -100,6 +101,7 @@ function toOrder(row: OrderRow): Order {
         }),
       ),
     subtotal: row.subtotal,
+    rewardDiscount: row.reward_discount,
     status: row.status,
     paymentMethod: row.payment_method,
     paid: row.paid,
@@ -206,6 +208,8 @@ export type CreateOrderInput = {
   paymentMethod: PaymentMethod;
   /** the signed-in customer this order belongs to, or undefined for a guest */
   customerId?: string;
+  /** pesos to comp for a redeemed free-drink reward; omit or 0 for none */
+  rewardDiscount?: number;
 };
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
@@ -226,6 +230,8 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     p_lines: input.items,
     // null for a guest; a uuid when the customer was signed in at checkout.
     p_customer_id: input.customerId ?? null,
+    // pesos comped by a redeemed reward; the RPC clamps it to the order gross.
+    p_reward_discount: input.rewardDiscount ?? 0,
   });
 
   if (error) throw new Error(`Could not place the order: ${error.message}`);

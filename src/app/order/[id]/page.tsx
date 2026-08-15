@@ -4,6 +4,8 @@ import { OrderStatus } from "@/components/order-status";
 import { CupMark } from "@/components/brand";
 import { ChatLauncher } from "@/components/chat/chat-launcher";
 import { getOrder } from "@/lib/store";
+import { getCustomer } from "@/lib/customer";
+import { getLoyalty } from "@/lib/loyalty";
 
 export const dynamic = "force-dynamic";
 
@@ -15,12 +17,17 @@ export default async function OrderPage({
   const { id } = await params;
   const order = await getOrder(id);
 
+  // A signed-in viewer sees their real stamp balance on the card; a guest's
+  // card falls back to the on-device tally (null here).
+  const customer = await getCustomer();
+  const loyalty = customer ? await getLoyalty(customer.id) : null;
+
   return (
     <div className="min-h-[100dvh]">
       <SiteNav />
       <div className="mx-auto max-w-2xl">
         {order ? (
-          <OrderStatus initial={order} />
+          <OrderStatus initial={order} loyalty={loyalty} />
         ) : (
           <main className="flex flex-col items-center justify-center px-6 pt-24 text-center">
           <span className="grid size-20 place-items-center rounded-full bg-paper-sunk text-ink-faint">
