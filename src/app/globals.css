@@ -142,6 +142,38 @@ html.dark .dashboard-surface {
   transform: scale(0.97);
 }
 
+/* Barista queue action — the primary tap target on each order card. A resting
+   shadow makes the pill read as raised and obviously tappable at a glance,
+   which is the first-run affordance the flat pill was missing. On pointer
+   devices it lifts and its trailing glyph leans forward on hover, and it sinks
+   on press. Touch devices skip :hover (a tap would leave it stuck hovered) and
+   lean on the resting shadow plus the press scale for feedback. */
+.queue-action {
+  transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+  box-shadow: var(--shadow-pop);
+  touch-action: manipulation;
+}
+.queue-action:active {
+  transform: scale(0.97);
+  box-shadow: var(--shadow-card);
+}
+.queue-action-icon {
+  transition: transform 200ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .queue-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  .queue-action:hover .queue-action-icon {
+    transform: translateX(3px);
+  }
+  .queue-action:active {
+    transform: translateY(-1px) scale(0.97);
+    box-shadow: var(--shadow-card);
+  }
+}
+
 /* Wordmark tracking to echo the logo's geometric spacing */
 .wordmark {
   font-weight: 700;

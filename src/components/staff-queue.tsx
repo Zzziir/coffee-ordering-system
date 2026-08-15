@@ -218,12 +218,12 @@ function OrderCard({
         <button
           onClick={() => onAdvance(order.id, next.status)}
           className={clsx(
-            "pressable inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-semibold text-paper",
+            "queue-action inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-semibold text-paper",
             isReady ? "bg-ready" : "bg-ink",
           )}
         >
           {next.label}
-          {next.icon}
+          <span className="queue-action-icon inline-flex">{next.icon}</span>
         </button>
       </div>
     </motion.div>
