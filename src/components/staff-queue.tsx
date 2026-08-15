@@ -157,12 +157,15 @@ function OrderCard({
   onAdvance: (id: string, status: OrderStatus) => void;
 }) {
   const isReady = order.status === "ready";
-  const next: { status: OrderStatus; label: string; icon: React.ReactNode } =
+  // Each action wears its own brand colour so a barista scanning the board can
+  // tell a card's stage at a glance: brew it (coffee), ring it (amber), done
+  // (green). All three tokens invert across light/dark, so text-paper stays legible.
+  const next: { status: OrderStatus; label: string; icon: React.ReactNode; bg: string } =
     order.status === "received"
-      ? { status: "preparing", label: "Start preparing", icon: <ArrowRightIcon size={17} weight="bold" /> }
+      ? { status: "preparing", label: "Start preparing", icon: <ArrowRightIcon size={17} weight="bold" />, bg: "bg-coffee" }
       : order.status === "preparing"
-        ? { status: "ready", label: "Mark ready", icon: <BellRingingIcon size={17} weight="bold" /> }
-        : { status: "completed", label: "Picked up", icon: <CheckIcon size={17} weight="bold" /> };
+        ? { status: "ready", label: "Mark ready", icon: <BellRingingIcon size={17} weight="bold" />, bg: "bg-warn" }
+        : { status: "completed", label: "Picked up", icon: <CheckIcon size={17} weight="bold" />, bg: "bg-ready" };
 
   return (
     <motion.div
@@ -219,7 +222,7 @@ function OrderCard({
           onClick={() => onAdvance(order.id, next.status)}
           className={clsx(
             "queue-action inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-semibold text-paper",
-            isReady ? "bg-ready" : "bg-ink",
+            next.bg,
           )}
         >
           {next.label}
