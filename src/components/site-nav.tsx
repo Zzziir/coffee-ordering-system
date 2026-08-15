@@ -43,13 +43,16 @@ export function SiteNav() {
   return (
     <>
     <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-md">
-      <nav className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between px-5 lg:px-8">
+      <nav className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between gap-4 px-5 lg:px-8">
         <Link href="/" aria-label="Craffé home" className="pressable shrink-0">
           <Wordmark className="text-[20px] text-ink" />
         </Link>
 
-        {/* Desktop links */}
-        <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
+        {/* Desktop links — a centred flex-1 column so they live in the gap
+            between the wordmark and the right cluster and can never overlap
+            them; hidden below lg, where there isn't room and the hamburger
+            takes over. */}
+        <ul className="hidden flex-1 items-center justify-center gap-8 lg:flex">
           {LINKS.map((l) => (
             <li key={l.href}>
               <Link
@@ -75,7 +78,7 @@ export function SiteNav() {
         </ul>
 
         {/* Right cluster */}
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {/* Only appears once a branch is chosen — it's the way to switch. */}
           <BranchChip />
 
@@ -115,7 +118,7 @@ export function SiteNav() {
 
           <Link
             href="/menu"
-            className="pressable hidden h-11 items-center gap-1.5 rounded-full bg-ink pl-5 pr-4 text-[15px] font-semibold text-paper md:inline-flex"
+            className="pressable hidden h-11 items-center gap-1.5 rounded-full bg-ink pl-5 pr-4 text-[15px] font-semibold text-paper lg:inline-flex"
           >
             Order now
             <ArrowRightIcon size={17} weight="bold" />
@@ -125,7 +128,7 @@ export function SiteNav() {
           <button
             onClick={() => setOpen(true)}
             aria-label="Open menu"
-            className="pressable grid size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk md:hidden"
+            className="pressable grid size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:hidden"
           >
             <ListIcon size={24} weight="bold" />
           </button>
@@ -138,7 +141,7 @@ export function SiteNav() {
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 z-50 flex flex-col md:hidden"
+            className="fixed inset-0 z-50 flex flex-col lg:hidden"
             style={{ backgroundColor: "var(--color-paper)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
