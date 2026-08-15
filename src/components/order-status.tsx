@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
+import confetti from "canvas-confetti";
 import {
   CheckCircleIcon,
   CircleNotchIcon,
@@ -79,17 +80,42 @@ function chime() {
   } catch {}
 }
 
+/** A burst of stars, once, when the order is finally in the customer's hands. */
+function celebrate() {
+  const defaults = {
+    spread: 360,
+    ticks: 50,
+    gravity: 0,
+    decay: 0.94,
+    startVelocity: 30,
+    colors: ["#FFE400", "#FFBD00", "#E89400", "#FFCA6C", "#FDFFB8"],
+  };
+
+  const shoot = () => {
+    confetti({ ...defaults, particleCount: 40, scalar: 1.2, shapes: ["star"] });
+    confetti({ ...defaults, particleCount: 10, scalar: 0.75, shapes: ["circle"] });
+  };
+
+  setTimeout(shoot, 0);
+  setTimeout(shoot, 100);
+  setTimeout(shoot, 200);
+}
+
 export function OrderStatus({ initial }: { initial: Order }) {
   const [order, setOrder] = useState<Order>(initial);
   const prevStatus = useRef<Status>(initial.status);
 
   useOrderStream({ order: order.id }, (o) => setOrder(o));
 
-  // Celebrate the moment it turns ready (rare event → delight is earned).
+  // Two moments earn delight: it turns ready, and it's finally picked up.
   useEffect(() => {
     if (order.status === "ready" && prevStatus.current !== "ready") {
       navigator.vibrate?.([40, 60, 40]);
       chime();
+    }
+    if (order.status === "completed" && prevStatus.current !== "completed") {
+      navigator.vibrate?.([20, 40, 20, 40, 60]);
+      celebrate();
     }
     prevStatus.current = order.status;
   }, [order.status]);
@@ -98,8 +124,10 @@ export function OrderStatus({ initial }: { initial: Order }) {
   const STEPS = steps(order, branch);
   const activeIndex = STEPS.findIndex((s) => s.key === order.status);
   const isReady = order.status === "ready" || order.status === "completed";
-  // When ready/completed the whole timeline is done — no lingering spinner.
-  const currentIndex = isReady ? STEPS.length : activeIndex;
+  const isPickedUp = order.status === "completed";
+  // "Ready for pickup" keeps spinning until the barista marks it picked up;
+  // only then is the whole timeline checked off.
+  const currentIndex = isPickedUp ? STEPS.length : activeIndex;
   const { Icon: ChannelIcon, text: channelText } = channelLine(order, branch);
 
   return (
@@ -209,10 +237,23 @@ export function OrderStatus({ initial }: { initial: Order }) {
             );
           })}
         </ol>
-        {!isReady && (
-          <p className="ml-12 text-[13.5px] text-ink-soft">
-            Usually ready in about 8 minutes.
-          </p>
+        {isPickedUp ? (
+          <motion.p
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+            className="ml-12 text-[14px] font-medium text-ink"
+          >
+            {order.channel === "dinein"
+              ? "Enjoy every sip, right where you are!"
+              : "Thanks for stopping by. Enjoy every sip!"}
+          </motion.p>
+        ) : (
+          !isReady && (
+            <p className="ml-12 text-[13.5px] text-ink-soft">
+              Usually ready in about 8 minutes.
+            </p>
+          )
         )}
       </div>
 
