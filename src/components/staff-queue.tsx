@@ -157,12 +157,14 @@ function OrderCard({
   onAdvance: (id: string, status: OrderStatus) => void;
 }) {
   const isReady = order.status === "ready";
-  // Each action wears its own brand colour so a barista scanning the board can
-  // tell a card's stage at a glance: brew it (coffee), ring it (amber), done
-  // (green). All three tokens invert across light/dark, so text-paper stays legible.
+  // Each action wears its own colour so a barista scanning the board can tell a
+  // card's stage at a glance: start it (neutral ink), ring it (amber), done
+  // (green). A warm brown for "start" sat too close to the amber; neutral,
+  // amber, green read like a traffic light. All tokens invert across light/dark,
+  // so text-paper stays legible.
   const next: { status: OrderStatus; label: string; icon: React.ReactNode; bg: string } =
     order.status === "received"
-      ? { status: "preparing", label: "Start preparing", icon: <ArrowRightIcon size={17} weight="bold" />, bg: "bg-coffee" }
+      ? { status: "preparing", label: "Start preparing", icon: <ArrowRightIcon size={17} weight="bold" />, bg: "bg-ink" }
       : order.status === "preparing"
         ? { status: "ready", label: "Mark ready", icon: <BellRingingIcon size={17} weight="bold" />, bg: "bg-warn" }
         : { status: "completed", label: "Picked up", icon: <CheckIcon size={17} weight="bold" />, bg: "bg-ready" };
