@@ -198,7 +198,7 @@ export function OrderStatus({ initial }: { initial: Order }) {
                 {i < STEPS.length - 1 && (
                   <span
                     className={clsx(
-                      "absolute left-[15px] top-9 h-[calc(100%-1.5rem)] w-0.5 transition-colors duration-500",
+                      "absolute left-[15px] top-9 h-[calc(100%-2.25rem)] w-0.5 transition-colors duration-500",
                       done ? "bg-ready" : "bg-line",
                     )}
                   />
