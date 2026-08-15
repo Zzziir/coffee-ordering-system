@@ -30,6 +30,13 @@
 - **Loose coupling, high cohesion** — Minimize dependencies between modules; keep related things together.
 - **Fail fast** — Surface errors early and loudly rather than silently continuing.
 
+# Design Skills
+
+- **When designing or building any frontend/UI, use the design skills.** Invoke them via the Skill tool for interface work (pages, components, layout, styling, motion, UX review):
+  - **`emil-design-eng`** — Emil Kowalski's philosophy on UI polish, component design, animation decisions, and the invisible details that make software feel great.
+  - **`impeccable`** — designing, redesigning, critiquing, and polishing interfaces: visual hierarchy, spacing, typography, color, motion, accessibility, and reusable design systems.
+  - **`design-taste-frontend`** ("Taste") — anti-slop frontend design for landing pages, portfolios, and redesigns that don't look templated.
+
 # Code Quality
 
 - **Boy Scout Rule** — Leave code cleaner than you found it.
