@@ -214,6 +214,14 @@ function OrderCard({
             )}
           </li>
         ))}
+        {/* Hold every ticket to at least three item rows so a one-drink order
+            reads at the same glanceable size as a fuller one; more than three
+            items simply grows the ticket. */}
+        {Array.from({ length: Math.max(0, 3 - order.items.length) }).map((_, i) => (
+          <li key={`pad-${i}`} aria-hidden className="invisible text-[14px] leading-snug">
+            0
+          </li>
+        ))}
       </ul>
 
       <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
