@@ -17,11 +17,15 @@ const CUPS = STAMPS_PER_REWARD - 1; // nine cups, then the reward slot
  * have bought) and `free` (rewards they can redeem now). With no props it falls
  * back to the guest tally in localStorage — how it renders for people who
  * haven't made an account, where free drinks are simply derived from the count.
+ *
+ * On an order confirmation, `earnedThisOrder` calls out how many stamps that one
+ * order just added, so the card reads as feedback and not just a running total.
  */
 export function StampCard({
   stamps: stampsProp,
   free: freeProp,
-}: { stamps?: number; free?: number } = {}) {
+  earnedThisOrder,
+}: { stamps?: number; free?: number; earnedThisOrder?: number } = {}) {
   const [localStamps, setLocalStamps] = useState<number | null>(null);
   const stamps = stampsProp ?? localStamps;
 
@@ -62,7 +66,19 @@ export function StampCard({
         )}
       </div>
 
-      <p className="px-5 pt-2 text-[13.5px] text-paper/70">
+      {earnedThisOrder != null && earnedThisOrder > 0 && (
+        <p className="flex items-center gap-1.5 px-5 pt-2 text-[13.5px] font-semibold text-paper">
+          <CoffeeIcon size={14} weight="fill" />
+          {`+${earnedThisOrder} ${earnedThisOrder === 1 ? "stamp" : "stamps"} from this order`}
+        </p>
+      )}
+
+      <p
+        className={clsx(
+          "px-5 text-[13.5px] text-paper/70",
+          earnedThisOrder != null && earnedThisOrder > 0 ? "pt-1" : "pt-2",
+        )}
+      >
         {free > 0
           ? `You've earned ${free} free ${free === 1 ? "drink" : "drinks"}. Redeem ${free === 1 ? "it" : "one"} on your next order.`
           : `${remaining} more ${remaining === 1 ? "drink" : "drinks"} until a free one.`}

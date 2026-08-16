@@ -6,6 +6,8 @@ import { ChatLauncher } from "@/components/chat/chat-launcher";
 import { getOrder } from "@/lib/store";
 import { getCustomer } from "@/lib/customer";
 import { getLoyalty } from "@/lib/loyalty";
+import { getMenu } from "@/lib/menu-store";
+import { drinkStickers } from "@/lib/menu";
 
 export const dynamic = "force-dynamic";
 
@@ -22,12 +24,19 @@ export default async function OrderPage({
   const customer = await getCustomer();
   const loyalty = customer ? await getLoyalty(customer.id) : null;
 
+  // Stamps this order earned: one per drink, less any comped free drinks (those
+  // earn nothing). Shown on the card so the confirmation reads as feedback.
+  const menu = await getMenu();
+  const earnedThisOrder = order
+    ? Math.max(0, drinkStickers(menu, order.items) - order.rewardQty)
+    : 0;
+
   return (
     <div className="min-h-[100dvh]">
       <SiteNav />
       <div className="mx-auto max-w-2xl">
         {order ? (
-          <OrderStatus initial={order} loyalty={loyalty} />
+          <OrderStatus initial={order} loyalty={loyalty} earnedThisOrder={earnedThisOrder} />
         ) : (
           <main className="flex flex-col items-center justify-center px-6 pt-24 text-center">
           <span className="grid size-20 place-items-center rounded-full bg-paper-sunk text-ink-faint">

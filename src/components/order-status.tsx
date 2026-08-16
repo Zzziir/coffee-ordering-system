@@ -104,10 +104,13 @@ function celebrate() {
 export function OrderStatus({
   initial,
   loyalty,
+  earnedThisOrder,
 }: {
   initial: Order;
   /** The signed-in viewer's stamp balance, or null for a guest (localStorage). */
   loyalty: { stamps: number; free: number } | null;
+  /** Stamps this order earned, called out on the card as feedback. */
+  earnedThisOrder: number;
 }) {
   const [order, setOrder] = useState<Order>(initial);
   const prevStatus = useRef<Status>(initial.status);
@@ -304,9 +307,13 @@ export function OrderStatus({
       {/* Loyalty */}
       <div className="mt-6">
         {loyalty ? (
-          <StampCard stamps={loyalty.stamps} free={loyalty.free} />
+          <StampCard
+            stamps={loyalty.stamps}
+            free={loyalty.free}
+            earnedThisOrder={earnedThisOrder}
+          />
         ) : (
-          <StampCard />
+          <StampCard earnedThisOrder={earnedThisOrder} />
         )}
       </div>
 
