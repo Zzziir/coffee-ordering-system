@@ -7,6 +7,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { SiteHeader } from "@/components/site-header";
 import { StampCard } from "@/components/stamp-card";
+import { ActiveOrders } from "@/components/active-orders";
 import { getCustomer } from "@/lib/customer";
 import { listCustomerOrders } from "@/lib/store";
 import { getLoyalty } from "@/lib/loyalty";
@@ -27,6 +28,11 @@ export default async function AccountPage() {
     getLoyalty(customer.id),
   ]);
 
+  // Active = still on its way (not yet picked up). These lead the page and live
+  // in their own section; history keeps the picked-up ones so nothing doubles.
+  const activeOrders = orders.filter((o) => o.status !== "completed");
+  const pastOrders = orders.filter((o) => o.status === "completed");
+
   return (
     <div className="flex min-h-[100dvh] flex-col">
       <SiteHeader back="/" showBag={false} title="Account" />
@@ -41,6 +47,9 @@ export default async function AccountPage() {
         <div className="mt-6">
           <StampCard stamps={loyalty.stamps} free={loyalty.free} />
         </div>
+
+        {/* Active orders — live, so a status changes without a refresh */}
+        <ActiveOrders initial={activeOrders} />
 
         {/* Profile */}
         <section className="mt-8">
@@ -81,9 +90,13 @@ export default async function AccountPage() {
                 Start an order
               </Link>
             </div>
+          ) : pastOrders.length === 0 ? (
+            <p className="mt-3 text-[14.5px] text-ink-soft">
+              Your past orders will show here once they&apos;re picked up.
+            </p>
           ) : (
             <ul className="mt-3 flex flex-col gap-2.5">
-              {orders.map((order) => (
+              {pastOrders.map((order) => (
                 <OrderRow key={order.id} order={order} />
               ))}
             </ul>
