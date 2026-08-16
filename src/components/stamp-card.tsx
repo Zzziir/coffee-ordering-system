@@ -66,7 +66,9 @@ export function StampCard({
   // states the true count, even if it spills beyond this one card.
   const pendingRaw = Math.max(0, pendingProp ?? 0);
   const pendingCups = Math.min(pendingRaw, CUPS - progress);
-  const pendingReward = free === 0 && pendingRaw >= STAMPS_PER_REWARD - progress;
+  // This order will complete the current card — mark the reward slot as "about
+  // to unlock", whether or not free drinks are already banked.
+  const pendingReward = pendingRaw >= STAMPS_PER_REWARD - progress;
   const showEarned = earnedThisOrder != null && earnedThisOrder > 0;
   const showPending = !showEarned && pendingRaw > 0;
 
