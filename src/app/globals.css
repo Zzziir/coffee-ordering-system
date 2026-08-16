@@ -21,6 +21,7 @@
   --color-coffee: #8a6a47; /* primary accent */
   --color-coffee-deep: #5a4130; /* pressed / emphasis */
   --color-coffee-tint: #eee6db; /* accent wash */
+  --color-gold: #d3ad74; /* reward accent — the prize, distinct from a stamp */
 
   /* Lines */
   --color-line: #e6dfd3;
@@ -54,6 +55,44 @@
 
 :root {
   color-scheme: light;
+}
+
+/* Reward slot "about to complete" state: a slow gold ring rippling outward at
+   very low opacity, plus a gentle pulse on the gift — anticipation, not noise. */
+@keyframes craffe-reward-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+  80%,
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+@keyframes craffe-reward-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+.reward-ripple {
+  animation: craffe-reward-ripple 2.4s var(--ease-out) infinite;
+}
+.reward-pulse {
+  animation: craffe-reward-pulse 2.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reward-ripple {
+    animation: none;
+    opacity: 0;
+  }
+  .reward-pulse {
+    animation: none;
+  }
 }
 
 html {

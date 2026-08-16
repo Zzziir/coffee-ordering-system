@@ -143,17 +143,38 @@ export function StampCard({
           return (
             <div
               key={i}
-              style={isPending ? { backgroundImage: HATCH } : undefined}
+              // Cups hatch while pending; the reward slot ripples instead.
+              style={isPending && !isReward ? { backgroundImage: HATCH } : undefined}
               className={clsx(
                 "relative grid aspect-square place-items-center rounded-full border transition-colors duration-300",
-                isReward ? "border-dashed" : "",
-                active
-                  ? "border-transparent bg-coffee text-paper"
-                  : isPending
-                    ? "border-coffee/50 text-paper/70"
-                    : "border-paper/25 text-paper/30",
+                isReward
+                  ? active
+                    ? "border-transparent bg-gold text-ink" // earned prize
+                    : isPending
+                      ? "border-dashed border-gold text-gold" // about to unlock
+                      : "border-dashed border-gold/35 text-gold/45" // the goal, locked
+                  : active
+                    ? "border-transparent bg-coffee text-paper"
+                    : isPending
+                      ? "border-coffee/50 text-paper/70"
+                      : "border-paper/25 text-paper/30",
               )}
             >
+              {/* Anticipation: this order will complete the card */}
+              {isReward && isPending && (
+                <>
+                  <span
+                    aria-hidden
+                    className="reward-ripple pointer-events-none absolute inset-0 rounded-full border border-gold"
+                  />
+                  <span
+                    aria-hidden
+                    style={{ animationDelay: "1.2s" }}
+                    className="reward-ripple pointer-events-none absolute inset-0 rounded-full border border-gold"
+                  />
+                </>
+              )}
+
               {active && stamps !== null ? (
                 <motion.span
                   initial={animateIn ? { scale: 0.3, opacity: 0 } : false}
@@ -167,7 +188,11 @@ export function StampCard({
                   {isReward ? <GiftIcon size={18} weight="fill" /> : <CoffeeIcon size={18} weight="fill" />}
                 </motion.span>
               ) : isReward ? (
-                <GiftIcon size={18} weight="regular" />
+                <GiftIcon
+                  size={18}
+                  weight={isPending ? "fill" : "regular"}
+                  className={isPending ? "reward-pulse relative" : "relative"}
+                />
               ) : (
                 <CoffeeIcon size={16} weight="regular" />
               )}
