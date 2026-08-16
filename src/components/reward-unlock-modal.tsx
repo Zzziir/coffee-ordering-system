@@ -48,9 +48,18 @@ export function RewardUnlockModal({
   const needsAck = celebrated === null || earnedRewards > celebrated;
 
   useEffect(() => {
-    // Persist the new high-water mark (silently on first sight, or after a win).
-    if (needsAck) void ackRewardCelebration(earnedRewards);
-    if (shouldCelebrate) setOpen(true);
+    if (!needsAck) return;
+    // First sight (or a count with nothing to celebrate): bank it silently.
+    if (!shouldCelebrate) {
+      void ackRewardCelebration(earnedRewards);
+      return;
+    }
+    // Let a live card-fill animation land before the celebration pops.
+    const t = setTimeout(() => {
+      setOpen(true);
+      void ackRewardCelebration(earnedRewards);
+    }, 900);
+    return () => clearTimeout(t);
     // Re-run only when the underlying counts change.
   }, [earnedRewards, celebrated, needsAck, shouldCelebrate]);
 

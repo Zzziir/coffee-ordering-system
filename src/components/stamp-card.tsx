@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { CoffeeIcon, GiftIcon } from "@phosphor-icons/react";
 import { CupMark } from "./brand";
@@ -70,6 +70,21 @@ export function StampCard({
   const showEarned = earnedThisOrder != null && earnedThisOrder > 0;
   const showPending = !showEarned && pendingRaw > 0;
 
+  // When the stamp count grows after the card is on screen — e.g. an order is
+  // picked up live — the newly earned cups cascade in. On first paint nothing
+  // animates (mounted is still false), so an already-filled card sits still.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const prevFilledRef = useRef(filled);
+  useEffect(() => {
+    prevFilledRef.current = filled;
+  }, [filled]);
+  const prevFilled = prevFilledRef.current;
+  const grew = filled > prevFilled;
+  const wrapped =
+    Math.floor(filled / STAMPS_PER_REWARD) > Math.floor(prevFilled / STAMPS_PER_REWARD);
+  const fillFrom = wrapped ? 0 : prevFilled % STAMPS_PER_REWARD;
+
   return (
     <div className="overflow-hidden rounded-[var(--radius-lg)] border border-line bg-ink text-paper">
       <div className="flex items-center justify-between px-5 pt-5">
@@ -119,6 +134,12 @@ export function StampCard({
             ? pendingReward
             : i >= progress && i < progress + pendingCups;
           const active = isReward ? free > 0 : earned;
+          // A cup (or the reward) that just became active this update pops in,
+          // cups left to right in the freshly filled run.
+          const justFilled =
+            mounted && grew && !isReward && earned && i >= fillFrom && i < progress;
+          const rewardJustLit = mounted && grew && isReward && active && wrapped;
+          const animateIn = justFilled || rewardJustLit;
           return (
             <div
               key={i}
@@ -135,11 +156,13 @@ export function StampCard({
             >
               {active && stamps !== null ? (
                 <motion.span
-                  initial={
-                    !isReward && i === progress - 1 ? { scale: 0.4, opacity: 0 } : false
-                  }
+                  initial={animateIn ? { scale: 0.3, opacity: 0 } : false}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
+                  transition={{
+                    duration: 0.35,
+                    ease: [0.23, 1, 0.32, 1],
+                    delay: justFilled ? (i - fillFrom) * 0.1 : 0,
+                  }}
                 >
                   {isReward ? <GiftIcon size={18} weight="fill" /> : <CoffeeIcon size={18} weight="fill" />}
                 </motion.span>

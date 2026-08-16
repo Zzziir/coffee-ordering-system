@@ -18,7 +18,7 @@ import { branchAddress, getBranch, type Branch } from "@/lib/branches";
 import { useOrderStream } from "./use-order-stream";
 import { BranchLockup } from "./branch-lockup";
 import { describeLine } from "@/lib/cart";
-import { peso } from "@/lib/menu";
+import { peso, STAMPS_PER_REWARD } from "@/lib/menu";
 import { StampCard } from "./stamp-card";
 import { RewardUnlockModal } from "./reward-unlock-modal";
 import { clsx } from "@/lib/clsx";
@@ -148,6 +148,21 @@ export function OrderStatus({
   // only then is the whole timeline checked off.
   const currentIndex = isPickedUp ? STEPS.length : activeIndex;
   const { Icon: ChannelIcon, text: channelText } = channelLine(order, branch);
+
+  // Live crediting: if the order is picked up while the customer is watching
+  // (it wasn't at page load), fold this order's stamps into the card now so it
+  // fills in real time. When the page already loaded picked-up, the snapshot
+  // already counts it — never add twice.
+  const justCredited = loyalty !== null && !credited && isPickedUp;
+  const deltaRewards =
+    loyalty && justCredited
+      ? Math.floor((loyalty.stamps + stampsThisOrder) / STAMPS_PER_REWARD) -
+        Math.floor(loyalty.stamps / STAMPS_PER_REWARD)
+      : 0;
+  const cardStamps = loyalty ? loyalty.stamps + (justCredited ? stampsThisOrder : 0) : 0;
+  const cardFree = loyalty ? loyalty.free + deltaRewards : 0;
+  const cardEarnedRewards = loyalty ? loyalty.earnedRewards + deltaRewards : 0;
+  const showEarned = credited || justCredited;
 
   return (
     <div className="px-5 pb-16 pt-4">
@@ -317,11 +332,11 @@ export function OrderStatus({
       <div className="mt-6">
         {loyalty ? (
           <StampCard
-            stamps={loyalty.stamps}
-            free={loyalty.free}
+            stamps={cardStamps}
+            free={cardFree}
             // Stamps are credited at pickup; until then, show them "on the way".
-            earnedThisOrder={credited ? stampsThisOrder : 0}
-            pending={credited ? 0 : stampsThisOrder}
+            earnedThisOrder={showEarned ? stampsThisOrder : 0}
+            pending={showEarned ? 0 : stampsThisOrder}
           />
         ) : (
           // A guest's on-device tally is bumped at checkout, so it's already
@@ -333,9 +348,9 @@ export function OrderStatus({
       {/* Signed-in: celebrate once a picked-up order completes a card */}
       {loyalty && (
         <RewardUnlockModal
-          earnedRewards={loyalty.earnedRewards}
+          earnedRewards={cardEarnedRewards}
           celebrated={loyalty.celebrated}
-          free={loyalty.free}
+          free={cardFree}
         />
       )}
 
