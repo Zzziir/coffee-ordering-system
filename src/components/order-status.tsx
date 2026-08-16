@@ -163,6 +163,13 @@ export function OrderStatus({
   const cardFree = loyalty ? loyalty.free + deltaRewards : 0;
   const cardEarnedRewards = loyalty ? loyalty.earnedRewards + deltaRewards : 0;
   const showEarned = credited || justCredited;
+  // Whole cards this order filled, so the card can reassure that a fresh-looking
+  // grid means the reward was banked, not lost.
+  const cardsCompletedThisOrder =
+    loyalty && showEarned
+      ? Math.floor(cardStamps / STAMPS_PER_REWARD) -
+        Math.floor((cardStamps - stampsThisOrder) / STAMPS_PER_REWARD)
+      : 0;
 
   return (
     <div className="px-5 pb-16 pt-4">
@@ -337,6 +344,7 @@ export function OrderStatus({
             // Stamps are credited at pickup; until then, show them "on the way".
             earnedThisOrder={showEarned ? stampsThisOrder : 0}
             pending={showEarned ? 0 : stampsThisOrder}
+            cardsCompleted={cardsCompletedThisOrder}
           />
         ) : (
           // A guest's on-device tally is bumped at checkout, so it's already

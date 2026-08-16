@@ -33,11 +33,15 @@ export function StampCard({
   free: freeProp,
   earnedThisOrder,
   pending: pendingProp,
+  cardsCompleted,
 }: {
   stamps?: number;
   free?: number;
   earnedThisOrder?: number;
   pending?: number;
+  /** Cards this order just filled, so a fresh-looking card can reassure that the
+   *  reward was banked and this is a brand new card. */
+  cardsCompleted?: number;
 } = {}) {
   const [localStamps, setLocalStamps] = useState<number | null>(null);
   const stamps = stampsProp ?? localStamps;
@@ -127,6 +131,17 @@ export function StampCard({
           ? `You've earned ${free} free ${free === 1 ? "drink" : "drinks"}. Redeem ${free === 1 ? "it" : "one"} on your next order.`
           : `${remaining} more ${remaining === 1 ? "drink" : "drinks"} until a free one.`}
       </p>
+
+      {cardsCompleted != null && cardsCompleted > 0 && (
+        <div className="mx-5 mt-3 flex items-start gap-2 rounded-[var(--radius-sm)] border border-gold/25 bg-gold/10 px-3 py-2 text-[12.5px] leading-snug text-paper/85">
+          <GiftIcon size={15} weight="fill" className="mt-px shrink-0 text-gold" />
+          <span>
+            {cardsCompleted === 1
+              ? "Full card! Your free drink is safely on your tab. This one's a fresh card, ready to fill."
+              : `Full cards! Your ${cardsCompleted} free drinks are safely on your tab. This one's a fresh card, ready to fill.`}
+          </span>
+        </div>
+      )}
 
       <div className="grid grid-cols-5 gap-2.5 p-5">
         {Array.from({ length: STAMPS_PER_REWARD }).map((_, i) => {
