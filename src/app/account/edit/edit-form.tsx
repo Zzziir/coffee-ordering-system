@@ -3,7 +3,8 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { updateProfile, type AuthState } from "../actions";
-import { Field, textInputClass } from "../fields";
+import { Field } from "../fields";
+import { textInputClass } from "@/components/text-input";
 import type { Customer } from "@/lib/customer";
 
 export function EditForm({ customer }: { customer: Customer }) {

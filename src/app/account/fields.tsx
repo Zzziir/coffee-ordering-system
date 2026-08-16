@@ -1,7 +1,4 @@
-/** Shared form furniture for the account sign-in, sign-up and edit forms. */
-
-export const textInputClass =
-  "h-12 w-full rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee";
+/** Shared label + field wrapper for the account sign-in, sign-up and edit forms. */
 
 export function Field({
   label,

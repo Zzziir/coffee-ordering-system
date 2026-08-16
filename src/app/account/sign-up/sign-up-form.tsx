@@ -3,7 +3,8 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { signUp, type AuthState } from "../actions";
-import { Field, textInputClass } from "../fields";
+import { Field } from "../fields";
+import { PasswordInput, textInputClass } from "@/components/text-input";
 
 export function SignUpForm({ next }: { next: string | null }) {
   const [state, formAction] = useActionState<AuthState, FormData>(signUp, null);
@@ -47,15 +48,11 @@ export function SignUpForm({ next }: { next: string | null }) {
       </Field>
 
       <Field label="Password" htmlFor="password">
-        <input
-          id="password"
-          name="password"
-          type="password"
+        <PasswordInput
           required
           minLength={8}
           autoComplete="new-password"
           placeholder="At least 8 characters"
-          className={textInputClass}
         />
       </Field>
 

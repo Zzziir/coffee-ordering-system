@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { signIn, type SignInState } from "../actions";
+import { PasswordInput, textInputClass } from "@/components/text-input";
 
 export function SignInForm({ next }: { next: string | null }) {
   const [state, formAction] = useActionState<SignInState, FormData>(signIn, null);
@@ -20,19 +21,12 @@ export function SignInForm({ next }: { next: string | null }) {
           autoComplete="username"
           autoFocus
           placeholder="you@craffe.ph"
-          className="h-12 w-full rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee"
+          className={textInputClass}
         />
       </Field>
 
       <Field label="Password" htmlFor="password">
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className="h-12 w-full rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee"
-        />
+        <PasswordInput autoComplete="current-password" required />
       </Field>
 
       {state?.error && (

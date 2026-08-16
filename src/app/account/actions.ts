@@ -12,7 +12,7 @@ import { getCustomer } from "@/lib/customer";
  * token the server hasn't seen.
  */
 
-export type AuthState = { error: string } | null;
+export type AuthState = { error: string; email?: string } | null;
 
 /**
  * Land a `?next=` hop only if it stays on a known internal page: the account
@@ -34,21 +34,22 @@ export async function signIn(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   if (!email || !password) {
-    return { error: "Enter your email and password." };
+    // Hand the email back so the form keeps it while they fix the password.
+    return { error: "Enter your email and password.", email };
   }
 
   const supabase = await createServerSupabase();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
     // Deliberately vague, so we don't reveal which emails have accounts.
-    return { error: "That email and password don't match." };
+    return { error: "That email and password don't match.", email };
   }
 
   // Authenticating proves who they are, not that they're a customer.
   const customer = await getCustomer();
   if (!customer) {
     await supabase.auth.signOut();
-    return { error: "That account isn't set up as a Craffe customer." };
+    return { error: "That account isn't set up as a Craffe customer.", email };
   }
 
   redirect(safeNext(String(formData.get("next") ?? "") || null));

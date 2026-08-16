@@ -3,7 +3,8 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { signIn, type AuthState } from "../actions";
-import { Field, textInputClass } from "../fields";
+import { Field } from "../fields";
+import { PasswordInput, textInputClass } from "@/components/text-input";
 
 export function SignInForm({ next }: { next: string | null }) {
   const [state, formAction] = useActionState<AuthState, FormData>(signIn, null);
@@ -21,19 +22,13 @@ export function SignInForm({ next }: { next: string | null }) {
           autoComplete="username"
           autoFocus
           placeholder="you@email.com"
+          defaultValue={state?.email ?? ""}
           className={textInputClass}
         />
       </Field>
 
       <Field label="Password" htmlFor="password">
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className={textInputClass}
-        />
+        <PasswordInput autoComplete="current-password" required />
       </Field>
 
       {state?.error && (
