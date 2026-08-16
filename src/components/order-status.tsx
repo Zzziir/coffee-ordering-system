@@ -20,6 +20,7 @@ import { BranchLockup } from "./branch-lockup";
 import { describeLine } from "@/lib/cart";
 import { peso } from "@/lib/menu";
 import { StampCard } from "./stamp-card";
+import { RewardUnlockModal } from "./reward-unlock-modal";
 import { clsx } from "@/lib/clsx";
 
 /** The last step reads differently depending on how the order is being taken. */
@@ -319,6 +320,9 @@ export function OrderStatus({
           <StampCard earnedThisOrder={earnedThisOrder} />
         )}
       </div>
+
+      {/* Signed-in: celebrate if this order just completed a card */}
+      {loyalty && <RewardUnlockModal free={loyalty.free} />}
 
       <Link
         href="/menu"

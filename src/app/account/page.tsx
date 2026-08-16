@@ -8,6 +8,7 @@ import {
 import { SiteHeader } from "@/components/site-header";
 import { StampCard } from "@/components/stamp-card";
 import { ActiveOrders } from "@/components/active-orders";
+import { RewardUnlockModal } from "@/components/reward-unlock-modal";
 import { getCustomer } from "@/lib/customer";
 import { listCustomerOrders } from "@/lib/store";
 import { getLoyalty } from "@/lib/loyalty";
@@ -55,6 +56,9 @@ export default async function AccountPage() {
         <div className="mt-6">
           <StampCard stamps={loyalty.stamps} free={loyalty.free} pending={pendingStamps} />
         </div>
+
+        {/* Celebrate the moment a card is completed */}
+        <RewardUnlockModal free={loyalty.free} />
 
         {/* Active orders — live, so a status changes without a refresh */}
         <ActiveOrders initial={activeOrders} />
