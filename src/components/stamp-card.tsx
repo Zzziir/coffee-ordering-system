@@ -61,11 +61,14 @@ export function StampCard({
   const progress = filled % STAMPS_PER_REWARD; // 0..9 on the current card
   const free = freeProp ?? Math.floor(filled / STAMPS_PER_REWARD);
   const remaining = STAMPS_PER_REWARD - progress; // drinks until the next free one
-  // Pending stamps fill the slots right after the earned ones, never past the
-  // reward slot.
-  const pending = Math.max(0, Math.min(pendingProp ?? 0, CUPS - progress));
+  // Pending stamps fill the slots right after the earned ones. They can reach
+  // the reward slot when they'd complete the current card; the caption always
+  // states the true count, even if it spills beyond this one card.
+  const pendingRaw = Math.max(0, pendingProp ?? 0);
+  const pendingCups = Math.min(pendingRaw, CUPS - progress);
+  const pendingReward = free === 0 && pendingRaw >= STAMPS_PER_REWARD - progress;
   const showEarned = earnedThisOrder != null && earnedThisOrder > 0;
-  const showPending = !showEarned && pending > 0;
+  const showPending = !showEarned && pendingRaw > 0;
 
   return (
     <div className="overflow-hidden rounded-[var(--radius-lg)] border border-line bg-ink text-paper">
@@ -93,7 +96,7 @@ export function StampCard({
       {showPending && (
         <p className="flex items-center gap-1.5 px-5 pt-2 text-[13.5px] font-semibold text-paper">
           <CoffeeIcon size={14} weight="fill" />
-          {`${pending} ${pending === 1 ? "stamp" : "stamps"} on the way`}
+          {`${pendingRaw} ${pendingRaw === 1 ? "stamp" : "stamps"} on the way`}
         </p>
       )}
 
@@ -112,7 +115,9 @@ export function StampCard({
         {Array.from({ length: STAMPS_PER_REWARD }).map((_, i) => {
           const isReward = i === CUPS;
           const earned = !isReward && i < progress;
-          const isPending = !isReward && i >= progress && i < progress + pending;
+          const isPending = isReward
+            ? pendingReward
+            : i >= progress && i < progress + pendingCups;
           const active = isReward ? free > 0 : earned;
           return (
             <div

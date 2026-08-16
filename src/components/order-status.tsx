@@ -105,13 +105,21 @@ function celebrate() {
 export function OrderStatus({
   initial,
   loyalty,
-  earnedThisOrder,
+  stampsThisOrder,
+  credited,
 }: {
   initial: Order;
-  /** The signed-in viewer's stamp balance, or null for a guest (localStorage). */
-  loyalty: { stamps: number; free: number } | null;
-  /** Stamps this order earned, called out on the card as feedback. */
-  earnedThisOrder: number;
+  /** The signed-in viewer's loyalty standing, or null for a guest (localStorage). */
+  loyalty: {
+    stamps: number;
+    free: number;
+    earnedRewards: number;
+    celebrated: number | null;
+  } | null;
+  /** Stamps this order is worth (drinks minus any comped free ones). */
+  stampsThisOrder: number;
+  /** Whether this order has been picked up — stamps are only credited then. */
+  credited: boolean;
 }) {
   const [order, setOrder] = useState<Order>(initial);
   const prevStatus = useRef<Status>(initial.status);
@@ -311,18 +319,25 @@ export function OrderStatus({
           <StampCard
             stamps={loyalty.stamps}
             free={loyalty.free}
-            earnedThisOrder={earnedThisOrder}
-            // Until a cash order is paid (at pickup), its stamps aren't credited
-            // yet — preview them as "on the way".
-            pending={order.paid ? 0 : earnedThisOrder}
+            // Stamps are credited at pickup; until then, show them "on the way".
+            earnedThisOrder={credited ? stampsThisOrder : 0}
+            pending={credited ? 0 : stampsThisOrder}
           />
         ) : (
-          <StampCard earnedThisOrder={earnedThisOrder} />
+          // A guest's on-device tally is bumped at checkout, so it's already
+          // counted for them.
+          <StampCard earnedThisOrder={stampsThisOrder} />
         )}
       </div>
 
-      {/* Signed-in: celebrate if this order just completed a card */}
-      {loyalty && <RewardUnlockModal free={loyalty.free} />}
+      {/* Signed-in: celebrate once a picked-up order completes a card */}
+      {loyalty && (
+        <RewardUnlockModal
+          earnedRewards={loyalty.earnedRewards}
+          celebrated={loyalty.celebrated}
+          free={loyalty.free}
+        />
+      )}
 
       <Link
         href="/menu"

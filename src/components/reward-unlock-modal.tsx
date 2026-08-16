@@ -6,27 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import confetti from "canvas-confetti";
 import { GiftIcon } from "@phosphor-icons/react";
 import { CupMark } from "./brand";
-
-// Per-device memory of the reward count we've already celebrated, so completing
-// a card cheers once and never nags a customer who's just holding rewards.
-const ACK_KEY = "craffe.rewards.ack";
-
-function readAck(): number | null {
-  try {
-    const raw = localStorage.getItem(ACK_KEY);
-    return raw === null ? null : Number(raw);
-  } catch {
-    return null;
-  }
-}
-
-function writeAck(value: number) {
-  try {
-    localStorage.setItem(ACK_KEY, String(value));
-  } catch {
-    /* private mode — worst case the celebration repeats next visit */
-  }
-}
+import { ackRewardCelebration } from "@/lib/reward-actions";
 
 /** A gold-and-coffee burst, once, the moment a card is completed. */
 function burst() {
@@ -43,37 +23,42 @@ function burst() {
 }
 
 /**
- * Celebrates the instant a customer completes a rewards card, i.e. their free
- * count ticks up. Signed-in only: `free` is the server-derived balance. The
- * first time we see a customer we bank their count silently so we cheer future
- * completions, never one they already had.
+ * Celebrates the instant a customer's lifetime rewards-earned count ticks up —
+ * i.e. an order they placed has been picked up and completed a card. Signed-in
+ * only, tracked server-side so it fires exactly once per account across devices.
+ *
+ * `earnedRewards` is the lifetime count; `celebrated` is what's already been
+ * acknowledged (null the first time we ever see this account). The first sight
+ * banks the count silently; any later increase cheers once, then acks.
  */
-export function RewardUnlockModal({ free }: { free: number }) {
+export function RewardUnlockModal({
+  earnedRewards,
+  celebrated,
+  free,
+}: {
+  earnedRewards: number;
+  celebrated: number | null;
+  free: number;
+}) {
   const router = useRouter();
   const reduce = useReducedMotion();
   const [open, setOpen] = useState(false);
 
+  const shouldCelebrate = celebrated !== null && earnedRewards > celebrated;
+  const needsAck = celebrated === null || earnedRewards > celebrated;
+
   useEffect(() => {
-    const ack = readAck();
-    if (ack === null) {
-      writeAck(free); // establish a baseline without cheering
-      return;
-    }
-    if (free > ack) {
-      setOpen(true);
-    } else if (free < ack) {
-      writeAck(free); // they redeemed — keep the baseline honest
-    }
-  }, [free]);
+    // Persist the new high-water mark (silently on first sight, or after a win).
+    if (needsAck) void ackRewardCelebration(earnedRewards);
+    if (shouldCelebrate) setOpen(true);
+    // Re-run only when the underlying counts change.
+  }, [earnedRewards, celebrated, needsAck, shouldCelebrate]);
 
   useEffect(() => {
     if (open && !reduce) burst();
   }, [open, reduce]);
 
-  const dismiss = useCallback(() => {
-    writeAck(free);
-    setOpen(false);
-  }, [free]);
+  const dismiss = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
     if (!open) return;
@@ -86,11 +71,6 @@ export function RewardUnlockModal({ free }: { free: number }) {
       window.removeEventListener("keydown", onKey);
     };
   }, [open, dismiss]);
-
-  const orderNow = () => {
-    writeAck(free);
-    router.push("/menu");
-  };
 
   return (
     <AnimatePresence>
@@ -149,7 +129,7 @@ export function RewardUnlockModal({ free }: { free: number }) {
               <div className="mt-6 flex w-full flex-col gap-2.5">
                 <button
                   type="button"
-                  onClick={orderNow}
+                  onClick={() => router.push("/menu")}
                   className="pressable flex h-12 items-center justify-center rounded-full bg-coffee text-[15px] font-semibold text-paper"
                 >
                   Order now

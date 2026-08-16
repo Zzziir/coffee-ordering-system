@@ -36,11 +36,12 @@ export default async function AccountPage() {
   const activeOrders = orders.filter((o) => o.status !== "completed");
   const pastOrders = orders.filter((o) => o.status === "completed");
 
-  // Stamps not yet credited: an unpaid (cash) order earns them at pickup. Shown
+  // Stamps not yet credited: an in-progress order earns them at pickup. Shown
   // as "on the way" so the card previews what's coming.
-  const pendingStamps = activeOrders
-    .filter((o) => !o.paid)
-    .reduce((total, o) => total + Math.max(0, drinkStickers(menu, o.items) - o.rewardQty), 0);
+  const pendingStamps = activeOrders.reduce(
+    (total, o) => total + Math.max(0, drinkStickers(menu, o.items) - o.rewardQty),
+    0,
+  );
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
@@ -57,8 +58,12 @@ export default async function AccountPage() {
           <StampCard stamps={loyalty.stamps} free={loyalty.free} pending={pendingStamps} />
         </div>
 
-        {/* Celebrate the moment a card is completed */}
-        <RewardUnlockModal free={loyalty.free} />
+        {/* Celebrate once a picked-up order completes a card (once per account) */}
+        <RewardUnlockModal
+          earnedRewards={loyalty.earnedRewards}
+          celebrated={loyalty.celebrated}
+          free={loyalty.free}
+        />
 
         {/* Active orders — live, so a status changes without a refresh */}
         <ActiveOrders initial={activeOrders} />

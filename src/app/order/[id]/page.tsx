@@ -24,10 +24,11 @@ export default async function OrderPage({
   const customer = await getCustomer();
   const loyalty = customer ? await getLoyalty(customer.id) : null;
 
-  // Stamps this order earned: one per drink, less any comped free drinks (those
-  // earn nothing). Shown on the card so the confirmation reads as feedback.
+  // What this order is worth in stamps: one per drink, less any comped free
+  // drinks (those earn nothing). Credited only once the order is picked up;
+  // before that the card previews them as "on the way".
   const menu = await getMenu();
-  const earnedThisOrder = order
+  const stampsThisOrder = order
     ? Math.max(0, drinkStickers(menu, order.items) - order.rewardQty)
     : 0;
 
@@ -36,7 +37,12 @@ export default async function OrderPage({
       <SiteNav />
       <div className="mx-auto max-w-2xl">
         {order ? (
-          <OrderStatus initial={order} loyalty={loyalty} earnedThisOrder={earnedThisOrder} />
+          <OrderStatus
+            initial={order}
+            loyalty={loyalty}
+            stampsThisOrder={stampsThisOrder}
+            credited={order.status === "completed"}
+          />
         ) : (
           <main className="flex flex-col items-center justify-center px-6 pt-24 text-center">
           <span className="grid size-20 place-items-center rounded-full bg-paper-sunk text-ink-faint">
