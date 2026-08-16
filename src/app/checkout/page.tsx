@@ -13,15 +13,17 @@ import {
   MoneyIcon,
   MoonIcon,
   GiftIcon,
+  MinusIcon,
+  PlusIcon,
 } from "@phosphor-icons/react";
 import { SiteNav } from "@/components/site-nav";
 import { BranchGate } from "@/components/branch-picker";
 import { RewardSaveModal } from "@/components/reward-save-modal";
 import { useCart } from "@/components/cart-provider";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
-import { describeLine, lineTotal, unitPrice } from "@/lib/cart";
+import { describeLine, lineTotal, unitPrice, type CartLine } from "@/lib/cart";
 import { peso } from "@/lib/menu";
-import type { OrderChannel, PaymentMethod, SelectedGroup } from "@/lib/types";
+import type { OrderChannel, PaymentMethod } from "@/lib/types";
 import {
   branchAddress,
   branchFullName,
@@ -100,7 +102,8 @@ export default function CheckoutPage() {
   });
   // Redeeming is opt-in: a customer can bank rewards and spend them later.
   const [useReward, setUseReward] = useState(false);
-  const [redeemLineId, setRedeemLineId] = useState<string | null>(null);
+  // Free units allocated per drink line (cart line id -> units on the house).
+  const [alloc, setAlloc] = useState<Record<string, number>>({});
   // After a guest checks out, prompt them to sign in and keep their stamps.
   const [savePrompt, setSavePrompt] = useState<{ orderId: string; stamps: number } | null>(
     null,
@@ -123,30 +126,56 @@ export default function CheckoutPage() {
     };
   }, []);
 
-  // The drinks in the bag are the only lines a free drink can land on. Default
-  // the reward to the priciest one; the customer can point it at any other.
+  // Only the drinks in the bag can be comped by a reward.
   const drinkLines = useMemo(
     () => lines.filter((l) => reward.drinkItemIds.includes(l.itemId)),
     [lines, reward.drinkItemIds],
   );
-  const defaultRedeemId = useMemo(
-    () =>
-      drinkLines.length
-        ? drinkLines.reduce((best, l) => (unitPrice(l) > unitPrice(best) ? l : best)).id
-        : null,
-    [drinkLines],
-  );
   const canRedeem = reward.free > 0 && drinkLines.length > 0;
-  const activeRedeemId =
-    redeemLineId && drinkLines.some((l) => l.id === redeemLineId)
-      ? redeemLineId
-      : defaultRedeemId;
-  const redeemedLine =
-    useReward && canRedeem && activeRedeemId
-      ? lines.find((l) => l.id === activeRedeemId) ?? null
-      : null;
-  const discount = redeemedLine ? unitPrice(redeemedLine) : 0;
+
+  // The allocation is the single source of truth: how many free units land on
+  // each line, always clamped to that line's quantity. The units used, the
+  // discount and the redeem request are all derived from it.
+  const usedUnits = useReward
+    ? drinkLines.reduce((sum, l) => sum + Math.min(alloc[l.id] ?? 0, l.qty), 0)
+    : 0;
+  const discount = useReward
+    ? drinkLines.reduce(
+        (sum, l) => sum + Math.min(alloc[l.id] ?? 0, l.qty) * unitPrice(l),
+        0,
+      )
+    : 0;
   const payable = Math.max(0, subtotal - discount);
+
+  // Toggle on: auto-apply the rewards to the priciest drinks for the biggest
+  // saving; the customer can then dial it back or move it to other drinks.
+  const toggleReward = () => {
+    if (useReward) {
+      setUseReward(false);
+      setAlloc({});
+    } else {
+      setUseReward(true);
+      setAlloc(autoAllocate(drinkLines, reward.free));
+    }
+  };
+
+  // Set the free units on one line, clamped to its quantity and to the rewards
+  // still unspent across the other lines.
+  const setUnit = (lineId: string, qty: number) => {
+    setAlloc((prev) => {
+      const line = drinkLines.find((l) => l.id === lineId);
+      if (!line) return prev;
+      const others = drinkLines.reduce(
+        (sum, l) => (l.id === lineId ? sum : sum + Math.min(prev[l.id] ?? 0, l.qty)),
+        0,
+      );
+      const capped = Math.max(0, Math.min(qty, line.qty, reward.free - others));
+      const next = { ...prev };
+      if (capped <= 0) delete next[lineId];
+      else next[lineId] = capped;
+      return next;
+    });
+  };
 
   // Prefill the details: a signed-in customer's profile first, otherwise the
   // name and phone saved from a previous guest order.
@@ -222,6 +251,13 @@ export default function CheckoutPage() {
     // Simulated payment gateway — a believable beat, no real charge.
     await new Promise((r) => setTimeout(r, method === "cash" ? 500 : 1400));
 
+    // Which drink units to comp: one entry per line with free units on it.
+    const redeem = useReward
+      ? drinkLines
+          .map((l) => ({ lineId: l.id, qty: Math.min(alloc[l.id] ?? 0, l.qty) }))
+          .filter((e) => e.qty > 0)
+      : [];
+
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -234,7 +270,7 @@ export default function CheckoutPage() {
           customerPhone: phone.trim() || undefined,
           paymentMethod: method,
           items: lines,
-          redeemLineId: redeemedLine ? redeemedLine.id : undefined,
+          redeem,
         }),
       });
       if (!res.ok) {
@@ -422,11 +458,12 @@ export default function CheckoutPage() {
         {canRedeem && (
           <RewardPicker
             free={reward.free}
+            used={usedUnits}
             on={useReward}
-            onToggle={() => setUseReward((v) => !v)}
+            onToggle={toggleReward}
             drinkLines={drinkLines}
-            activeId={activeRedeemId}
-            onPick={setRedeemLineId}
+            alloc={alloc}
+            onSetUnit={setUnit}
           />
         )}
 
@@ -484,20 +521,38 @@ export default function CheckoutPage() {
   );
 }
 
+/** Greedily comp the priciest drink units first, up to the rewards on hand. */
+function autoAllocate(drinkLines: CartLine[], free: number): Record<string, number> {
+  const byValue = [...drinkLines].sort((a, b) => unitPrice(b) - unitPrice(a));
+  const alloc: Record<string, number> = {};
+  let remaining = free;
+  for (const line of byValue) {
+    if (remaining <= 0) break;
+    const take = Math.min(line.qty, remaining);
+    if (take > 0) {
+      alloc[line.id] = take;
+      remaining -= take;
+    }
+  }
+  return alloc;
+}
+
 function RewardPicker({
   free,
+  used,
   on,
   onToggle,
   drinkLines,
-  activeId,
-  onPick,
+  alloc,
+  onSetUnit,
 }: {
   free: number;
+  used: number;
   on: boolean;
   onToggle: () => void;
-  drinkLines: { id: string; name: string; basePrice: number; groups: SelectedGroup[] }[];
-  activeId: string | null;
-  onPick: (id: string) => void;
+  drinkLines: CartLine[];
+  alloc: Record<string, number>;
+  onSetUnit: (id: string, qty: number) => void;
 }) {
   return (
     <div className="mt-4 overflow-hidden rounded-[var(--radius-md)] border border-coffee/40 bg-coffee-tint/40">
@@ -512,7 +567,7 @@ function RewardPicker({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[14.5px] font-semibold text-ink">
-            Use a free drink
+            {free === 1 ? "Use a free drink" : "Use free drinks"}
           </span>
           <span className="block text-[12.5px] text-ink-soft">
             {free} ready. Or keep saving them for later.
@@ -543,37 +598,56 @@ function RewardPicker({
             className="overflow-hidden"
           >
             <div className="border-t border-coffee/25 p-4">
-              <p className="mb-2.5 text-[12.5px] font-medium text-ink-soft">
-                Which drink is on us?
-              </p>
+              <div className="mb-2.5 flex items-baseline justify-between">
+                <p className="text-[12.5px] font-medium text-ink-soft">
+                  Which drinks are on us?
+                </p>
+                <p className="text-[12.5px] tabular-nums text-ink-faint">
+                  {used}/{free} used
+                </p>
+              </div>
               <div className="flex flex-col gap-2">
                 {drinkLines.map((line) => {
-                  const active = line.id === activeId;
+                  const count = Math.min(alloc[line.id] ?? 0, line.qty);
+                  const canDec = count > 0;
+                  const canInc = count < line.qty && used < free;
                   return (
-                    <button
+                    <div
                       key={line.id}
-                      type="button"
-                      onClick={() => onPick(line.id)}
                       className={clsx(
-                        "pressable flex items-center gap-3 rounded-[var(--radius-sm)] border bg-paper px-3.5 py-2.5 text-left transition-colors duration-150",
-                        active ? "border-coffee" : "border-line",
+                        "flex items-center gap-3 rounded-[var(--radius-sm)] border bg-paper px-3.5 py-2.5 transition-colors duration-150",
+                        count > 0 ? "border-coffee" : "border-line",
                       )}
                     >
                       <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-ink">
                         {line.name}
+                        {line.qty > 1 && (
+                          <span className="text-ink-faint"> · {line.qty}×</span>
+                        )}
                       </span>
                       <span className="shrink-0 text-[13px] tabular-nums text-ink-soft">
                         {peso(unitPrice(line))}
                       </span>
-                      <span
-                        className={clsx(
-                          "grid size-5 shrink-0 place-items-center rounded-full border transition-colors",
-                          active ? "border-coffee bg-coffee text-paper" : "border-line-strong",
-                        )}
-                      >
-                        {active && <CheckIcon size={12} weight="bold" />}
-                      </span>
-                    </button>
+                      <div className="flex shrink-0 items-center gap-2.5">
+                        <StepButton
+                          label={`One fewer free ${line.name}`}
+                          disabled={!canDec}
+                          onClick={() => onSetUnit(line.id, count - 1)}
+                        >
+                          <MinusIcon size={13} weight="bold" />
+                        </StepButton>
+                        <span className="w-3 text-center text-[14px] font-semibold tabular-nums text-ink">
+                          {count}
+                        </span>
+                        <StepButton
+                          label={`One more free ${line.name}`}
+                          disabled={!canInc}
+                          onClick={() => onSetUnit(line.id, count + 1)}
+                        >
+                          <PlusIcon size={13} weight="bold" />
+                        </StepButton>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -582,6 +656,35 @@ function RewardPicker({
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function StepButton({
+  label,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      className={clsx(
+        "grid size-7 place-items-center rounded-full border transition-colors",
+        disabled
+          ? "border-line text-ink-faint opacity-40"
+          : "pressable border-coffee bg-coffee text-paper",
+      )}
+    >
+      {children}
+    </button>
   );
 }
 

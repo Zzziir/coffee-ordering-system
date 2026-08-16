@@ -9,11 +9,12 @@ import { drinkStickers, STAMPS_PER_REWARD } from "./menu";
  * A signed-in customer's standing is a pure function of three facts:
  *   seed        stamps carried over from guest ordering, banked at sign-up
  *   drinks      one stamp per drink on their paid orders (food earns nothing)
- *   redemptions orders that comped a free drink (reward_discount > 0)
+ *   redeemed    free drinks taken across all orders (sum of reward_qty)
  *
- * The comped drink itself earns no stamp, so each redemption removes one from
- * the drink tally and spends one whole card. Recomputing from these facts means
- * the balance can never drift the way a mutable counter would (see 0008).
+ * An order can redeem several free drinks at once (see 0009). Each comped drink
+ * earns no stamp, so it removes one from the drink tally and spends one whole
+ * card. Recomputing from these facts means the balance can never drift the way
+ * a mutable counter would.
  */
 
 export type LoyaltyState = {
@@ -40,15 +41,15 @@ export async function getLoyalty(customerId: string): Promise<LoyaltyState> {
   const purchasedDrinks = orders
     .filter((o) => o.paid)
     .reduce((total, o) => total + drinkStickers(menu, o.items), 0);
-  const redemptions = orders.filter((o) => o.rewardDiscount > 0).length;
+  const redeemed = orders.reduce((total, o) => total + o.rewardQty, 0);
 
-  // Comped drinks earn nothing, hence the subtraction of one per redemption.
-  const stamps = Math.max(0, seed + purchasedDrinks - redemptions);
+  // Comped drinks earn nothing, hence the subtraction of one per free drink.
+  const stamps = Math.max(0, seed + purchasedDrinks - redeemed);
   const earnedRewards = Math.floor(stamps / STAMPS_PER_REWARD);
 
   return {
     stamps,
     progress: stamps % STAMPS_PER_REWARD,
-    free: Math.max(0, earnedRewards - redemptions),
+    free: Math.max(0, earnedRewards - redeemed),
   };
 }

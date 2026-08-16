@@ -38,7 +38,7 @@ import { supabaseAdmin } from "./supabase/admin";
 
 const ORDER_SELECT = `
   id, branch_id, code, channel, table_number, customer_name, customer_phone,
-  subtotal, reward_discount, status, payment_method, paid, created_at, updated_at,
+  subtotal, reward_discount, reward_qty, status, payment_method, paid, created_at, updated_at,
   order_lines ( id, position, item_id, name, base_price, qty, groups, line_total, note ),
   order_events ( status, at )
 `;
@@ -65,6 +65,7 @@ type OrderRow = {
   customer_phone: string | null;
   subtotal: number;
   reward_discount: number;
+  reward_qty: number;
   status: OrderStatus;
   payment_method: PaymentMethod;
   paid: boolean;
@@ -102,6 +103,7 @@ function toOrder(row: OrderRow): Order {
       ),
     subtotal: row.subtotal,
     rewardDiscount: row.reward_discount,
+    rewardQty: row.reward_qty,
     status: row.status,
     paymentMethod: row.payment_method,
     paid: row.paid,
@@ -208,8 +210,10 @@ export type CreateOrderInput = {
   paymentMethod: PaymentMethod;
   /** the signed-in customer this order belongs to, or undefined for a guest */
   customerId?: string;
-  /** pesos to comp for a redeemed free-drink reward; omit or 0 for none */
+  /** pesos to comp for redeemed free-drink rewards; omit or 0 for none */
   rewardDiscount?: number;
+  /** how many free drinks (rewards) are redeemed on this order; omit or 0 for none */
+  rewardQty?: number;
 };
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
@@ -230,8 +234,10 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     p_lines: input.items,
     // null for a guest; a uuid when the customer was signed in at checkout.
     p_customer_id: input.customerId ?? null,
-    // pesos comped by a redeemed reward; the RPC clamps it to the order gross.
+    // pesos comped by redeemed rewards; the RPC clamps it to the order gross.
     p_reward_discount: input.rewardDiscount ?? 0,
+    // how many free drinks were redeemed, for the loyalty ledger.
+    p_reward_qty: input.rewardQty ?? 0,
   });
 
   if (error) throw new Error(`Could not place the order: ${error.message}`);

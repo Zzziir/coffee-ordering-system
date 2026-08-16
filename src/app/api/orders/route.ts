@@ -110,26 +110,50 @@ export async function POST(req: Request) {
   const customer = await getCustomer();
   const menu = await getMenu();
 
-  // Redeeming a free drink: the client names the cart line to comp. Everything
-  // that decides the discount is checked here, never trusted from the client —
-  // the customer must actually have a reward, and the line must be a drink.
+  // Redeeming free drinks: the client sends which cart lines to comp and how
+  // many units of each. Everything that decides the discount is checked here,
+  // never trusted from the client — each line must be a drink, the units can't
+  // exceed the line's quantity, and the total can't exceed the rewards the
+  // customer actually holds.
   let rewardDiscount = 0;
-  const redeemLineId = typeof b.redeemLineId === "string" ? b.redeemLineId : null;
-  if (redeemLineId) {
+  let rewardQty = 0;
+  const redeem = Array.isArray(b.redeem) ? b.redeem : [];
+  if (redeem.length > 0) {
     if (!customer) {
       return NextResponse.json({ error: "Sign in to redeem a reward." }, { status: 401 });
     }
-    const idx = clientIds.indexOf(redeemLineId);
-    const line = idx >= 0 ? items[idx] : null;
-    if (!line || !isDrinkItem(menu, line.itemId)) {
-      return NextResponse.json({ error: "That item can't be a free drink." }, { status: 400 });
+
+    // Fold the request into free units per cart line (defensive against dupes).
+    const perLine = new Map<string, number>();
+    for (const entry of redeem) {
+      const e = entry as Record<string, unknown>;
+      const lineId = String(e.lineId ?? "");
+      const qty = Math.trunc(Number(e.qty) || 0);
+      if (lineId && qty > 0) perLine.set(lineId, (perLine.get(lineId) ?? 0) + qty);
     }
-    const { free } = await getLoyalty(customer.id);
-    if (free < 1) {
-      return NextResponse.json({ error: "You don't have a free drink yet." }, { status: 400 });
+
+    for (const [lineId, qty] of perLine) {
+      const idx = clientIds.indexOf(lineId);
+      const line = idx >= 0 ? items[idx] : null;
+      if (!line || !isDrinkItem(menu, line.itemId)) {
+        return NextResponse.json({ error: "That item can't be a free drink." }, { status: 400 });
+      }
+      if (qty > line.qty) {
+        return NextResponse.json({ error: "Too many free units for that drink." }, { status: 400 });
+      }
+      rewardQty += qty;
+      rewardDiscount += unitPrice(line) * qty;
     }
-    // One unit is free, even if the line's quantity is greater.
-    rewardDiscount = unitPrice(line);
+
+    if (rewardQty > 0) {
+      const { free } = await getLoyalty(customer.id);
+      if (rewardQty > free) {
+        return NextResponse.json(
+          { error: "You don't have that many free drinks yet." },
+          { status: 400 },
+        );
+      }
+    }
   }
 
   const order = await createOrder({
@@ -142,6 +166,7 @@ export async function POST(req: Request) {
     paymentMethod,
     customerId: customer?.id,
     rewardDiscount,
+    rewardQty,
   });
 
   // One loyalty stamp per drink (food never earns). The signed-in card recounts
