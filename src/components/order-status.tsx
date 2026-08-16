@@ -311,6 +311,9 @@ export function OrderStatus({
             stamps={loyalty.stamps}
             free={loyalty.free}
             earnedThisOrder={earnedThisOrder}
+            // Until a cash order is paid (at pickup), its stamps aren't credited
+            // yet — preview them as "on the way".
+            pending={order.paid ? 0 : earnedThisOrder}
           />
         ) : (
           <StampCard earnedThisOrder={earnedThisOrder} />

@@ -10,6 +10,12 @@ import { clsx } from "@/lib/clsx";
 const STAMP_KEY = "craffe.stamps";
 const CUPS = STAMPS_PER_REWARD - 1; // nine cups, then the reward slot
 
+// Diagonal coffee hatch for "on the way" stamps: earned but not yet credited,
+// because the order that will earn them hasn't been paid for (a cash order is
+// paid at pickup). Distinct from a solid earned stamp and an empty ring.
+const HATCH =
+  "repeating-linear-gradient(45deg, color-mix(in srgb, var(--color-coffee) 65%, transparent) 0 2px, transparent 2px 7px)";
+
 /**
  * Digital "10 stamps, 1 free drink" card.
  *
@@ -19,13 +25,20 @@ const CUPS = STAMPS_PER_REWARD - 1; // nine cups, then the reward slot
  * haven't made an account, where free drinks are simply derived from the count.
  *
  * On an order confirmation, `earnedThisOrder` calls out how many stamps that one
- * order just added, so the card reads as feedback and not just a running total.
+ * order just added. `pending` previews stamps a customer will get once an order
+ * is paid for (hatched slots), so a cash order in progress still shows up.
  */
 export function StampCard({
   stamps: stampsProp,
   free: freeProp,
   earnedThisOrder,
-}: { stamps?: number; free?: number; earnedThisOrder?: number } = {}) {
+  pending: pendingProp,
+}: {
+  stamps?: number;
+  free?: number;
+  earnedThisOrder?: number;
+  pending?: number;
+} = {}) {
   const [localStamps, setLocalStamps] = useState<number | null>(null);
   const stamps = stampsProp ?? localStamps;
 
@@ -48,6 +61,11 @@ export function StampCard({
   const progress = filled % STAMPS_PER_REWARD; // 0..9 on the current card
   const free = freeProp ?? Math.floor(filled / STAMPS_PER_REWARD);
   const remaining = STAMPS_PER_REWARD - progress; // drinks until the next free one
+  // Pending stamps fill the slots right after the earned ones, never past the
+  // reward slot.
+  const pending = Math.max(0, Math.min(pendingProp ?? 0, CUPS - progress));
+  const showEarned = earnedThisOrder != null && earnedThisOrder > 0;
+  const showPending = !showEarned && pending > 0;
 
   return (
     <div className="overflow-hidden rounded-[var(--radius-lg)] border border-line bg-ink text-paper">
@@ -66,17 +84,23 @@ export function StampCard({
         )}
       </div>
 
-      {earnedThisOrder != null && earnedThisOrder > 0 && (
+      {showEarned && (
         <p className="flex items-center gap-1.5 px-5 pt-2 text-[13.5px] font-semibold text-paper">
           <CoffeeIcon size={14} weight="fill" />
           {`+${earnedThisOrder} ${earnedThisOrder === 1 ? "stamp" : "stamps"} from this order`}
+        </p>
+      )}
+      {showPending && (
+        <p className="flex items-center gap-1.5 px-5 pt-2 text-[13.5px] font-semibold text-paper">
+          <CoffeeIcon size={14} weight="fill" />
+          {`${pending} ${pending === 1 ? "stamp" : "stamps"} on the way`}
         </p>
       )}
 
       <p
         className={clsx(
           "px-5 text-[13.5px] text-paper/70",
-          earnedThisOrder != null && earnedThisOrder > 0 ? "pt-1" : "pt-2",
+          showEarned || showPending ? "pt-1" : "pt-2",
         )}
       >
         {free > 0
@@ -87,16 +111,21 @@ export function StampCard({
       <div className="grid grid-cols-5 gap-2.5 p-5">
         {Array.from({ length: STAMPS_PER_REWARD }).map((_, i) => {
           const isReward = i === CUPS;
-          const active = isReward ? free > 0 : i < progress;
+          const earned = !isReward && i < progress;
+          const isPending = !isReward && i >= progress && i < progress + pending;
+          const active = isReward ? free > 0 : earned;
           return (
             <div
               key={i}
+              style={isPending ? { backgroundImage: HATCH } : undefined}
               className={clsx(
                 "relative grid aspect-square place-items-center rounded-full border transition-colors duration-300",
                 isReward ? "border-dashed" : "",
                 active
                   ? "border-transparent bg-coffee text-paper"
-                  : "border-paper/25 text-paper/30",
+                  : isPending
+                    ? "border-coffee/50 text-paper/70"
+                    : "border-paper/25 text-paper/30",
               )}
             >
               {active && stamps !== null ? (

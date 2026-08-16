@@ -11,7 +11,8 @@ import { ActiveOrders } from "@/components/active-orders";
 import { getCustomer } from "@/lib/customer";
 import { listCustomerOrders } from "@/lib/store";
 import { getLoyalty } from "@/lib/loyalty";
-import { peso } from "@/lib/menu";
+import { getMenu } from "@/lib/menu-store";
+import { drinkStickers, peso } from "@/lib/menu";
 import { getBranch } from "@/lib/branches";
 import { STATUS_LABEL, type Order } from "@/lib/types";
 import { SignOutButton } from "./sign-out-button";
@@ -23,15 +24,22 @@ export default async function AccountPage() {
   // proxy.ts already gates this route; this is the belt-and-braces check.
   if (!customer) redirect("/account/sign-in?next=/account");
 
-  const [orders, loyalty] = await Promise.all([
+  const [orders, loyalty, menu] = await Promise.all([
     listCustomerOrders(customer.id),
     getLoyalty(customer.id),
+    getMenu(),
   ]);
 
   // Active = still on its way (not yet picked up). These lead the page and live
   // in their own section; history keeps the picked-up ones so nothing doubles.
   const activeOrders = orders.filter((o) => o.status !== "completed");
   const pastOrders = orders.filter((o) => o.status === "completed");
+
+  // Stamps not yet credited: an unpaid (cash) order earns them at pickup. Shown
+  // as "on the way" so the card previews what's coming.
+  const pendingStamps = activeOrders
+    .filter((o) => !o.paid)
+    .reduce((total, o) => total + Math.max(0, drinkStickers(menu, o.items) - o.rewardQty), 0);
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
@@ -45,7 +53,7 @@ export default async function AccountPage() {
 
         {/* Loyalty */}
         <div className="mt-6">
-          <StampCard stamps={loyalty.stamps} free={loyalty.free} />
+          <StampCard stamps={loyalty.stamps} free={loyalty.free} pending={pendingStamps} />
         </div>
 
         {/* Active orders — live, so a status changes without a refresh */}
