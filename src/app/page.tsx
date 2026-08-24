@@ -41,8 +41,17 @@ const SUBHEAD =
   "Handcrafted espresso, frappés, and Dubai chewy cookies. Order and pay ahead, then skip the line and pick up at the window.";
 
 export default async function HomePage() {
-  const menu = await getMenu();
-  const favorites = signatureItems(menu).slice(0, 4);
+  // The rest of this page is static marketing copy, so a menu that won't load
+  // (e.g. a paused Supabase project) should cost us only the Fan favorites
+  // section, not the whole home page. Fall back to no favorites and drop that
+  // section rather than throwing a 500.
+  let favorites: Awaited<ReturnType<typeof getMenu>>["items"] = [];
+  try {
+    const menu = await getMenu();
+    favorites = signatureItems(menu).slice(0, 4);
+  } catch (err) {
+    console.error("Home page: menu unavailable, rendering without fan favorites", err);
+  }
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
@@ -161,6 +170,7 @@ export default async function HomePage() {
         </section>
 
         {/* ---------- Fan favorites ---------- */}
+        {favorites.length > 0 && (
         <section className="mx-auto max-w-[1280px] px-5 py-12 lg:px-8 lg:py-16">
           <div className="flex items-end justify-between gap-4">
             <div>
@@ -211,6 +221,7 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+        )}
 
         {/* ---------- Our story (dark band) ---------- */}
         <section className="bg-ink text-paper">
