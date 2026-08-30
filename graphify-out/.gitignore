@@ -1,0 +1,5 @@
+# Machine-specific graphify internals — regenerated locally, never portable.
+.graphify_python
+.graphify_root
+.needs_update
+cache/

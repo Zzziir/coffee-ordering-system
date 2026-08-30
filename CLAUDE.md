@@ -1,5 +1,13 @@
 @AGENTS.md
 
+# Codebase Knowledge Graph (check this first)
+
+- **For context gathering, look in `graphify-out/` before grepping or reading files.** It holds a prebuilt knowledge graph of the codebase (`src/`, `supabase/`, `public/`), so you can answer "what calls X", "how does Y connect", and architecture questions without opening many files. This saves tokens.
+  - `graphify-out/graph.json` — nodes (functions, components, SQL objects) and edges (calls, imports, contains) with `source_file` and `source_location`.
+  - `graphify-out/GRAPH_REPORT.md` — god nodes, community clusters, surprising connections.
+  - Query it with `graphify query "<question>"` (the `/graphify` skill) instead of rebuilding.
+- **It can be stale.** The graph is a snapshot; verify a specific file/function still exists before acting on it. Rebuild after significant changes with `/graphify src supabase public`.
+
 # Supabase
 
 - **Project name:** Craffe
