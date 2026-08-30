@@ -8,6 +8,8 @@ import {
   InstagramLogoIcon,
   StorefrontIcon,
   CoffeeIcon,
+  HandshakeIcon,
+  ConfettiIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -15,6 +17,7 @@ import { Reveal } from "@/components/reveal";
 import { ChatLauncher } from "@/components/chat/chat-launcher";
 import { BentoGrid, BentoCard } from "@/components/bento";
 import { Marquee } from "@/components/marquee";
+import { InquiryForm } from "./inquiry-form";
 import {
   BRANCH_LIST,
   branchAddress,
@@ -32,7 +35,7 @@ import { clsx } from "@/lib/clsx";
 export const metadata = {
   title: "Contact · Craffé",
   description:
-    "Both Craffé branches: East Rembo, Makati and Craffé by MYCC in Marilao. Hours, locations, and how to reach us.",
+    "Both Craffé branches: East Rembo, Makati and Craffé by MYCC in Marilao. Hours, locations, how to reach us, plus franchising and coffee cart bookings for weddings, debuts, and events.",
 };
 
 export const dynamic = "force-dynamic";
@@ -138,6 +141,57 @@ export default async function ContactPage() {
             </BentoGrid>
           </Reveal>
         </section>
+
+        {/* Work with Craffé — franchising and event coffee carts. The copy below
+            is placeholder: swap in real inclusions, packages, coverage, and any
+            pricing once they're settled. */}
+        <section id="partner" className="scroll-mt-24 border-t border-line bg-paper-sunk/40">
+          <div className="mx-auto max-w-[1080px] px-5 py-16 lg:px-8 lg:py-24">
+            <Reveal>
+              <div className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+                {/* The pitch */}
+                <div>
+                  <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-coffee">
+                    Work with Craffé
+                  </p>
+                  <h2 className="mt-3 text-[clamp(2rem,4.5vw,3rem)] font-bold leading-[1.05] tracking-tight text-ink">
+                    Bring Craffé to more people.
+                  </h2>
+                  <p className="mt-4 max-w-[48ch] text-[17px] leading-relaxed text-ink-soft">
+                    A café of your own, or a coffee cart at your celebration. Two
+                    ways to grow with us, one conversation to start it.
+                  </p>
+
+                  <div className="mt-8 flex flex-col gap-4">
+                    <OfferCard
+                      icon={HandshakeIcon}
+                      title="Franchise a Craffé"
+                      body="Open your own branch with our recipes, training, and branding behind you. Tell us where you're thinking and we'll walk you through what it takes."
+                    />
+                    <OfferCard
+                      icon={ConfettiIcon}
+                      title="Book a coffee cart"
+                      body="Freshly pulled espresso for weddings, debuts, and corporate events. Share your date and headcount and we'll put a package together."
+                    />
+                  </div>
+                </div>
+
+                {/* The form */}
+                <div className="rounded-[var(--radius-xl)] border border-line bg-paper-raised p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] lg:p-8">
+                  <h3 className="text-[20px] font-semibold tracking-tight text-ink">
+                    Tell us what you have in mind
+                  </h3>
+                  <p className="mt-1.5 text-[14.5px] leading-relaxed text-ink-soft">
+                    Pick what fits and we&apos;ll take it from there.
+                  </p>
+                  <div className="mt-6">
+                    <InquiryForm />
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
       </main>
 
       <SiteFooter />
@@ -207,6 +261,29 @@ function BranchCell({
         </ul>
       </div>
     </BentoCard>
+  );
+}
+
+/** One offering in the "Work with Craffé" pitch: an icon, a title, and a line. */
+function OfferCard({
+  icon: Icon,
+  title,
+  body,
+}: {
+  icon: React.ComponentType<{ size?: number; weight?: "fill"; className?: string }>;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="flex gap-4 rounded-[var(--radius-lg)] border border-line bg-paper-raised p-5">
+      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-coffee-tint/70 text-coffee">
+        <Icon size={22} weight="fill" />
+      </span>
+      <div>
+        <h3 className="text-[16px] font-semibold text-ink">{title}</h3>
+        <p className="mt-1 text-[14.5px] leading-relaxed text-ink-soft">{body}</p>
+      </div>
+    </div>
   );
 }
 
