@@ -7,6 +7,29 @@ import { supabaseAdmin } from "./supabase/admin";
 
 export type InquiryKind = "franchise" | "event";
 
+/** Triage state for the admin inbox. */
+export type InquiryStatus = "new" | "contacted" | "closed";
+
+export const INQUIRY_STATUSES: InquiryStatus[] = ["new", "contacted", "closed"];
+
+/** A saved lead, as read back for the admin inbox. */
+export type Inquiry = {
+  id: string;
+  kind: InquiryKind;
+  name: string;
+  email: string;
+  phone: string | null;
+  message: string | null;
+  preferredArea: string | null;
+  timeline: string | null;
+  eventType: string | null;
+  eventDate: string | null;
+  venue: string | null;
+  guestCount: number | null;
+  status: InquiryStatus;
+  createdAt: number;
+};
+
 export type InquiryInput = {
   kind: InquiryKind;
   name: string;
@@ -46,4 +69,42 @@ export async function createInquiry(input: InquiryInput): Promise<void> {
     });
 
   if (error) throw new Error(`Could not save the inquiry: ${error.message}`);
+}
+
+/** Every lead, newest first, for the admin inbox. Service role, like the reads
+ *  in the order store. */
+export async function listInquiries(): Promise<Inquiry[]> {
+  const { data, error } = await supabaseAdmin()
+    .from("partner_inquiries")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(`Could not load inquiries: ${error.message}`);
+
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    kind: r.kind,
+    name: r.name,
+    email: r.email,
+    phone: r.phone,
+    message: r.message,
+    preferredArea: r.preferred_area,
+    timeline: r.timeline,
+    eventType: r.event_type,
+    eventDate: r.event_date,
+    venue: r.venue,
+    guestCount: r.guest_count,
+    status: r.status,
+    createdAt: Date.parse(r.created_at),
+  }));
+}
+
+/** Move a lead through triage. */
+export async function setInquiryStatus(id: string, status: InquiryStatus): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .from("partner_inquiries")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) throw new Error(`Could not update the inquiry: ${error.message}`);
 }

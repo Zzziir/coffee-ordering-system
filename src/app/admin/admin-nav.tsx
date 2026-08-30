@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChartLineUpIcon, ForkKnifeIcon, PlusCircleIcon } from "@phosphor-icons/react";
+import { ChartLineUpIcon, ForkKnifeIcon, PlusCircleIcon, TrayIcon } from "@phosphor-icons/react";
 import { clsx } from "@/lib/clsx";
 
 const TABS = [
   { href: "/admin", label: "Overview", icon: ChartLineUpIcon },
   { href: "/admin/menu", label: "Menu", icon: ForkKnifeIcon },
+  { href: "/admin/inquiries", label: "Inquiries", icon: TrayIcon },
   { href: "/admin/orders/new", label: "Log order", icon: PlusCircleIcon },
 ];
 
