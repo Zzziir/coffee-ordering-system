@@ -1,6 +1,10 @@
+import { unstable_cache } from "next/cache";
 import { supabaseAdmin } from "./supabase/admin";
 import type { AddOn, AddOnGroup, Category, DietTag, MenuData, MenuItem } from "./menu";
 import type { BranchId } from "./types";
+
+/** Cache tag for the menu catalog. Admin writes call `revalidateTag` with this. */
+export const MENU_CACHE_TAG = "menu";
 
 /**
  * Loads the whole menu from Postgres and assembles it into a `MenuData` bundle
@@ -12,7 +16,7 @@ import type { BranchId } from "./types";
  * sold-out drinks at render time, while loyalty and history need them all so a
  * past order still resolves its drink.
  */
-export async function getMenu(): Promise<MenuData> {
+async function loadMenu(): Promise<MenuData> {
   const sb = supabaseAdmin();
 
   const [cats, groups, addOns, catGroups, items, soldOut] = await Promise.all([
@@ -89,3 +93,15 @@ export async function getMenu(): Promise<MenuData> {
 
   return { categories, items: menuItems, addOnGroups };
 }
+
+/**
+ * Cached read path for the catalog. Every page and route is `force-dynamic`, so
+ * without this each render fired the six queries in `loadMenu` afresh; the menu
+ * changes only when an admin edits it. One shared entry (no arguments, same for
+ * everyone), tagged `menu` so the admin write actions can bust it on save, with
+ * a five-minute TTL as a safety net for any write path that forgets to.
+ */
+export const getMenu = unstable_cache(loadMenu, ["menu"], {
+  tags: [MENU_CACHE_TAG],
+  revalidate: 300,
+});

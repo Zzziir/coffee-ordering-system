@@ -1,7 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
+import { MENU_CACHE_TAG } from "@/lib/menu-store";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getStaffMember, isAdmin, canAccessBranch } from "@/lib/staff";
@@ -55,12 +56,15 @@ async function assertAdmin() {
   if (!staff || !isAdmin(staff)) redirect("/staff/sign-in?next=/admin/menu");
 }
 
-/** Whenever the catalog changes, refresh both the admin list and the storefront. */
+/**
+ * Whenever the catalog changes, bust the cached `getMenu` read. Every page is
+ * `force-dynamic`, so there is no route cache to clear; the menu cache is the
+ * one thing that outlives a request, and every storefront and admin surface
+ * reads through it. `max` gives stale-while-revalidate so the next visitor is
+ * served instantly while the fresh catalog loads behind them.
+ */
 function revalidateMenu() {
-  revalidatePath("/admin/menu");
-  revalidatePath("/menu");
-  revalidatePath("/");
-  revalidatePath("/contact");
+  revalidateTag(MENU_CACHE_TAG, "max");
 }
 
 /**
