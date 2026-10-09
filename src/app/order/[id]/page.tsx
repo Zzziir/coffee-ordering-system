@@ -3,6 +3,7 @@ import { SiteNav } from "@/components/site-nav";
 import { OrderStatus } from "@/components/order-status";
 import { CupMark } from "@/components/brand";
 import { ChatLauncher } from "@/components/chat/chat-launcher";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { getOrder } from "@/lib/store";
 import { getCustomer } from "@/lib/customer";
 import { getLoyalty } from "@/lib/loyalty";
@@ -37,12 +38,16 @@ export default async function OrderPage({
       <SiteNav />
       <div className="mx-auto max-w-2xl">
         {order ? (
+          <>
           <OrderStatus
             initial={order}
             loyalty={loyalty}
             stampsThisOrder={stampsThisOrder}
             credited={order.status === "completed"}
           />
+          {/* Tracking an order is when a home screen icon is most useful. */}
+          <InstallPrompt className="mx-5 mb-8" />
+          </>
         ) : (
           <main className="flex flex-col items-center justify-center px-6 pt-24 text-center">
           <span className="grid size-20 place-items-center rounded-full bg-paper-sunk text-ink-faint">

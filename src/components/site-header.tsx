@@ -29,7 +29,7 @@ export function SiteHeader({
               <Link
                 href={back}
                 aria-label="Back"
-                className="pressable -ml-2 grid size-9 place-items-center rounded-full text-ink-soft hover:text-ink"
+                className="pressable -ml-3 grid size-11 place-items-center rounded-full text-ink-soft hover:text-ink"
               >
                 <CaretLeftIcon size={22} weight="bold" />
               </Link>
@@ -37,7 +37,7 @@ export function SiteHeader({
               <button
                 onClick={() => router.back()}
                 aria-label="Back"
-                className="pressable -ml-2 grid size-9 place-items-center rounded-full text-ink-soft hover:text-ink"
+                className="pressable -ml-3 grid size-11 place-items-center rounded-full text-ink-soft hover:text-ink"
               >
                 <CaretLeftIcon size={22} weight="bold" />
               </button>
@@ -56,7 +56,7 @@ export function SiteHeader({
           <Link
             href="/cart"
             aria-label={`Bag, ${hydrated ? count : 0} items`}
-            className="pressable relative grid size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk"
+            className="pressable relative grid size-11 place-items-center rounded-full text-ink hover:bg-paper-sunk"
           >
             <BagIcon size={23} weight="regular" />
             <span

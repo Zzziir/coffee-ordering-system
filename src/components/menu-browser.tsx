@@ -76,7 +76,7 @@ export function MenuBrowser({ menu }: { menu: MenuData }) {
     <>
       {/* Category rail */}
       <div className="sticky top-[72px] z-30 border-b border-line/70 bg-paper/90 backdrop-blur-md">
-        <div className="no-scrollbar mx-auto flex max-w-[1280px] gap-2 overflow-x-auto px-5 py-3 lg:px-8">
+        <div className="no-scrollbar mx-auto flex max-w-[1280px] gap-2 overflow-x-auto px-5 py-2.5 lg:px-8">
           {categories.map((c) => (
             <button
               key={c.id}
@@ -85,7 +85,7 @@ export function MenuBrowser({ menu }: { menu: MenuData }) {
               }}
               onClick={() => scrollToCat(c.id)}
               className={clsx(
-                "pressable shrink-0 rounded-full px-4 py-2 text-[14px] font-medium transition-colors duration-200",
+                "pressable h-11 shrink-0 rounded-full px-4 text-[14px] font-medium transition-colors duration-200",
                 active === c.id
                   ? "bg-ink text-paper"
                   : "bg-paper-sunk text-ink-soft hover:text-ink",
@@ -166,7 +166,7 @@ export function MenuBrowser({ menu }: { menu: MenuData }) {
       <AnimatePresence>
         {hydrated && count > 0 && (
           <motion.div
-            className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+            className="fixed inset-x-0 bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom))] z-40 px-4 pb-3 lg:bottom-0 lg:pb-4"
             initial={{ y: 90, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 90, opacity: 0 }}

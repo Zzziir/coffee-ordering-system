@@ -55,6 +55,9 @@
 
 :root {
   color-scheme: light;
+  /* Height of the phone tab bar (components/mobile-tab-bar). Anything else
+     pinned to the bottom edge on a tab-bar page offsets itself by this. */
+  --tabbar-h: 4rem;
 }
 
 /* Reward slot "about to complete" state: a slow gold ring rippling outward at
@@ -109,6 +112,21 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
+  /* Landscape on a notched phone: keep content clear of the cutout. */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* iOS Safari zooms the page when a focused field's text is under 16px, and
+   never zooms back out. Hold every field at 16px on touch devices so pinch
+   zoom can stay enabled. Unlayered on purpose: it has to beat the text-[15px]
+   utilities on the fields themselves. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 /*

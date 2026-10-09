@@ -147,10 +147,10 @@ export function ChatLauncher() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Ask Craffé"
-        className="pressable fixed bottom-5 right-5 z-40 flex h-14 items-center gap-2 rounded-full bg-coffee pl-4 pr-5 text-paper shadow-[var(--shadow-pop)]"
+        className="pressable fixed bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom)+0.75rem)] right-4 z-40 flex size-14 items-center justify-center gap-2 rounded-full bg-coffee text-paper shadow-[var(--shadow-pop)] sm:w-auto sm:pl-4 sm:pr-5 lg:bottom-5 lg:right-5"
       >
         <ChatCircleDotsIcon size={24} weight="fill" />
-        <span className="text-[15px] font-semibold">Ask Craffé</span>
+        <span className="hidden text-[15px] font-semibold sm:inline">Ask Craffé</span>
       </button>
 
       <AnimatePresence>
@@ -191,7 +191,7 @@ export function ChatLauncher() {
                 <button
                   onClick={() => setOpen(false)}
                   aria-label="Close"
-                  className="pressable grid size-9 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk"
+                  className="pressable -mr-2 grid size-11 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk"
                 >
                   <XIcon size={20} weight="bold" />
                 </button>
@@ -215,7 +215,7 @@ export function ChatLauncher() {
                         <button
                           key={s}
                           onClick={() => send(s)}
-                          className="pressable rounded-full border border-line-strong bg-paper-raised px-3.5 py-2 text-[13.5px] font-medium text-ink"
+                          className="pressable min-h-11 rounded-full border border-line-strong bg-paper-raised px-4 text-[13.5px] font-medium text-ink"
                         >
                           {s}
                         </button>
@@ -337,7 +337,7 @@ function ChatProduct({
               </span>
               <button
                 onClick={onViewBag}
-                className="pressable ml-auto inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 text-[12.5px] font-semibold text-paper"
+                className="pressable ml-auto inline-flex h-9 items-center gap-1 rounded-full bg-ink px-3 text-[12.5px] font-semibold text-paper"
               >
                 View bag
                 <ArrowRightIcon size={13} weight="bold" />
@@ -347,13 +347,13 @@ function ChatProduct({
             <>
               <button
                 onClick={onView}
-                className="pressable rounded-full border border-line-strong px-3 py-1.5 text-[12.5px] font-medium text-ink"
+                className="pressable h-9 rounded-full border border-line-strong px-3 text-[12.5px] font-medium text-ink"
               >
                 View product
               </button>
               <button
                 onClick={onAdd}
-                className="pressable inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 text-[12.5px] font-semibold text-paper"
+                className="pressable inline-flex h-9 items-center gap-1 rounded-full bg-ink px-3 text-[12.5px] font-semibold text-paper"
               >
                 <PlusIcon size={13} weight="bold" />
                 Add

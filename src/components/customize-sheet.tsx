@@ -146,21 +146,21 @@ export function CustomizeSheet({
             transition={{ duration: 0.42, ease: [0.32, 0.72, 0, 1] }}
           >
             {/* Grabber + close */}
-            <div className="relative shrink-0 pt-3">
+            <div className="relative h-12 shrink-0 pt-3">
               <span className="mx-auto block h-1.5 w-10 rounded-full bg-line-strong" />
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="pressable absolute right-3 top-2 grid size-9 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk"
+                className="pressable absolute right-2 top-0.5 grid size-11 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk"
               >
                 <XIcon size={20} weight="bold" />
               </button>
             </div>
 
             {/* Scrollable body */}
-            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4">
-              <div className="relative mt-3 aspect-[16/9] overflow-hidden rounded-[var(--radius-md)]">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-4">
+              <div className="relative aspect-[16/9] overflow-hidden rounded-[var(--radius-md)]">
                 <ItemThumb item={item} iconClassName="size-16" sizes="(max-width: 672px) 100vw, 640px" />
                 {item.signature && (
                   <span className="absolute left-3 top-3 rounded-full bg-paper/85 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-coffee-deep backdrop-blur-sm">
@@ -199,7 +199,7 @@ export function CustomizeSheet({
                           type="button"
                           onClick={() => toggle(g.id, o.id, g.type)}
                           className={clsx(
-                            "pressable flex items-center justify-between rounded-[var(--radius-sm)] border px-4 py-3 text-left transition-colors duration-150",
+                            "pressable flex min-h-12 items-center justify-between rounded-[var(--radius-sm)] border px-4 py-3 text-left transition-colors duration-150",
                             on
                               ? "border-coffee bg-coffee-tint/60"
                               : "border-line bg-paper-raised",
@@ -236,13 +236,13 @@ export function CustomizeSheet({
               {/* Quantity */}
               <div className="mt-7 flex items-center justify-between">
                 <h3 className="text-[15px] font-semibold text-ink">Quantity</h3>
-                <div className="flex items-center gap-1 rounded-full border border-line bg-paper-raised p-1">
+                <div className="flex items-center rounded-full border border-line bg-paper-raised">
                   <button
                     type="button"
                     onClick={() => setQty((q) => Math.max(1, q - 1))}
                     disabled={qty <= 1}
                     aria-label="Decrease quantity"
-                    className="pressable grid size-9 place-items-center rounded-full text-ink disabled:opacity-30"
+                    className="pressable grid size-11 place-items-center rounded-full text-ink disabled:opacity-30"
                   >
                     <MinusIcon size={17} weight="bold" />
                   </button>
@@ -253,7 +253,7 @@ export function CustomizeSheet({
                     type="button"
                     onClick={() => setQty((q) => Math.min(20, q + 1))}
                     aria-label="Increase quantity"
-                    className="pressable grid size-9 place-items-center rounded-full text-ink"
+                    className="pressable grid size-11 place-items-center rounded-full text-ink"
                   >
                     <PlusIcon size={17} weight="bold" />
                   </button>

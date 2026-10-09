@@ -65,12 +65,12 @@ export default function CartPage() {
                               {desc}
                             </p>
                           )}
-                          <div className="mt-2.5 flex items-center gap-3">
-                            <div className="flex items-center gap-1 rounded-full border border-line bg-paper-raised p-0.5">
+                          <div className="mt-2.5 flex items-center gap-1.5">
+                            <div className="flex items-center rounded-full border border-line bg-paper-raised">
                               <button
                                 onClick={() => updateQty(line.id, line.qty - 1)}
                                 aria-label="Decrease"
-                                className="pressable grid size-8 place-items-center rounded-full text-ink"
+                                className="pressable grid size-11 place-items-center rounded-full text-ink"
                               >
                                 <MinusIcon size={15} weight="bold" />
                               </button>
@@ -80,7 +80,7 @@ export default function CartPage() {
                               <button
                                 onClick={() => updateQty(line.id, line.qty + 1)}
                                 aria-label="Increase"
-                                className="pressable grid size-8 place-items-center rounded-full text-ink"
+                                className="pressable grid size-11 place-items-center rounded-full text-ink"
                               >
                                 <PlusIcon size={15} weight="bold" />
                               </button>
@@ -88,9 +88,9 @@ export default function CartPage() {
                             <button
                               onClick={() => removeLine(line.id)}
                               aria-label={`Remove ${line.name}`}
-                              className="pressable grid size-8 place-items-center rounded-full text-ink-faint hover:text-warn"
+                              className="pressable grid size-11 place-items-center rounded-full text-ink-faint hover:text-warn"
                             >
-                              <TrashIcon size={17} />
+                              <TrashIcon size={19} />
                             </button>
                           </div>
                         </div>
@@ -106,7 +106,7 @@ export default function CartPage() {
 
             <Link
               href="/menu"
-              className="pressable mt-5 inline-flex items-center gap-1.5 text-[15px] font-medium text-coffee"
+              className="pressable mt-2 inline-flex min-h-11 items-center gap-1.5 text-[15px] font-medium text-coffee"
             >
               <PlusIcon size={16} weight="bold" />
               Add more

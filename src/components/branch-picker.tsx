@@ -225,7 +225,7 @@ export function BranchChip() {
                     <button
                       onClick={close}
                       aria-label="Close"
-                      className="pressable -mr-1.5 -mt-1 grid size-9 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk"
+                      className="pressable -mr-2.5 -mt-2 grid size-11 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk"
                     >
                       <XIcon size={20} weight="bold" />
                     </button>
@@ -245,7 +245,7 @@ export function BranchChip() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="pressable flex h-9 max-w-[9.5rem] items-center gap-1.5 rounded-full bg-paper-sunk pl-3 pr-2.5 text-[13px] font-medium text-ink-soft"
+        className="pressable flex h-10 max-w-[11rem] items-center gap-1.5 rounded-full bg-paper-sunk pl-3.5 pr-3 text-[13.5px] font-medium text-ink-soft lg:h-9 lg:max-w-[9.5rem] lg:pl-3 lg:pr-2.5 lg:text-[13px]"
       >
         <StorefrontIcon size={15} weight="fill" className="shrink-0 text-coffee" />
         <span className="truncate">{branch.name}</span>

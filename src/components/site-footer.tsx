@@ -76,7 +76,7 @@ export function SiteFooter() {
             ))}
             <Link
               href="/contact"
-              className="pressable inline-flex items-center gap-1.5 text-[14px] font-medium text-paper/80 hover:text-paper"
+              className="pressable inline-flex min-h-11 items-center gap-1.5 text-[14px] font-medium text-paper/80 hover:text-paper lg:min-h-0"
             >
               <ClockIcon size={16} weight="fill" className="shrink-0 text-coffee" />
               Hours &amp; directions
@@ -104,7 +104,7 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
       <h3 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-paper/50">
         {title}
       </h3>
-      <ul className="mt-4 flex flex-col gap-2.5">{children}</ul>
+      <ul className="mt-2 flex flex-col lg:mt-4 lg:gap-2.5">{children}</ul>
     </div>
   );
 }
@@ -114,7 +114,7 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
     <li>
       <Link
         href={href}
-        className="group inline-flex items-center gap-1 text-[14.5px] text-paper/80 transition-colors hover:text-paper"
+        className="group inline-flex min-h-11 items-center gap-1 text-[14.5px] text-paper/80 transition-colors hover:text-paper lg:min-h-0"
       >
         {children}
         <ArrowUpRightIcon

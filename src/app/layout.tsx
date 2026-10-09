@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/cart-provider";
 import { LoyaltyMigrator } from "@/components/loyalty-migrator";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 
 const outfit = Outfit({
@@ -41,7 +42,10 @@ export default function RootLayout({
     <html lang="en" className={`${outfit.variable} h-full`}>
       <body className="min-h-full antialiased">
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
-        <CartProvider>{children}</CartProvider>
+        <CartProvider>
+          {children}
+          <MobileTabBar />
+        </CartProvider>
         <LoyaltyMigrator />
         <ServiceWorkerRegister />
       </body>

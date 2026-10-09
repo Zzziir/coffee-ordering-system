@@ -9,6 +9,7 @@ import { Wordmark } from "./brand";
 import { useCart } from "./cart-provider";
 import { BranchChip } from "./branch-picker";
 import { useAccountNav } from "./use-account-nav";
+import { InstallPrompt } from "./pwa/install-prompt";
 import { clsx } from "@/lib/clsx";
 
 const LINKS = [
@@ -77,7 +78,9 @@ export function SiteNav() {
           ))}
         </ul>
 
-        {/* Right cluster */}
+        {/* Right cluster. Below lg the bag and account live in the tab bar
+            (components/mobile-tab-bar) and the overlay menu, so the header
+            keeps only the branch chip and the hamburger. */}
         <div className="flex shrink-0 items-center gap-2">
           {/* Only appears once a branch is chosen — it's the way to switch. */}
           <BranchChip />
@@ -85,7 +88,7 @@ export function SiteNav() {
           <Link
             href="/cart"
             aria-label={`Bag, ${hydrated ? count : 0} items`}
-            className="pressable relative grid size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk"
+            className="pressable relative hidden size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:grid"
           >
             <BagIcon size={22} weight="regular" />
             <span
@@ -102,7 +105,7 @@ export function SiteNav() {
             <Link
               href="/admin"
               aria-label="Admin"
-              className="pressable grid size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk"
+              className="pressable hidden size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:grid"
             >
               <GaugeIcon size={22} weight="regular" />
             </Link>
@@ -111,7 +114,7 @@ export function SiteNav() {
           <Link
             href={accountHref}
             aria-label={account.isCustomer ? "Your account" : "Sign in"}
-            className="pressable grid size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk"
+            className="pressable hidden size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:grid"
           >
             <UserIcon size={22} weight="regular" />
           </Link>
@@ -128,7 +131,7 @@ export function SiteNav() {
           <button
             onClick={() => setOpen(true)}
             aria-label="Open menu"
-            className="pressable grid size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:hidden"
+            className="pressable -mr-1.5 grid size-11 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:hidden"
           >
             <ListIcon size={24} weight="bold" />
           </button>
@@ -153,12 +156,12 @@ export function SiteNav() {
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
-                className="pressable grid size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk"
+                className="pressable -mr-1.5 grid size-11 place-items-center rounded-full text-ink hover:bg-paper-sunk"
               >
                 <XIcon size={24} weight="bold" />
               </button>
             </div>
-            <ul className="flex flex-col gap-1 px-5 pt-6">
+            <ul className="flex min-h-0 flex-col overflow-y-auto px-5 pt-2">
               {LINKS.map((l, i) => (
                 <motion.li
                   key={l.href}
@@ -169,7 +172,7 @@ export function SiteNav() {
                   <Link
                     href={l.href}
                     className={clsx(
-                      "block py-3 text-[28px] font-bold tracking-tight",
+                      "block py-2 text-[28px] font-bold tracking-tight",
                       isActive(pathname, l.href) ? "text-coffee" : "text-ink",
                     )}
                   >
@@ -187,7 +190,7 @@ export function SiteNav() {
                 <Link
                   href={accountHref}
                   className={clsx(
-                    "flex items-center gap-3 py-3 text-[28px] font-bold tracking-tight",
+                    "flex items-center gap-3 py-2 text-[28px] font-bold tracking-tight",
                     isActive(pathname, "/account") ? "text-coffee" : "text-ink",
                   )}
                 >
@@ -205,7 +208,7 @@ export function SiteNav() {
                   <Link
                     href="/admin"
                     className={clsx(
-                      "flex items-center gap-3 py-3 text-[28px] font-bold tracking-tight",
+                      "flex items-center gap-3 py-2 text-[28px] font-bold tracking-tight",
                       isActive(pathname, "/admin") ? "text-coffee" : "text-ink",
                     )}
                   >
@@ -215,7 +218,8 @@ export function SiteNav() {
                 </motion.li>
               )}
             </ul>
-            <div className="mt-auto p-5">
+            <div className="mt-auto flex flex-col gap-3 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+              <InstallPrompt />
               <Link
                 href="/menu"
                 className="pressable flex h-14 w-full items-center justify-center gap-2 rounded-full bg-ink text-[16px] font-semibold text-paper"
