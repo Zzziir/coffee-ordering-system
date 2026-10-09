@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Wordmark } from "@/components/brand";
 import { ViewSwitch } from "@/components/view-switch";
 import { AnimatedThemeToggler } from "@/components/animated-theme-toggler";
+import { getCustomer } from "@/lib/customer";
 import { getStaffMember, isAdmin, landingPath } from "@/lib/staff";
 import { SignOutButton } from "../staff/sign-out-button";
 import { AdminNav } from "./admin-nav";
@@ -12,7 +13,9 @@ export const dynamic = "force-dynamic";
 /**
  * The back office. Admins are owners and managers on the staff roster, so this
  * shares the staff session — no separate login. proxy.ts checks someone is
- * signed in; the real authorisation is here: a barista is bounced to their board.
+ * signed in; the real authorisation is here. A barista is bounced to their
+ * board, and anyone not on the roster goes to the staff sign-in: a signed-in
+ * customer is told why, rather than being shown a bare login.
  */
 export default async function AdminLayout({
   children,
@@ -20,7 +23,14 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const staff = await getStaffMember();
-  if (!staff) redirect("/staff/sign-in?next=/admin");
+  if (!staff) {
+    const customer = await getCustomer();
+    redirect(
+      customer
+        ? "/staff/sign-in?next=/admin&error=staff-only"
+        : "/staff/sign-in?next=/admin",
+    );
+  }
   if (!isAdmin(staff)) redirect(landingPath(staff));
 
   return (

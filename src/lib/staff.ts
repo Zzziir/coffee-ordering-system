@@ -68,10 +68,15 @@ export function landingPath(staff: StaffMember): string {
 }
 
 /**
- * Resolve a `?next=` hop after sign-in. Only ever returns a branch board this
- * person may open, so a crafted link can't bounce them somewhere else.
+ * Resolve a `?next=` hop after sign-in. Only ever returns a page this person
+ * may open (the back office for an admin, or a branch board), so a crafted
+ * link can't bounce them somewhere else. A barista asking for /admin lands on
+ * their own board.
  */
 export function safeLandingPath(staff: StaffMember, next: string | null): string {
+  const wantsAdmin = next === "/admin" || next?.startsWith("/admin/");
+  if (next && wantsAdmin && isAdmin(staff)) return next;
+
   const requested = next?.startsWith("/staff/") ? next.slice("/staff/".length) : "";
   return isBranchId(requested) && canAccessBranch(staff, requested)
     ? `/staff/${requested}`
