@@ -10,7 +10,7 @@ export function SignUpForm({ next }: { next: string | null }) {
   const [state, formAction] = useActionState<AuthState, FormData>(signUp, null);
 
   return (
-    <form action={formAction} className="mt-8 flex flex-col gap-3">
+    <form action={formAction} className="mt-6 flex flex-col gap-3">
       {next && <input type="hidden" name="next" value={next} />}
 
       <div className="grid grid-cols-2 gap-3">

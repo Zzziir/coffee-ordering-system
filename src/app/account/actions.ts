@@ -1,8 +1,9 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { getCustomer } from "@/lib/customer";
+import { getCustomer, safeNext } from "@/lib/customer";
 
 /**
  * Customer sign up, sign in, sign out and profile edits.
@@ -13,19 +14,6 @@ import { getCustomer } from "@/lib/customer";
  */
 
 export type AuthState = { error: string; email?: string } | null;
-
-/**
- * Land a `?next=` hop only if it stays on a known internal page: the account
- * area, or an order the customer just placed (the "save your stamps" prompt
- * signs them in and returns them to their order). Anything else falls back to
- * the account page, so this can never bounce to an external URL.
- */
-function safeNext(next: string | null): string {
-  if (next && (next.startsWith("/account") || /^\/order\/[\w-]+$/.test(next))) {
-    return next;
-  }
-  return "/account";
-}
 
 export async function signIn(
   _previous: AuthState,
@@ -109,6 +97,33 @@ export async function signUp(
   }
 
   redirect("/account");
+}
+
+/**
+ * Start "Continue with Google". Supabase answers with Google's consent URL; the
+ * customer comes back through /auth/callback, which finishes the sign-in.
+ *
+ * Starting it here rather than in the browser keeps the PKCE verifier in a
+ * cookie this server set, so the callback can trade the code for a session.
+ */
+export async function signInWithGoogle(formData: FormData) {
+  const origin = (await headers()).get("origin");
+  if (!origin) throw new Error("Sign-in request arrived without an Origin header.");
+
+  const callback = new URL("/auth/callback", origin);
+  callback.searchParams.set(
+    "next",
+    safeNext(String(formData.get("next") ?? "") || null),
+  );
+
+  const supabase = await createServerSupabase();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: callback.toString() },
+  });
+  if (error) redirect("/account/sign-in?error=google");
+
+  redirect(data.url);
 }
 
 export async function signOut() {

@@ -2,16 +2,24 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { getCustomer } from "@/lib/customer";
+import { GoogleButton } from "../google-button";
 import { SignInForm } from "./sign-in-form";
 
 export const dynamic = "force-dynamic";
 
+// Why a Google sign-in bounced back here (see app/auth/callback/route.ts).
+const GOOGLE_ERRORS: Record<string, string> = {
+  google: "Google sign-in didn't go through. Please try again.",
+  "not-customer": "That account isn't set up as a Craffe customer.",
+};
+
 export default async function CustomerSignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; check?: string }>;
+  searchParams: Promise<{ next?: string; check?: string; error?: string }>;
 }) {
-  const { next, check } = await searchParams;
+  const { next, check, error } = await searchParams;
+  const googleError = error ? GOOGLE_ERRORS[error] : undefined;
 
   // Already signed in — no need to ask again.
   const customer = await getCustomer();
@@ -35,6 +43,16 @@ export default async function CustomerSignInPage({
           </p>
         )}
 
+        {googleError && (
+          <p
+            role="alert"
+            className="mt-5 rounded-[var(--radius-sm)] bg-warn/10 px-4 py-3 text-[14px] text-warn"
+          >
+            {googleError}
+          </p>
+        )}
+
+        <GoogleButton next={next ?? null} />
         <SignInForm next={next ?? null} />
 
         <p className="mt-6 text-center text-[14.5px] text-ink-soft">

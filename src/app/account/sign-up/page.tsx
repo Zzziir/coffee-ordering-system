@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { getCustomer } from "@/lib/customer";
+import { GoogleButton } from "../google-button";
 import { SignUpForm } from "./sign-up-form";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,7 @@ export default async function CustomerSignUpPage({
           is on us.
         </p>
 
+        <GoogleButton next={next ?? null} />
         <SignUpForm next={next ?? null} />
 
         <p className="mt-6 text-center text-[14.5px] text-ink-soft">

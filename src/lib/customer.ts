@@ -46,3 +46,16 @@ export async function getCustomer(): Promise<Customer | null> {
     email: data.email,
   };
 }
+
+/**
+ * Land a `?next=` hop only if it stays on a known internal page: the account
+ * area, or an order the customer just placed (the "save your stamps" prompt
+ * signs them in and returns them to their order). Anything else falls back to
+ * the account page, so this can never bounce to an external URL.
+ */
+export function safeNext(next: string | null): string {
+  if (next && (next.startsWith("/account") || /^\/order\/[\w-]+$/.test(next))) {
+    return next;
+  }
+  return "/account";
+}
