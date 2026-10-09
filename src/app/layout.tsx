@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/cart-provider";
 import { LoyaltyMigrator } from "@/components/loyalty-migrator";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -23,7 +24,9 @@ export const viewport: Viewport = {
   themeColor: "#f6f3ec",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // Lets the page reach the screen edges on notched phones, which is what
+  // makes env(safe-area-inset-*) report real values for the bottom bars.
+  viewportFit: "cover",
 };
 
 // Applies the saved dashboard theme before first paint, so a staff member who
@@ -40,6 +43,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
         <CartProvider>{children}</CartProvider>
         <LoyaltyMigrator />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
