@@ -44,8 +44,8 @@ export default async function StaffBranchPage({
     <div className="dashboard-surface min-h-[100dvh]">
       <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-3">
-            <Link href={landingPath(staff)} className="pressable">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <Link href={landingPath(staff)} className="pressable shrink-0">
               <BranchLockup branch={branch} className="h-6 text-[18px] text-ink" />
             </Link>
             {staff.role === "owner" ? (
@@ -56,13 +56,13 @@ export default async function StaffBranchPage({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <span className="flex items-center gap-2 text-[13px] font-medium text-ink-soft">
               <span className="relative flex size-2.5">
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-ready opacity-60" />
                 <span className="relative inline-flex size-2.5 rounded-full bg-ready" />
               </span>
-              Live
+              <span className="sr-only sm:not-sr-only">Live</span>
             </span>
             {isAdmin(staff) && <ViewSwitch current="staff" staffHref={landingPath(staff)} />}
             <AnimatedThemeToggler />

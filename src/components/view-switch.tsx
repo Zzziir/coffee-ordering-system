@@ -47,9 +47,12 @@ function Segment({
 }) {
   if (active) {
     return (
-      <span className="flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-medium text-paper">
-        <Icon size={15} weight="fill" />
-        {label}
+      <span
+        aria-current="page"
+        className="flex h-9 items-center gap-1.5 rounded-full bg-ink px-3 text-[13px] font-medium text-paper sm:px-3.5"
+      >
+        <Icon size={16} weight="fill" />
+        <span className="sr-only sm:not-sr-only">{label}</span>
       </span>
     );
   }
@@ -57,10 +60,11 @@ function Segment({
   return (
     <Link
       href={href}
-      className="pressable flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium text-ink-soft transition-colors hover:text-ink"
+      className="pressable flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-ink-soft transition-colors hover:text-ink sm:px-3.5"
     >
-      <Icon size={15} weight="bold" />
-      {label}
+      <Icon size={16} weight="bold" />
+      {/* Icon only on a phone, where the dashboard header has no room. */}
+      <span className="sr-only sm:not-sr-only">{label}</span>
     </Link>
   );
 }

@@ -88,7 +88,7 @@ export function AnimatedThemeToggler({ className }: { className?: string }) {
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       className={clsx(
-        "pressable grid size-9 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-sunk hover:text-ink",
+        "pressable grid size-10 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-sunk hover:text-ink",
         className,
       )}
     >

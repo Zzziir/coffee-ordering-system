@@ -39,11 +39,11 @@ export default async function AdminLayout({
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
           <Link href="/admin" className="pressable flex items-center gap-2.5">
             <Wordmark className="text-[18px] text-ink" />
-            <span className="rounded-full bg-paper-sunk px-2.5 py-1 text-[12px] font-medium text-ink-soft">
+            <span className="hidden rounded-full bg-paper-sunk px-2.5 py-1 text-[12px] font-medium text-ink-soft sm:inline">
               Admin
             </span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ViewSwitch current="admin" staffHref={landingPath(staff)} />
             <AnimatedThemeToggler />
             <SignOutButton name={staff.name} />

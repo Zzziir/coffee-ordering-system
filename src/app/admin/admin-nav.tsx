@@ -20,7 +20,7 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="mx-auto flex max-w-5xl gap-1 px-4 pb-2">
+    <nav className="no-scrollbar mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 pb-2">
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
@@ -28,7 +28,7 @@ export function AdminNav() {
             key={href}
             href={href}
             className={clsx(
-              "pressable flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-medium transition-colors",
+              "pressable flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[14px] font-medium transition-colors",
               active ? "bg-ink text-paper" : "text-ink-soft hover:bg-paper-sunk hover:text-ink",
             )}
           >
