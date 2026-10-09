@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { getCustomer } from "@/lib/customer";
-import { GoogleButton } from "../google-button";
+import { GoogleButton } from "@/components/google-button";
+import { signInWithGoogle } from "../actions";
 import { SignInForm } from "./sign-in-form";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +53,7 @@ export default async function CustomerSignInPage({
           </p>
         )}
 
-        <GoogleButton next={next ?? null} />
+        <GoogleButton action={signInWithGoogle} next={next ?? null} />
         <SignInForm next={next ?? null} />
 
         <p className="mt-6 text-center text-[14.5px] text-ink-soft">

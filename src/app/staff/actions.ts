@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { redirectToGoogle } from "@/lib/google-sign-in";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getStaffMember, safeLandingPath } from "@/lib/staff";
 
@@ -38,6 +39,14 @@ export async function signIn(
   }
 
   redirect(safeLandingPath(staff, String(formData.get("next") ?? "") || null));
+}
+
+/**
+ * Start "Continue with Google" for staff. Google signs in the roster account
+ * with the same email; anyone not on the roster is turned away at the callback.
+ */
+export async function signInWithGoogle(formData: FormData) {
+  await redirectToGoogle("staff", String(formData.get("next") ?? "") || null);
 }
 
 export async function signOut() {

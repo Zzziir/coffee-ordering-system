@@ -1,9 +1,9 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getCustomer, safeNext } from "@/lib/customer";
+import { redirectToGoogle } from "@/lib/google-sign-in";
 
 /**
  * Customer sign up, sign in, sign out and profile edits.
@@ -99,31 +99,9 @@ export async function signUp(
   redirect("/account");
 }
 
-/**
- * Start "Continue with Google". Supabase answers with Google's consent URL; the
- * customer comes back through /auth/callback, which finishes the sign-in.
- *
- * Starting it here rather than in the browser keeps the PKCE verifier in a
- * cookie this server set, so the callback can trade the code for a session.
- */
+/** Start "Continue with Google" for a customer. */
 export async function signInWithGoogle(formData: FormData) {
-  const origin = (await headers()).get("origin");
-  if (!origin) throw new Error("Sign-in request arrived without an Origin header.");
-
-  const callback = new URL("/auth/callback", origin);
-  callback.searchParams.set(
-    "next",
-    safeNext(String(formData.get("next") ?? "") || null),
-  );
-
-  const supabase = await createServerSupabase();
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: callback.toString() },
-  });
-  if (error) redirect("/account/sign-in?error=google");
-
-  redirect(data.url);
+  await redirectToGoogle("customer", String(formData.get("next") ?? "") || null);
 }
 
 export async function signOut() {

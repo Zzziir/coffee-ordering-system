@@ -1,16 +1,22 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { signInWithGoogle } from "./actions";
 
 /**
- * "Continue with Google", shared by the sign-in and sign-up pages, with the
- * "or" rule that separates it from the email form below.
+ * "Continue with Google", shared by the customer and staff sign-in pages, with
+ * the "or" rule that separates it from the email form below. `action` is the
+ * Server Action that starts the hop for that kind of account.
  */
-export function GoogleButton({ next }: { next: string | null }) {
+export function GoogleButton({
+  action,
+  next,
+}: {
+  action: (formData: FormData) => Promise<void>;
+  next: string | null;
+}) {
   return (
     <>
-      <form action={signInWithGoogle} className="mt-8">
+      <form action={action} className="mt-8">
         {next && <input type="hidden" name="next" value={next} />}
         <SubmitButton />
       </form>
