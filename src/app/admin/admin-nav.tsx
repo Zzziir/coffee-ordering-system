@@ -2,18 +2,35 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChartLineUpIcon, ForkKnifeIcon, PlusCircleIcon, TrayIcon } from "@phosphor-icons/react";
+import {
+  ChartBarIcon,
+  ChartLineUpIcon,
+  ForkKnifeIcon,
+  PlusCircleIcon,
+  TentIcon,
+  TrayIcon,
+  UsersThreeIcon,
+} from "@phosphor-icons/react";
 import { clsx } from "@/lib/clsx";
 
 const TABS = [
   { href: "/admin", label: "Overview", icon: ChartLineUpIcon },
+  { href: "/admin/sales", label: "Sales", icon: ChartBarIcon },
+  { href: "/admin/customers", label: "Customers", icon: UsersThreeIcon },
+  { href: "/admin/events", label: "Events", icon: TentIcon },
   { href: "/admin/menu", label: "Menu", icon: ForkKnifeIcon },
   { href: "/admin/inquiries", label: "Inquiries", icon: TrayIcon },
   { href: "/admin/orders/new", label: "Log order", icon: PlusCircleIcon },
 ];
 
+// The transactions list is the sales report's detail view, so it keeps the
+// Sales tab lit rather than claiming a tab of its own.
+const TRANSACTIONS = "/admin/orders";
+
 function isActive(pathname: string, href: string) {
-  return href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+  if (href === "/admin") return pathname === "/admin";
+  if (href === "/admin/sales") return pathname.startsWith(href) || pathname === TRANSACTIONS;
+  return pathname.startsWith(href);
 }
 
 export function AdminNav() {
