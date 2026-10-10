@@ -2,6 +2,7 @@
 
 import { useOptimistic, useTransition } from "react";
 import { clsx } from "@/lib/clsx";
+import { useToast } from "@/components/toast";
 import { INQUIRY_STATUSES, type InquiryStatus } from "@/lib/inquiries";
 import { updateInquiryStatus } from "./actions";
 
@@ -13,9 +14,20 @@ const LABEL: Record<InquiryStatus, string> = {
 
 /**
  * Triage buttons for one lead. Optimistic: the pill fills the instant it's
- * pressed, then the server catches up. Reverts if the update throws.
+ * pressed, then the server catches up and a toast confirms it. If the update
+ * fails the pill reverts and the toast says so.
  */
-export function StatusControl({ id, status }: { id: string; status: InquiryStatus }) {
+export function StatusControl({
+  id,
+  name,
+  status,
+}: {
+  id: string;
+  /** Who the lead is from, for the confirmation. */
+  name: string;
+  status: InquiryStatus;
+}) {
+  const toast = useToast();
   const [optimistic, setOptimistic] = useOptimistic(status);
   const [, startTransition] = useTransition();
 
@@ -36,7 +48,12 @@ export function StatusControl({ id, status }: { id: string; status: InquiryStatu
             onClick={() =>
               startTransition(async () => {
                 setOptimistic(s);
-                await updateInquiryStatus(id, s);
+                try {
+                  await updateInquiryStatus(id, s);
+                  toast.success(`${name} marked ${LABEL[s].toLowerCase()}.`);
+                } catch {
+                  toast.error("Couldn't update that lead. Try again.");
+                }
               })
             }
             className={clsx(

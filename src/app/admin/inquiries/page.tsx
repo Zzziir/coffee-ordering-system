@@ -8,8 +8,12 @@ import {
   EnvelopeSimpleIcon,
   PhoneIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import { listInquiries, type Inquiry } from "@/lib/inquiries";
+import Link from "next/link";
+import { INQUIRY_STATUSES, listInquiries, type Inquiry, type InquiryKind } from "@/lib/inquiries";
 import { clsx } from "@/lib/clsx";
+import { paginate } from "@/lib/paginate";
+import { hrefWith } from "@/components/admin/format";
+import { EmptyState, FilterPills, Pagination } from "@/components/admin/report-ui";
 import { StatusControl } from "./status-control";
 
 export const dynamic = "force-dynamic";
@@ -30,9 +34,33 @@ const eventDateFmt = new Intl.DateTimeFormat("en-PH", {
   year: "numeric",
 });
 
-export default async function AdminInquiriesPage() {
+const PATH = "/admin/inquiries";
+const PAGE_SIZE = 10;
+
+const STATUS_LABEL = { new: "New", contacted: "Contacted", closed: "Closed" } as const;
+const KINDS: { id: InquiryKind; label: string }[] = [
+  { id: "franchise", label: "Franchise" },
+  { id: "event", label: "Event cart" },
+];
+
+export default async function AdminInquiriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; kind?: string; page?: string }>;
+}) {
+  const params = await searchParams;
   const inquiries = await listInquiries();
   const open = inquiries.filter((i) => i.status !== "closed").length;
+
+  const status = INQUIRY_STATUSES.find((s) => s === params.status);
+  const kind = KINDS.find((k) => k.id === params.kind)?.id;
+  // Counts follow the other filter, so each pill says what it would show.
+  const ofKind = inquiries.filter((i) => !kind || i.kind === kind);
+  const ofStatus = inquiries.filter((i) => !status || i.status === status);
+  const shown = ofKind.filter((i) => !status || i.status === status);
+
+  const query = { status: params.status, kind: params.kind };
+  const page = paginate(shown, params.page, PAGE_SIZE);
 
   return (
     <div className="flex flex-col gap-8">
@@ -59,11 +87,55 @@ export default async function AdminInquiriesPage() {
           </p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-4">
-          {inquiries.map((i) => (
-            <InquiryCard key={i.id} inquiry={i} />
-          ))}
-        </ul>
+        <section id="leads" className="flex scroll-mt-32 flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            <FilterPills
+              label="Status"
+              options={[
+                { href: hrefWith(PATH, query, { status: undefined }), label: `All ${ofKind.length}`, active: !status },
+                ...INQUIRY_STATUSES.map((s) => ({
+                  href: hrefWith(PATH, query, { status: s }),
+                  label: `${STATUS_LABEL[s]} ${ofKind.filter((i) => i.status === s).length}`,
+                  active: s === status,
+                })),
+              ]}
+            />
+            <FilterPills
+              label="Kind of inquiry"
+              options={[
+                { href: hrefWith(PATH, query, { kind: undefined }), label: "Any kind", active: !kind },
+                ...KINDS.map((k) => ({
+                  href: hrefWith(PATH, query, { kind: k.id }),
+                  label: `${k.label} ${ofStatus.filter((i) => i.kind === k.id).length}`,
+                  active: k.id === kind,
+                })),
+              ]}
+            />
+          </div>
+
+          {shown.length === 0 ? (
+            <EmptyState title="No inquiries match.">
+              Nothing fits those filters.{" "}
+              <Link href={PATH} className="font-semibold text-coffee">
+                Show every inquiry
+              </Link>
+              .
+            </EmptyState>
+          ) : (
+            <ul className="flex flex-col gap-4">
+              {page.rows.map((i) => (
+                <InquiryCard key={i.id} inquiry={i} />
+              ))}
+            </ul>
+          )}
+
+          <Pagination
+            page={page}
+            noun="inquiry"
+            nounPlural="inquiries"
+            hrefFor={(n) => `${hrefWith(PATH, query, { page: n > 1 ? String(n) : undefined })}#leads`}
+          />
+        </section>
       )}
     </div>
   );
@@ -92,7 +164,7 @@ function InquiryCard({ inquiry: i }: { inquiry: Inquiry }) {
             </p>
           </div>
         </div>
-        <StatusControl id={i.id} status={i.status} />
+        <StatusControl id={i.id} name={i.name} status={i.status} />
       </div>
 
       {/* Contact + the fields that came with this kind of lead. */}

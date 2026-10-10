@@ -1,6 +1,15 @@
 import Link from "next/link";
-import { ArrowDownRightIcon, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  ArrowDownRightIcon,
+  ArrowUpRightIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+  MagnifyingGlassIcon,
+  XIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { clsx } from "@/lib/clsx";
+import { pageWindow, type Page } from "@/lib/paginate";
+import { plural } from "./format";
 
 /** Shared building blocks for the back office report pages. */
 
@@ -140,6 +149,138 @@ export function FilterPills({ label, options }: { label: string; options: PillOp
         </Link>
       ))}
     </nav>
+  );
+}
+
+/**
+ * A search box that submits as a plain GET, so it works before the page
+ * hydrates. `keep` carries the other filters through the submit.
+ */
+export function SearchField({
+  path,
+  value,
+  label,
+  placeholder,
+  keep,
+  clearHref,
+}: {
+  path: string;
+  value: string;
+  /** Names the field for screen readers; the placeholder is not a label. */
+  label: string;
+  placeholder: string;
+  keep: Record<string, string | undefined>;
+  /** Where the clear button goes: this view without the search. */
+  clearHref: string;
+}) {
+  return (
+    <form action={path} role="search" className="relative w-full sm:w-64">
+      {Object.entries(keep).map(
+        ([name, kept]) => kept && <input key={name} type="hidden" name={name} value={kept} />,
+      )}
+      <MagnifyingGlassIcon
+        size={17}
+        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
+      />
+      <input
+        type="search"
+        name="q"
+        defaultValue={value}
+        placeholder={placeholder}
+        aria-label={label}
+        className="h-10 w-full rounded-full border border-line bg-paper-raised pl-10 pr-10 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee [&::-webkit-search-cancel-button]:hidden"
+      />
+      {value && (
+        <Link
+          href={clearHref}
+          scroll={false}
+          aria-label="Clear search"
+          className="pressable absolute right-1 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:text-ink"
+        >
+          <XIcon size={14} weight="bold" />
+        </Link>
+      )}
+    </form>
+  );
+}
+
+const pageLinkClass =
+  "pressable grid h-10 min-w-10 place-items-center rounded-full px-2 text-[13.5px] font-medium tabular-nums transition-colors";
+
+/**
+ * Says which rows are showing and steps through the rest. Pages are links, so
+ * a page can be bookmarked and the back button returns to the last one. With a
+ * single page it keeps the count and drops the controls.
+ */
+export function Pagination({
+  page,
+  noun,
+  nounPlural,
+  hrefFor,
+}: {
+  page: Page<unknown>;
+  /** What is being counted, singular: "order". */
+  noun: string;
+  /** Only when adding an "s" is wrong: "inquiries". */
+  nounPlural?: string;
+  hrefFor: (page: number) => string;
+}) {
+  if (page.total === 0) return null;
+
+  const count = plural(page.total, noun, nounPlural);
+  const summary =
+    page.pageCount === 1 ? count : `Showing ${page.from} to ${page.to} of ${count}`;
+
+  const step = (target: number, label: string, icon: React.ReactNode) =>
+    target >= 1 && target <= page.pageCount ? (
+      <Link href={hrefFor(target)} aria-label={label} className={clsx(pageLinkClass, "text-ink hover:bg-paper-sunk")}>
+        {icon}
+      </Link>
+    ) : (
+      <span aria-hidden className={clsx(pageLinkClass, "text-ink-faint opacity-50")}>
+        {icon}
+      </span>
+    );
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <p className="text-[13px] text-ink-soft">{summary}</p>
+
+      {page.pageCount > 1 && (
+        <nav aria-label="Pagination" className="flex items-center gap-0.5">
+          {step(page.page - 1, "Previous page", <CaretLeftIcon size={16} weight="bold" />)}
+
+          {/* Numbers need room; a phone gets the position in words instead. */}
+          <span className="px-2 text-[13.5px] tabular-nums text-ink-soft sm:hidden">
+            Page {page.page} of {page.pageCount}
+          </span>
+          <span className="hidden items-center gap-0.5 sm:flex">
+            {pageWindow(page.page, page.pageCount).map((number, i) =>
+              number === null ? (
+                <span key={`gap-${i}`} aria-hidden className="w-6 text-center text-ink-faint">
+                  …
+                </span>
+              ) : (
+                <Link
+                  key={number}
+                  href={hrefFor(number)}
+                  aria-label={`Page ${number}`}
+                  aria-current={number === page.page ? "page" : undefined}
+                  className={clsx(
+                    pageLinkClass,
+                    number === page.page ? "bg-ink text-paper" : "text-ink-soft hover:bg-paper-sunk hover:text-ink",
+                  )}
+                >
+                  {number}
+                </Link>
+              ),
+            )}
+          </span>
+
+          {step(page.page + 1, "Next page", <CaretRightIcon size={16} weight="bold" />)}
+        </nav>
+      )}
+    </div>
   );
 }
 

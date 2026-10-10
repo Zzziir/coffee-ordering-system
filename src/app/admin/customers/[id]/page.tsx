@@ -14,6 +14,7 @@ import { breakdown, itemSales } from "@/lib/analytics";
 import { getBranch, isBranchId } from "@/lib/branches";
 import { customerStats, getProfile } from "@/lib/crm";
 import { getLoyalty } from "@/lib/loyalty";
+import { paginate } from "@/lib/paginate";
 import { STAMPS_PER_REWARD, peso } from "@/lib/menu";
 import { listEvents } from "@/lib/sales-events";
 import { PAYMENT_LABEL, STATUS_LABEL } from "@/lib/types";
@@ -21,6 +22,7 @@ import { RankBars } from "@/components/admin/charts";
 import { ago, fullDay, percent, plural, stamp } from "@/components/admin/format";
 import {
   EmptyState,
+  Pagination,
   Panel,
   StatTile,
   TableShell,
@@ -33,8 +35,17 @@ export const dynamic = "force-dynamic";
 
 const EVENTS_KEY = "events";
 
-export default async function AdminCustomerPage({ params }: { params: Promise<{ id: string }> }) {
+const HISTORY_PAGE_SIZE = 10;
+
+export default async function AdminCustomerPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { id } = await params;
+  const { page: requestedPage } = await searchParams;
   const profile = await getProfile(id);
   if (!profile) notFound();
 
@@ -48,6 +59,7 @@ export default async function AdminCustomerPage({ params }: { params: Promise<{ 
   const paid = orders.filter((o) => o.paid);
   const stats = customerStats(paid, now);
   const eventName = new Map(events.map((e) => [e.id, e.name]));
+  const history = paginate(orders, requestedPage, HISTORY_PAGE_SIZE);
 
   const places = breakdown(
     paid,
@@ -181,7 +193,7 @@ export default async function AdminCustomerPage({ params }: { params: Promise<{ 
         </Panel>
       </div>
 
-      <section>
+      <section id="history" className="scroll-mt-32">
         <h2 className="mb-3 text-[15px] font-semibold text-ink">Order history</h2>
         {orders.length === 0 ? (
           <EmptyState title="No orders yet.">
@@ -200,7 +212,7 @@ export default async function AdminCustomerPage({ params }: { params: Promise<{ 
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {orders.map((o) => (
+              {history.rows.map((o) => (
                 <tr key={o.id} className="bg-paper-raised">
                   <td className="px-4 py-3 font-semibold text-ink">{o.code}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-ink-soft">{stamp(o.createdAt)}</td>
@@ -224,6 +236,13 @@ export default async function AdminCustomerPage({ params }: { params: Promise<{ 
             </tbody>
           </TableShell>
         )}
+        <div className="mt-3">
+          <Pagination
+            page={history}
+            noun="order"
+            hrefFor={(n) => `/admin/customers/${profile.id}${n > 1 ? `?page=${n}` : ""}#history`}
+          />
+        </div>
       </section>
     </div>
   );

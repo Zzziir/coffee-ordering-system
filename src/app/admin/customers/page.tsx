@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   ArrowsClockwiseIcon,
   CrownSimpleIcon,
-  MagnifyingGlassIcon,
   UsersThreeIcon,
   WalletIcon,
 } from "@phosphor-icons/react/dist/ssr";
@@ -18,13 +17,17 @@ import {
 } from "@/lib/crm";
 import { getBranch } from "@/lib/branches";
 import { peso } from "@/lib/menu";
+import { paginate } from "@/lib/paginate";
 import { RankBars } from "@/components/admin/charts";
-import { ago, hrefWith, percent, plural } from "@/components/admin/format";
+import { FilterSelect } from "@/components/admin/filter-select";
+import { ago, hrefWith, percent } from "@/components/admin/format";
 import {
   EmptyState,
   FilterPills,
   PageHeader,
+  Pagination,
   Panel,
+  SearchField,
   StatTile,
   TableShell,
   Th,
@@ -35,11 +38,22 @@ import { SegmentBadge } from "./segment-badge";
 export const dynamic = "force-dynamic";
 
 const PATH = "/admin/customers";
+const PAGE_SIZE = 20;
+
+type Customer = ReturnType<typeof buildCustomers>[number];
+
+/** Ways to order the list. The first is the default and stays out of the URL. */
+const SORTS: { value: string; label: string; compare: (a: Customer, b: Customer) => number }[] = [
+  { value: "", label: "Biggest spenders", compare: (a, b) => b.spend - a.spend },
+  { value: "orders", label: "Most orders", compare: (a, b) => b.orders - a.orders },
+  { value: "recent", label: "Latest order", compare: (a, b) => (b.lastOrderAt ?? 0) - (a.lastOrderAt ?? 0) },
+  { value: "name", label: "Name", compare: (a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`) },
+];
 
 export default async function AdminCustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ segment?: string; q?: string }>;
+  searchParams: Promise<{ segment?: string; q?: string; sort?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const segment = isSegment(params.segment) ? params.segment : null;
@@ -60,7 +74,10 @@ export default async function AdminCustomersPage({
         `${c.firstName} ${c.lastName} ${c.email} ${c.phone ?? ""}`.toLowerCase().includes(search)),
   );
 
-  const query = { segment: params.segment, q: params.q };
+  const sort = SORTS.find((s) => s.value === params.sort) ?? SORTS[0];
+  // Filters and sorting reset to the first page, so `page` stays out of this.
+  const query = { segment: segment ?? undefined, q: search ? params.q : undefined, sort: sort.value || undefined };
+  const page = paginate([...shown].sort(sort.compare), params.page, PAGE_SIZE);
 
   return (
     <div className="flex flex-col gap-6">
@@ -134,8 +151,8 @@ export default async function AdminCustomersPage({
         </Panel>
       </div>
 
-      <section className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <section id="list" className="flex scroll-mt-32 flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <FilterPills
             label="Segment"
             options={[
@@ -147,28 +164,37 @@ export default async function AdminCustomersPage({
               })),
             ]}
           />
-          <form action={PATH} className="relative w-full sm:w-64">
-            {segment && <input type="hidden" name="segment" value={segment} />}
-            <MagnifyingGlassIcon
-              size={17}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
-            />
-            <input
-              type="search"
-              name="q"
-              defaultValue={params.q ?? ""}
-              placeholder="Search name, email, phone"
-              aria-label="Search customers"
-              className="h-10 w-full rounded-full border border-line bg-paper-raised pl-10 pr-4 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee"
-            />
-          </form>
+          <FilterSelect
+            label="Sort by"
+            name="sort"
+            value={sort.value}
+            path={PATH}
+            query={query}
+            options={SORTS.map(({ value, label }) => ({ value, label }))}
+          />
+          <SearchField
+            path={PATH}
+            value={params.q ?? ""}
+            label="Search customers"
+            placeholder="Search name, email, phone"
+            keep={{ ...query, q: undefined }}
+            clearHref={hrefWith(PATH, query, { q: undefined })}
+          />
         </div>
 
         {shown.length === 0 ? (
           <EmptyState title={customers.length === 0 ? "No customers yet." : "No customers match."}>
             {customers.length === 0
               ? "When someone creates an account, they show up here with their orders and spend."
-              : "Try a different segment or clear the search."}
+              : (
+                <>
+                  Try a different segment or{" "}
+                  <Link href={PATH} className="font-semibold text-coffee">
+                    clear the filters
+                  </Link>
+                  .
+                </>
+              )}
           </EmptyState>
         ) : (
           <TableShell minWidth="820px">
@@ -184,7 +210,7 @@ export default async function AdminCustomersPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {shown.map((c) => (
+              {page.rows.map((c) => (
                 <tr key={c.id} className="bg-paper-raised">
                   <td className="px-4 py-3">
                     <Link href={`${PATH}/${c.id}`} className="font-semibold text-ink hover:text-coffee">
@@ -218,11 +244,11 @@ export default async function AdminCustomersPage({
             </tbody>
           </TableShell>
         )}
-        {shown.length > 0 && (
-          <p className="text-[13px] text-ink-faint">
-            {plural(shown.length, "customer")} shown, biggest spenders first.
-          </p>
-        )}
+        <Pagination
+          page={page}
+          noun="customer"
+          hrefFor={(n) => `${hrefWith(PATH, query, { page: n > 1 ? String(n) : undefined })}#list`}
+        />
       </section>
     </div>
   );
