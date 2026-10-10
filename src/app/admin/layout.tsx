@@ -1,8 +1,11 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Wordmark } from "@/components/brand";
 import { ViewSwitch } from "@/components/view-switch";
 import { AnimatedThemeToggler } from "@/components/animated-theme-toggler";
+import { FlashToast } from "@/components/flash-toast";
+import { ToastProvider } from "@/components/toast";
 import { getCustomer } from "@/lib/customer";
 import { getStaffMember, isAdmin, landingPath } from "@/lib/staff";
 import { SignOutButton } from "../staff/sign-out-button";
@@ -52,7 +55,13 @@ export default async function AdminLayout({
         <AdminNav />
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-6">{children}</main>
+      {/* Inside the surface, so toasts and dialogs follow its dark mode. */}
+      <ToastProvider>
+        <Suspense>
+          <FlashToast />
+        </Suspense>
+        <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-6">{children}</main>
+      </ToastProvider>
     </div>
   );
 }

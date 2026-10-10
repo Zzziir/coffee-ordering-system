@@ -4,6 +4,7 @@ import { Wordmark } from "@/components/brand";
 import { BranchLockup } from "@/components/branch-lockup";
 import { BranchSwitch } from "@/components/branch-switch";
 import { StaffQueue } from "@/components/staff-queue";
+import { ToastProvider } from "@/components/toast";
 import { ViewSwitch } from "@/components/view-switch";
 import { AnimatedThemeToggler } from "@/components/animated-theme-toggler";
 import { ensureDemoSeed, listActiveOrders } from "@/lib/store";
@@ -71,7 +72,9 @@ export default async function StaffBranchPage({
         </div>
       </header>
 
-      <StaffQueue branchId={branch.id} initial={orders} />
+      <ToastProvider>
+        <StaffQueue branchId={branch.id} initial={orders} />
+      </ToastProvider>
     </div>
   );
 }
