@@ -86,16 +86,14 @@ export async function saveEvent(
   if (id) await updateEvent(id, input);
 
   revalidatePath("/admin/events");
-  redirect(`/admin/events/${eventId}`);
+  // FlashToast on the event page confirms the save.
+  redirect(`/admin/events/${eventId}?notice=${id ? "event-saved" : "event-created"}`);
 }
 
 export type CloseEventState = { error: string } | null;
 
 /** Record the till count and close the event to new sales. */
-export async function closeEventAction(
-  _previous: CloseEventState,
-  formData: FormData,
-): Promise<CloseEventState> {
+export async function closeEventAction(formData: FormData): Promise<CloseEventState> {
   await assertAdmin();
 
   const id = String(formData.get("id") ?? "");
@@ -108,10 +106,9 @@ export async function closeEventAction(
   return null;
 }
 
-export async function reopenEventAction(formData: FormData): Promise<void> {
+export async function reopenEventAction(id: string): Promise<void> {
   await assertAdmin();
 
-  const id = String(formData.get("id") ?? "");
   await reopenEvent(id);
   revalidatePath("/admin/events");
   revalidatePath(`/admin/events/${id}`);

@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { PencilSimpleIcon, StorefrontIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, PencilSimpleIcon, StorefrontIcon, XIcon } from "@phosphor-icons/react";
 import { isAvailableAt, peso, type MenuData, type MenuItem } from "@/lib/menu";
 import type { BranchId } from "@/lib/types";
 import { setBranchAvailability } from "./actions";
 import { clsx } from "@/lib/clsx";
+import { useToast } from "@/components/toast";
 
 type BranchOption = { id: BranchId; name: string };
 
@@ -22,6 +23,17 @@ export function MenuManager({
 }) {
   const [branch, setBranch] = useState<BranchId>(initialBranch);
   const branchName = branches.find((b) => b.id === branch)?.name ?? "";
+  const [search, setSearch] = useState("");
+  const [soldOutOnly, setSoldOutOnly] = useState(false);
+
+  const term = search.trim().toLowerCase();
+  const matches = (item: MenuItem) =>
+    (!term || item.name.toLowerCase().includes(term)) &&
+    (!soldOutOnly || !isAvailableAt(item, branch));
+  const sections = menu.categories
+    .map((cat) => ({ cat, items: menu.items.filter((i) => i.categoryId === cat.id && matches(i)) }))
+    .filter((section) => section.items.length > 0);
+  const soldOutCount = menu.items.filter((i) => !isAvailableAt(i, branch)).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,10 +63,64 @@ export function MenuManager({
         </span>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-full sm:w-64">
+          <MagnifyingGlassIcon
+            size={17}
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
+          />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search the menu"
+            aria-label="Search the menu"
+            className="h-10 w-full rounded-full border border-line bg-paper-raised pl-10 pr-10 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee [&::-webkit-search-cancel-button]:hidden"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Clear search"
+              className="pressable absolute right-1 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:text-ink"
+            >
+              <XIcon size={14} weight="bold" />
+            </button>
+          )}
+        </div>
+        <button
+          type="button"
+          aria-pressed={soldOutOnly}
+          onClick={() => setSoldOutOnly((on) => !on)}
+          className={clsx(
+            "pressable h-10 rounded-full border px-4 text-[13px] font-medium transition-colors",
+            soldOutOnly
+              ? "border-ink bg-ink text-paper"
+              : "border-line bg-paper-raised text-ink-soft hover:text-ink",
+          )}
+        >
+          Sold out at {branchName} ({soldOutCount})
+        </button>
+      </div>
+
+      {sections.length === 0 && (
+        <div className="rounded-[var(--radius-lg)] border border-dashed border-line bg-paper-raised px-6 py-12 text-center">
+          <p className="text-[15px] font-medium text-ink">No items match.</p>
+          <button
+            type="button"
+            onClick={() => {
+              setSearch("");
+              setSoldOutOnly(false);
+            }}
+            className="pressable mt-2 h-9 text-[14px] font-semibold text-coffee"
+          >
+            Clear filters
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col gap-8">
-        {menu.categories.map((cat) => {
-          const items = menu.items.filter((i) => i.categoryId === cat.id);
-          if (items.length === 0) return null;
+        {sections.map(({ cat, items }) => {
           return (
             <section key={cat.id}>
               <h2 className="text-[15px] font-semibold text-ink">{cat.name}</h2>
@@ -88,6 +154,7 @@ function ItemRow({
   branchName: string;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [pending, startTransition] = useTransition();
   // Optimistic: flip the switch immediately, reconcile on refresh.
   const [available, setAvailableState] = useState(isAvailableAt(item, branch));
@@ -103,8 +170,14 @@ function ItemRow({
       try {
         await setBranchAvailability(item.id, branch, next);
         router.refresh();
+        toast.success(
+          next
+            ? `${item.name} is back on at ${branchName}.`
+            : `${item.name} is sold out at ${branchName}.`,
+        );
       } catch {
         setAvailableState(!next); // revert on failure
+        toast.error(`Couldn't update ${item.name}. Try again.`);
       }
     });
   };

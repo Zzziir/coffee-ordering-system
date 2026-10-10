@@ -38,8 +38,7 @@ import {
   tableHeadClass,
 } from "@/components/admin/report-ui";
 import { clsx } from "@/lib/clsx";
-import { reopenEventAction } from "../actions";
-import { CloseForm } from "../close-form";
+import { CloseForm, ReopenButton } from "../close-form";
 import { EventForm } from "../event-form";
 
 export const dynamic = "force-dynamic";
@@ -260,21 +259,15 @@ export default async function AdminEventPage({ params }: { params: Promise<{ id:
 
           <div className="mt-5 border-t border-line pt-4">
             {closed ? (
-              <form action={reopenEventAction} className="flex flex-wrap items-center justify-between gap-3">
-                <input type="hidden" name="id" value={event.id} />
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-[13.5px] text-ink-soft">
                   Closed{event.closedAt ? ` ${stamp(event.closedAt)}` : ""}. New sales can&apos;t be
                   rung up against it.
                 </p>
-                <button
-                  type="submit"
-                  className="pressable h-10 rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
-                >
-                  Reopen
-                </button>
-              </form>
+                <ReopenButton eventId={event.id} eventName={event.name} />
+              </div>
             ) : (
-              <CloseForm eventId={event.id} expected={cash.expected} />
+              <CloseForm eventId={event.id} eventName={event.name} expected={cash.expected} />
             )}
           </div>
         </Panel>

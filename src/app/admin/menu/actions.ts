@@ -187,5 +187,6 @@ export async function saveItem(
   }
 
   revalidateMenu();
-  redirect("/admin/menu");
+  // FlashToast on the list confirms the save.
+  redirect(`/admin/menu?notice=${existingId ? "item-saved" : "item-added"}`);
 }
