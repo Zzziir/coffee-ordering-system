@@ -15,12 +15,17 @@ import { useOrderStream } from "./use-order-stream";
 import { describeLine } from "@/lib/cart";
 import { peso } from "@/lib/menu";
 import { clsx } from "@/lib/clsx";
+import { ConfirmDialog } from "./confirm-dialog";
+import { useToast } from "./toast";
 
 export function StaffQueue({ branchId, initial }: { branchId: BranchId; initial: Order[] }) {
   const [orders, setOrders] = useState<Record<string, Order>>(
     () => Object.fromEntries(initial.map((o) => [o.id, o])),
   );
   const [now, setNow] = useState(() => Date.now());
+  const toast = useToast();
+  // A cash order about to be handed over, waiting on a yes.
+  const [collecting, setCollecting] = useState<Order | null>(null);
 
   useOrderStream({ branch: branchId }, (o) => {
     setOrders((prev) => {
@@ -37,23 +42,50 @@ export function StaffQueue({ branchId, initial }: { branchId: BranchId; initial:
     return () => clearInterval(t);
   }, []);
 
-  const advance = useCallback(async (id: string, status: OrderStatus) => {
-    // Optimistic: the SSE echo will reconcile.
-    setOrders((prev) => {
-      if (!prev[id]) return prev;
-      if (status === "completed") {
-        const next = { ...prev };
-        delete next[id];
-        return next;
+  const advance = useCallback(
+    async (order: Order, status: OrderStatus) => {
+      const { id } = order;
+      // Optimistic: the SSE echo will reconcile.
+      setOrders((prev) => {
+        if (!prev[id]) return prev;
+        if (status === "completed") {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        }
+        return { ...prev, [id]: { ...prev[id], status } };
+      });
+
+      const ok = await fetch(`/api/orders/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      }).then(
+        (res) => res.ok,
+        () => false,
+      );
+
+      if (!ok) {
+        // Put the ticket back as it was, so nothing looks done that isn't.
+        setOrders((prev) => ({ ...prev, [id]: order }));
+        toast.error(`Couldn't update ${order.code}. Check the connection and try again.`);
+        return;
       }
-      return { ...prev, [id]: { ...prev[id], status } };
-    });
-    await fetch(`/api/orders/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
-  }, []);
+      // A finished ticket leaves the board, so say where it went. The earlier
+      // steps stay on screen and speak for themselves.
+      if (status === "completed") toast.success(`${order.code} picked up.`);
+    },
+    [toast],
+  );
+
+  // Handing over a cash order records it as paid, so check the cash is in hand.
+  const request = useCallback(
+    (order: Order, status: OrderStatus) => {
+      if (status === "completed" && !order.paid) setCollecting(order);
+      else advance(order, status);
+    },
+    [advance],
+  );
 
   const list = Object.values(orders).sort((a, b) => a.createdAt - b.createdAt);
   const inProgress = list.filter((o) => o.status === "received" || o.status === "preparing");
@@ -83,7 +115,7 @@ export function StaffQueue({ branchId, initial }: { branchId: BranchId; initial:
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence initial={false}>
               {ready.map((o) => (
-                <OrderCard key={o.id} order={o} now={now} onAdvance={advance} />
+                <OrderCard key={o.id} order={o} now={now} onAdvance={request} />
               ))}
             </AnimatePresence>
           </div>
@@ -95,11 +127,26 @@ export function StaffQueue({ branchId, initial }: { branchId: BranchId; initial:
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence initial={false}>
             {inProgress.map((o) => (
-              <OrderCard key={o.id} order={o} now={now} onAdvance={advance} />
+              <OrderCard key={o.id} order={o} now={now} onAdvance={request} />
             ))}
           </AnimatePresence>
         </div>
       </section>
+
+      <ConfirmDialog
+        open={collecting !== null}
+        title={collecting ? `Collect ${peso(collecting.subtotal)} for ${collecting.code}?` : ""}
+        confirmLabel="Paid and picked up"
+        cancelLabel="Not yet"
+        onConfirm={() => {
+          if (collecting) advance(collecting, "completed");
+          setCollecting(null);
+        }}
+        onCancel={() => setCollecting(null)}
+      >
+        {collecting?.customerName} is paying cash at the counter. Confirm once you have the money:
+        the order will be recorded as paid.
+      </ConfirmDialog>
     </div>
   );
 }
@@ -154,7 +201,7 @@ function OrderCard({
 }: {
   order: Order;
   now: number;
-  onAdvance: (id: string, status: OrderStatus) => void;
+  onAdvance: (order: Order, status: OrderStatus) => void;
 }) {
   const isReady = order.status === "ready";
   // Each action wears its own colour so a barista scanning the board can tell a
@@ -229,7 +276,7 @@ function OrderCard({
           {order.paid ? "Paid" : "Unpaid"} · {peso(order.subtotal)}
         </span>
         <button
-          onClick={() => onAdvance(order.id, next.status)}
+          onClick={() => onAdvance(order, next.status)}
           className={clsx(
             "queue-action inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-semibold text-paper",
             next.bg,
