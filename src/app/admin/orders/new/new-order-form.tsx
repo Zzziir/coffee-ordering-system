@@ -26,10 +26,29 @@ import { clsx } from "@/lib/clsx";
 const inputClass =
   "h-12 w-full rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee";
 
-export function NewOrderForm({ menu }: { menu: MenuData }) {
+/** A bazaar the till can ring a sale up against. */
+export type EventOption = { id: string; name: string; branchId: BranchId };
+
+const STORE_SALE = "";
+
+export function NewOrderForm({
+  menu,
+  events,
+  defaultEventId,
+}: {
+  menu: MenuData;
+  /** Open events only. */
+  events: EventOption[];
+  /** Preselected when the till was opened from an event, or one is on today. */
+  defaultEventId: string | null;
+}) {
   const [state, formAction] = useActionState<LogOrderState, FormData>(logOrder, null);
 
-  const [branchId, setBranchId] = useState<BranchId>(BRANCH_LIST[0].id);
+  const [eventId, setEventId] = useState(defaultEventId ?? STORE_SALE);
+  const event = events.find((e) => e.id === eventId);
+  const [storeBranchId, setBranchId] = useState<BranchId>(BRANCH_LIST[0].id);
+  // A booth sells its home branch's menu, so the event decides the branch.
+  const branchId = event?.branchId ?? storeBranchId;
   const branch = BRANCH_LIST.find((b) => b.id === branchId)!;
   const [lines, setLines] = useState<CartLine[]>([]);
   const [customerName, setCustomerName] = useState("");
@@ -106,13 +125,39 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
     <form action={formAction} className="flex flex-col gap-5 pb-28">
       <input type="hidden" name="payload" value={payload} />
 
+      {events.length > 0 && (
+        <Field label="Sold at">
+          <select
+            name="eventId"
+            value={eventId}
+            onChange={(e) => setEventId(e.target.value)}
+            className={inputClass}
+          >
+            <option value={STORE_SALE}>In store</option>
+            {events.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.name}
+              </option>
+            ))}
+          </select>
+          {event && (
+            <p className="mt-1.5 text-[12.5px] text-ink-soft">
+              Counted under this event, not the store. It skips the barista board.
+            </p>
+          )}
+        </Field>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Branch">
+        <Field label={event ? "Run by" : "Branch"}>
           <select
             name="branchId"
             value={branchId}
+            // The server takes the branch from the event, so a disabled field
+            // dropping out of the submission is fine.
+            disabled={Boolean(event)}
             onChange={(e) => setBranchId(e.target.value as BranchId)}
-            className={inputClass}
+            className={clsx(inputClass, "disabled:opacity-60")}
           >
             {BRANCH_LIST.map((b) => (
               <option key={b.id} value={b.id}>
@@ -258,8 +303,11 @@ export function NewOrderForm({ menu }: { menu: MenuData }) {
         >
           <CheckCircleIcon size={20} weight="fill" className="shrink-0 text-ready" />
           <span>
-            <span className="font-semibold">{logged.code}</span> is on the{" "}
-            {logged.branchName} board. Ring up the next one below.
+            <span className="font-semibold">{logged.code}</span>{" "}
+            {logged.eventName
+              ? `is logged to ${logged.eventName}.`
+              : `is on the ${logged.branchName} board.`}{" "}
+            Ring up the next one below.
           </span>
         </div>
       )}

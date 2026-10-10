@@ -6,6 +6,7 @@ import { getBranch, isBranchId } from "@/lib/branches";
 import { getMenu } from "@/lib/menu-store";
 import { getItem, addOnGroupsForItem, isAvailableAt, type AddOn } from "@/lib/menu";
 import { createOrder } from "@/lib/store";
+import { getEvent } from "@/lib/sales-events";
 import { lineTotal } from "@/lib/cart";
 import type { OrderLine, PaymentMethod, SelectedGroup } from "@/lib/types";
 
@@ -19,13 +20,14 @@ type ItemPick = {
 /**
  * Logs an in-store / physical sale the admin rings up by hand. It's a normal
  * order on the `onsite` channel, so it lands on the barista board and counts in
- * the analytics like any other. Prices are re-read from the menu here, never
- * trusted from the form.
+ * the analytics like any other. A sale rung up against a bazaar is stamped with
+ * that event and recorded as already handed over, so it skips the board. Prices
+ * are re-read from the menu here, never trusted from the form.
  */
 
 export type LogOrderState =
   | { error: string }
-  | { ok: true; code: string; branchName: string }
+  | { ok: true; code: string; branchName: string; eventName?: string }
   | null;
 
 export async function logOrder(
@@ -35,7 +37,15 @@ export async function logOrder(
   const staff = await getStaffMember();
   if (!staff || !isAdmin(staff)) redirect("/staff/sign-in?next=/admin/orders/new");
 
-  const branchId = String(formData.get("branchId") ?? "");
+  // A booth sale: the event decides the branch, and must still be open.
+  const eventId = String(formData.get("eventId") ?? "");
+  const event = eventId ? await getEvent(eventId) : undefined;
+  if (eventId && !event) return { error: "That event no longer exists." };
+  if (event?.status === "closed") {
+    return { error: `${event.name} is closed. Reopen it to ring up more sales.` };
+  }
+
+  const branchId = event?.branchId ?? String(formData.get("branchId") ?? "");
   if (!isBranchId(branchId)) return { error: "Pick a branch." };
   const branch = getBranch(branchId);
 
@@ -99,10 +109,11 @@ export async function logOrder(
     customerName,
     items,
     paymentMethod,
+    eventId: event?.id,
   });
 
   // Staff stay in the back office — the customer status page is the wrong place
   // for a till. The order is already on the barista board; hand the code back so
   // the form can confirm it and reset for the next sale.
-  return { ok: true, code: order.code, branchName: branch.name };
+  return { ok: true, code: order.code, branchName: branch.name, eventName: event?.name };
 }
