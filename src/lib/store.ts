@@ -36,7 +36,7 @@ import { supabaseAdmin } from "./supabase/admin";
 /* Reading                                                             */
 /* ------------------------------------------------------------------ */
 
-const ORDER_SELECT = `
+export const ORDER_SELECT = `
   id, branch_id, code, channel, table_number, customer_name, customer_phone,
   subtotal, reward_discount, reward_qty, status, payment_method, paid, created_at, updated_at,
   order_lines ( id, position, item_id, name, base_price, qty, groups, line_total, note ),
@@ -55,7 +55,7 @@ type LineRow = {
   note: string | null;
 };
 
-type OrderRow = {
+export type OrderRow = {
   id: string;
   branch_id: string;
   code: string;
@@ -78,7 +78,7 @@ type OrderRow = {
 /** Timestamps cross the wire as ISO strings; the app speaks epoch millis. */
 const millis = (iso: string) => new Date(iso).getTime();
 
-function toOrder(row: OrderRow): Order {
+export function toOrder(row: OrderRow): Order {
   return {
     id: row.id,
     branchId: row.branch_id as BranchId,
@@ -178,23 +178,6 @@ export async function listAllOrders(branchId: BranchId): Promise<Order[]> {
   return (data ?? []).map(toOrder);
 }
 
-/**
- * Every branch's orders, newest first, for the admin analytics screen. This is
- * the one deliberately cross-branch read — it exists only behind the admin gate
- * (owner/manager), never on a barista's branch-scoped board.
- */
-export async function listRecentOrders(limit = 500): Promise<Order[]> {
-  const { data, error } = await supabaseAdmin()
-    .from("orders")
-    .select(ORDER_SELECT)
-    .order("created_at", { ascending: false })
-    .limit(limit)
-    .returns<OrderRow[]>();
-
-  if (error) throw new Error(`Could not read orders: ${error.message}`);
-  return (data ?? []).map(toOrder);
-}
-
 /* ------------------------------------------------------------------ */
 /* Writing                                                             */
 /* ------------------------------------------------------------------ */
@@ -214,6 +197,9 @@ export type CreateOrderInput = {
   rewardDiscount?: number;
   /** how many free drinks (rewards) are redeemed on this order; omit or 0 for none */
   rewardQty?: number;
+  /** the bazaar this was sold at. A booth sale is rung up and handed over on
+   *  the spot, so the database records it as completed and paid. */
+  eventId?: string;
 };
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
@@ -238,6 +224,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     p_reward_discount: input.rewardDiscount ?? 0,
     // how many free drinks were redeemed, for the loyalty ledger.
     p_reward_qty: input.rewardQty ?? 0,
+    p_event_id: input.eventId ?? null,
   });
 
   if (error) throw new Error(`Could not place the order: ${error.message}`);
