@@ -1,12 +1,10 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getItem, menuForPrompt, type MenuData } from "@/lib/menu";
 import { getMenu } from "@/lib/menu-store";
 import { branchesForPrompt } from "@/lib/branches";
+import { generateReply, type ChatMessage } from "@/lib/chat-llm";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-type ChatMessage = { role: "user" | "model"; text: string };
 
 /** A product card the client renders under the assistant's reply. */
 type ProductCard = {
@@ -87,15 +85,20 @@ function parseMarkers(
   for (const c of seen.values()) products.push(c);
 
   // Strip every marker (and any stray brackets) from the visible text.
-  const text = raw.replace(MARKER, "").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  // Models sometimes ignore the no-dash rule; dashes read as AI copy, so swap them for commas.
+  const text = raw
+    .replace(MARKER, "")
+    .replace(/\s*—\s*|\s+–\s+/g, ", ")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   return { text, products };
 }
 
 export async function POST(req: Request) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+  if (!process.env.ANTHROPIC_API_KEY && !process.env.GEMINI_API_KEY) {
     return Response.json(
-      { error: "The chatbot isn't configured yet. Add GEMINI_API_KEY to .env.local." },
+      { error: "The chatbot isn't configured yet. Add ANTHROPIC_API_KEY or GEMINI_API_KEY to .env.local." },
       { status: 503 },
     );
   }
@@ -116,27 +119,7 @@ export async function POST(req: Request) {
 
   try {
     const menu = await getMenu();
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-flash-latest",
-      systemInstruction: buildSystem(menu),
-    });
-
-    const history = messages.slice(0, -1).map((m) => ({
-      role: m.role,
-      parts: [{ text: m.text }],
-    }));
-    const latest = messages[messages.length - 1].text;
-
-    const chat = model.startChat({ history });
-    const resp = (await chat.sendMessage(latest)).response;
-
-    let raw = "";
-    try {
-      raw = resp.text();
-    } catch {
-      raw = "";
-    }
+    const raw = await generateReply(buildSystem(menu), messages);
 
     const { text, products } = parseMarkers(raw, menu);
     const reply =
@@ -146,7 +129,8 @@ export async function POST(req: Request) {
         : "Here you go! Let me know if you want anything else.");
 
     return Response.json({ reply, products });
-  } catch {
+  } catch (err) {
+    console.error("[chat] every provider failed:", err);
     return Response.json(
       { error: "The chatbot had trouble responding. Please try again." },
       { status: 502 },
