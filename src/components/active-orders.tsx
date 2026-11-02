@@ -37,7 +37,7 @@ export function ActiveOrders({ initial }: { initial: Order[] }) {
   if (active.length === 0) return null;
 
   return (
-    <section className="mt-8">
+    <section>
       <h2 className="text-[15px] font-semibold text-ink">
         {active.length > 1 ? "Active orders" : "Active order"}
       </h2>

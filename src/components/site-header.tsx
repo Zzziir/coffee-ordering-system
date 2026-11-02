@@ -11,18 +11,26 @@ export function SiteHeader({
   back,
   showBag = true,
   title,
+  wide = false,
 }: {
   /** show a back button; true = router.back(), string = href */
   back?: boolean | string;
   showBag?: boolean;
   title?: string;
+  /** Match a full-width page: widens the header bar to the dashboard container. */
+  wide?: boolean;
 }) {
   const router = useRouter();
   const { count, hydrated } = useCart();
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-4">
+      <div
+        className={clsx(
+          "mx-auto flex h-16 items-center justify-between",
+          wide ? "max-w-7xl px-5 lg:px-8" : "max-w-2xl px-4",
+        )}
+      >
         <div className="flex min-w-0 items-center gap-1">
           {back ? (
             typeof back === "string" ? (

@@ -1,9 +1,12 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   PencilSimpleIcon,
   ReceiptIcon,
   CaretRightIcon,
+  CoffeeIcon,
+  GiftIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { SiteHeader } from "@/components/site-header";
 import { StampCard } from "@/components/stamp-card";
@@ -43,19 +46,31 @@ export default async function AccountPage() {
     0,
   );
 
+  const initials = `${customer.firstName[0] ?? ""}${customer.lastName[0] ?? ""}`.toUpperCase();
+
   return (
     <div className="flex min-h-[100dvh] flex-col">
-      <SiteHeader back="/" showBag={false} title="Account" />
+      <SiteHeader back="/" showBag={false} title="Account" wide />
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-5 pb-20 pt-6">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">
-          Hi, {customer.firstName}
-        </h1>
-        <p className="mt-1 text-[14.5px] text-ink-soft">{customer.email}</p>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-5 pb-20 pt-6 lg:px-8 lg:pt-10">
+        {/* Identity */}
+        <header className="flex items-center gap-4">
+          <span className="grid size-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-coffee to-coffee-deep text-[20px] font-bold text-paper shadow-[var(--shadow-card)] lg:size-16 lg:text-[23px]">
+            {initials}
+          </span>
+          <div className="min-w-0">
+            <h1 className="truncate text-[26px] font-bold tracking-tight text-ink lg:text-[32px]">
+              Hi, {customer.firstName}
+            </h1>
+            <p className="mt-0.5 truncate text-[14.5px] text-ink-soft">{customer.email}</p>
+          </div>
+        </header>
 
-        {/* Loyalty */}
-        <div className="mt-6">
-          <StampCard stamps={loyalty.stamps} free={loyalty.free} pending={pendingStamps} />
+        {/* At-a-glance stats */}
+        <div className="mt-6 grid grid-cols-3 gap-3 lg:mt-8 lg:gap-4">
+          <Stat icon={<ReceiptIcon size={18} weight="fill" />} value={orders.length} label="Orders" />
+          <Stat icon={<CoffeeIcon size={18} weight="fill" />} value={loyalty.stamps} label="Stamps earned" />
+          <Stat icon={<GiftIcon size={18} weight="fill" />} value={loyalty.free} label="Free drinks" />
         </div>
 
         {/* Celebrate once a picked-up order completes a card (once per account) */}
@@ -65,62 +80,76 @@ export default async function AccountPage() {
           free={loyalty.free}
         />
 
-        {/* Active orders — live, so a status changes without a refresh */}
-        <ActiveOrders initial={activeOrders} />
+        {/* Dashboard: on desktop, orders fill the main column while rewards and
+            details sit in a sidebar; on mobile it all stacks, rewards first. */}
+        <div className="mt-6 grid gap-5 lg:mt-8 lg:grid-cols-12 lg:items-start lg:gap-6">
+          {/* Main column: active orders, then history */}
+          <div className="order-2 flex flex-col gap-5 lg:order-1 lg:col-span-7 xl:col-span-8">
+            <ActiveOrders initial={activeOrders} />
 
-        {/* Profile */}
-        <section className="mt-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-semibold text-ink">Your details</h2>
-            <Link
-              href="/account/edit"
-              className="pressable flex items-center gap-1.5 text-[14px] font-medium text-coffee"
-            >
-              <PencilSimpleIcon size={15} weight="bold" />
-              Edit
-            </Link>
+            <section className="rounded-[var(--radius-lg)] border border-line bg-paper-raised p-5 shadow-[var(--shadow-card)]">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[15px] font-semibold text-ink">Order history</h2>
+                {pastOrders.length > 0 && (
+                  <span className="text-[13px] text-ink-soft">
+                    {pastOrders.length} {pastOrders.length === 1 ? "order" : "orders"}
+                  </span>
+                )}
+              </div>
+
+              {orders.length === 0 ? (
+                <div className="mt-4 flex flex-col items-center gap-3 rounded-[var(--radius-md)] border border-dashed border-line px-5 py-12 text-center">
+                  <ReceiptIcon size={28} weight="regular" className="text-ink-faint" />
+                  <p className="text-[14.5px] text-ink-soft">
+                    No orders yet. Your next one will show up here.
+                  </p>
+                  <Link
+                    href="/menu"
+                    className="pressable mt-1 flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-semibold text-paper"
+                  >
+                    Start an order
+                  </Link>
+                </div>
+              ) : pastOrders.length === 0 ? (
+                <p className="mt-4 text-[14.5px] text-ink-soft">
+                  Your past orders will show here once they&apos;re picked up.
+                </p>
+              ) : (
+                <ul className="mt-2 flex flex-col divide-y divide-line">
+                  {pastOrders.map((order) => (
+                    <OrderRow key={order.id} order={order} />
+                  ))}
+                </ul>
+              )}
+            </section>
           </div>
-          <dl className="mt-3 grid grid-cols-2 gap-3">
-            <Detail label="Name" value={`${customer.firstName} ${customer.lastName}`} />
-            <Detail label="Mobile" value={customer.phone || "Not set"} />
-            <Detail label="Age" value={customer.age ? String(customer.age) : "Not set"} />
-            <Detail
-              label="Favorite flavor"
-              value={customer.favoriteFlavor || "Not set"}
-            />
-          </dl>
-        </section>
 
-        {/* Order history */}
-        <section className="mt-8">
-          <h2 className="text-[15px] font-semibold text-ink">Order history</h2>
-          {orders.length === 0 ? (
-            <div className="mt-3 flex flex-col items-center gap-3 rounded-[var(--radius-lg)] border border-dashed border-line bg-paper-raised px-5 py-10 text-center">
-              <ReceiptIcon size={28} weight="regular" className="text-ink-faint" />
-              <p className="text-[14.5px] text-ink-soft">
-                No orders yet. Your next one will show up here.
-              </p>
-              <Link
-                href="/menu"
-                className="pressable mt-1 flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-semibold text-paper"
-              >
-                Start an order
-              </Link>
-            </div>
-          ) : pastOrders.length === 0 ? (
-            <p className="mt-3 text-[14.5px] text-ink-soft">
-              Your past orders will show here once they&apos;re picked up.
-            </p>
-          ) : (
-            <ul className="mt-3 flex flex-col gap-2.5">
-              {pastOrders.map((order) => (
-                <OrderRow key={order.id} order={order} />
-              ))}
-            </ul>
-          )}
-        </section>
+          {/* Sidebar: rewards and profile */}
+          <aside className="order-1 flex flex-col gap-5 lg:order-2 lg:col-span-5 xl:col-span-4">
+            <StampCard stamps={loyalty.stamps} free={loyalty.free} pending={pendingStamps} />
 
-        <div className="mt-10">
+            <section className="rounded-[var(--radius-lg)] border border-line bg-paper-raised p-5 shadow-[var(--shadow-card)]">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[15px] font-semibold text-ink">Your details</h2>
+                <Link
+                  href="/account/edit"
+                  className="pressable flex items-center gap-1.5 text-[13.5px] font-medium text-coffee"
+                >
+                  <PencilSimpleIcon size={14} weight="bold" />
+                  Edit
+                </Link>
+              </div>
+              <dl className="mt-1 divide-y divide-line">
+                <Detail label="Name" value={`${customer.firstName} ${customer.lastName}`} />
+                <Detail label="Mobile" value={customer.phone || "Not set"} />
+                <Detail label="Age" value={customer.age ? String(customer.age) : "Not set"} />
+                <Detail label="Favorite flavor" value={customer.favoriteFlavor || "Not set"} />
+              </dl>
+            </section>
+          </aside>
+        </div>
+
+        <div className="mt-8 lg:mx-auto lg:max-w-sm">
           <SignOutButton />
         </div>
       </main>
@@ -128,11 +157,25 @@ export default async function AccountPage() {
   );
 }
 
+function Stat({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
+  return (
+    <div className="flex flex-col gap-2.5 rounded-[var(--radius-md)] border border-line bg-paper-raised p-4 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:gap-3.5 lg:p-5">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-coffee-tint text-coffee sm:size-11">
+        {icon}
+      </span>
+      <div>
+        <p className="text-[22px] font-bold leading-none text-ink lg:text-[26px]">{value}</p>
+        <p className="mt-1.5 text-[12.5px] leading-tight text-ink-soft">{label}</p>
+      </div>
+    </div>
+  );
+}
+
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3">
-      <dt className="text-[12.5px] text-ink-faint">{label}</dt>
-      <dd className="mt-0.5 truncate text-[15px] font-medium text-ink">{value}</dd>
+    <div className="flex items-center justify-between gap-4 py-3">
+      <dt className="shrink-0 text-[13px] text-ink-faint">{label}</dt>
+      <dd className="truncate text-[14.5px] font-medium text-ink">{value}</dd>
     </div>
   );
 }
@@ -151,7 +194,7 @@ function OrderRow({ order }: { order: Order }) {
     <li>
       <Link
         href={`/order/${order.id}`}
-        className="pressable flex items-center gap-3 rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3.5"
+        className="group flex items-center gap-3 rounded-[var(--radius-md)] px-2 py-3 transition-colors hover:bg-paper-sunk/60"
       >
         <span className="grid size-11 shrink-0 place-items-center rounded-full bg-coffee-tint/70 text-[14px] font-bold text-coffee">
           {order.code}
@@ -165,7 +208,11 @@ function OrderRow({ order }: { order: Order }) {
             {count === 1 ? "item" : "items"} · {STATUS_LABEL[order.status]}
           </span>
         </span>
-        <CaretRightIcon size={17} weight="bold" className="shrink-0 text-ink-faint" />
+        <CaretRightIcon
+          size={17}
+          weight="bold"
+          className="shrink-0 text-ink-faint transition-transform duration-200 group-hover:translate-x-0.5"
+        />
       </Link>
     </li>
   );
