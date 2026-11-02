@@ -154,9 +154,9 @@ export default async function ContactPage() {
 
           <div className="relative mx-auto max-w-[1120px] px-5 py-16 lg:px-8 lg:py-24">
             <Reveal>
-              <div className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:items-start lg:gap-16">
+              <div className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:items-stretch lg:gap-16">
                 {/* The pitch */}
-                <div>
+                <div className="lg:flex lg:flex-col">
                   <p className="inline-flex items-center gap-2 rounded-full border border-coffee/20 bg-coffee/5 px-3 py-1 text-[12.5px] font-semibold uppercase tracking-[0.12em] text-coffee">
                     <StorefrontIcon size={14} weight="fill" />
                     Work with Craffé
@@ -189,8 +189,10 @@ export default async function ContactPage() {
                     />
                   </div>
 
-                  {/* A real storefront, so the pitch feels like a place. */}
-                  <div className="relative mt-6 hidden aspect-[16/8] overflow-hidden rounded-[var(--radius-lg)] border border-line lg:block">
+                  {/* A real storefront, so the pitch feels like a place. It
+                      flexes to fill the column so its base lines up with the
+                      form card beside it. */}
+                  <div className="relative mt-6 hidden flex-1 overflow-hidden rounded-[var(--radius-lg)] border border-line lg:block">
                     <Image
                       src="/brand/storefront-day.jpg"
                       alt="A Craffé storefront by day"
