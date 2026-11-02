@@ -97,6 +97,7 @@ export function ChatLauncher() {
       basePrice: p.price,
       qty: p.quantity && p.quantity > 0 ? p.quantity : 1,
       groups: [],
+      image: p.image ?? null,
     });
   };
 

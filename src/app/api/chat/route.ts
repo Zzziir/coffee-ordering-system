@@ -14,6 +14,7 @@ type ProductCard = {
   categoryId: string;
   signature: boolean;
   description: string | null;
+  image: string | null;
   action: "recommend" | "add";
   quantity?: number;
 };
@@ -74,6 +75,7 @@ function parseMarkers(
       categoryId: item.categoryId,
       signature: !!item.signature,
       description: item.description ?? null,
+      image: item.image ?? null,
       action,
       quantity: action === "add" ? Math.max(1, Math.min(20, Number(qty) || 1)) : undefined,
     };

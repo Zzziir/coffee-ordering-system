@@ -9,6 +9,8 @@ export type CartLine = {
   qty: number;
   groups: SelectedGroup[];
   note?: string;
+  /** Product photo for the cart thumbnail; null falls back to the branded placeholder. */
+  image?: string | null;
 };
 
 /** Per-unit price = base + every selected add-on. */

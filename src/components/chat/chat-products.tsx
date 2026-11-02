@@ -15,6 +15,7 @@ export type ProductCard = {
   categoryId: string;
   signature: boolean;
   description: string | null;
+  image?: string | null;
   action: "recommend" | "add";
   quantity?: number;
   added?: boolean;
@@ -97,7 +98,7 @@ function ProductRow({
       className="flex gap-3 overflow-hidden rounded-[var(--radius-md)] border border-line bg-paper-raised p-3 shadow-[var(--shadow-card)]"
     >
       <div className="relative size-[76px] shrink-0 overflow-hidden rounded-[var(--radius-sm)]">
-        <ItemThumb item={{ id: product.id, name: product.name }} iconClassName="size-8" sizes="76px" />
+        <ItemThumb item={{ id: product.id, name: product.name, image: product.image ?? undefined }} iconClassName="size-8" sizes="76px" />
         {product.signature && <SignaturePill />}
       </div>
 
@@ -172,7 +173,7 @@ function ProductTile({
         className="group relative block aspect-[5/4] w-full overflow-hidden"
       >
         <div className="absolute inset-0 transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.06]">
-          <ItemThumb item={{ id: product.id, name: product.name }} iconClassName="size-9" sizes="152px" />
+          <ItemThumb item={{ id: product.id, name: product.name, image: product.image ?? undefined }} iconClassName="size-9" sizes="152px" />
         </div>
         {product.signature && <SignaturePill />}
       </button>

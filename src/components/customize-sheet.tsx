@@ -15,6 +15,7 @@ type AddPayload = {
   basePrice: number;
   qty: number;
   groups: SelectedGroup[];
+  image?: string | null;
 };
 
 export function CustomizeSheet({
@@ -113,6 +114,7 @@ export function CustomizeSheet({
       basePrice: item.price,
       qty,
       groups: chosen,
+      image: item.image ?? null,
     });
   };
 
