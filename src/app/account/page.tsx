@@ -69,7 +69,7 @@ export default async function AccountPage() {
         {/* At-a-glance stats */}
         <div className="mt-6 grid grid-cols-3 gap-3 lg:mt-8 lg:gap-4">
           <Stat icon={<ReceiptIcon size={18} weight="fill" />} value={orders.length} label="Orders" />
-          <Stat icon={<CoffeeIcon size={18} weight="fill" />} value={loyalty.stamps} label="Stamps earned" />
+          <Stat icon={<CoffeeIcon size={18} weight="fill" />} value={loyalty.stamps} label="Stamps" />
           <Stat icon={<GiftIcon size={18} weight="fill" />} value={loyalty.free} label="Free drinks" />
         </div>
 

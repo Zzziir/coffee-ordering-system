@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { motion } from "motion/react";
-import { CoffeeIcon, GiftIcon } from "@phosphor-icons/react";
+import { CoffeeIcon, GiftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { CupMark } from "./brand";
-import { STAMPS_PER_REWARD } from "@/lib/menu";
+import { STAMPS_PER_REWARD, WELCOME_STAMPS } from "@/lib/menu";
 import { clsx } from "@/lib/clsx";
 
 const STAMP_KEY = "craffe.stamps";
-const CUPS = STAMPS_PER_REWARD - 1; // nine cups, then the reward slot
+const CUPS = STAMPS_PER_REWARD - 1; // the cup slots, then the reward slot
 
 // Diagonal coffee hatch for "on the way" stamps: earned but not yet credited,
 // because the order that will earn them hasn't been paid for (a cash order is
@@ -34,6 +35,7 @@ export function StampCard({
   earnedThisOrder,
   pending: pendingProp,
   cardsCompleted,
+  signUpNudge = false,
 }: {
   stamps?: number;
   free?: number;
@@ -42,6 +44,9 @@ export function StampCard({
   /** Cards this order just filled, so a fresh-looking card can reassure that the
    *  reward was banked and this is a brand new card. */
   cardsCompleted?: number;
+  /** Guest card: invite them to sign up and claim the two welcome stamps, since
+   *  the head start is only real once there's an account to hold it. */
+  signUpNudge?: boolean;
 } = {}) {
   const [localStamps, setLocalStamps] = useState<number | null>(null);
   const stamps = stampsProp ?? localStamps;
@@ -143,7 +148,7 @@ export function StampCard({
         </div>
       )}
 
-      <div className="grid grid-cols-5 gap-2.5 p-5">
+      <div className="grid grid-cols-6 gap-2 p-5 sm:gap-2.5">
         {Array.from({ length: STAMPS_PER_REWARD }).map((_, i) => {
           const isReward = i === CUPS;
           const earned = !isReward && i < progress;
@@ -217,6 +222,23 @@ export function StampCard({
           );
         })}
       </div>
+
+      {signUpNudge && (
+        <Link
+          href="/account/sign-up"
+          className="group flex items-center gap-2.5 border-t border-paper/15 px-5 py-3.5 text-paper transition-colors hover:bg-paper/5"
+        >
+          <GiftIcon size={16} weight="fill" className="shrink-0 text-gold" />
+          <span className="flex-1 text-[13px] font-medium leading-snug">
+            Create an account and we&apos;ll add {WELCOME_STAMPS} free stamps to your card.
+          </span>
+          <ArrowRightIcon
+            size={15}
+            weight="bold"
+            className="shrink-0 text-paper/70 transition-transform duration-200 group-hover:translate-x-0.5"
+          />
+        </Link>
+      )}
     </div>
   );
 }

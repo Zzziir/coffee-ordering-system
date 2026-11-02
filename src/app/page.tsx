@@ -21,6 +21,7 @@ import { signatureItems, peso } from "@/lib/menu";
 import { getMenu } from "@/lib/menu-store";
 import { BRANCH_LIST, branchAddress, branchFullName, openStatusLabel } from "@/lib/branches";
 import { DiaTextReveal, revealLength } from "@/components/dia-text-reveal";
+import { clsx } from "@/lib/clsx";
 
 // Fan favorites come from the (admin-editable) menu, so render per request.
 export const dynamic = "force-dynamic";
@@ -293,33 +294,49 @@ export default async function HomePage() {
                   Craffé Rewards
                 </span>
                 <h2 className="mt-4 text-[clamp(1.9rem,4vw,2.75rem)] font-bold leading-tight tracking-tight text-ink">
-                  Buy nine, the tenth is on us.
+                  Your first two stamps are on us.
                 </h2>
                 <p className="mt-4 max-w-[44ch] text-[16px] leading-relaxed text-ink-soft">
-                  Every order stamps your digital card automatically. No app, no
-                  plastic card to lose, just free coffee on the way.
+                  Make an account and your card starts two stamps ahead. Every
+                  order stamps it automatically, no app, no plastic card to lose,
+                  just free coffee on the way.
                 </p>
                 <Link
-                  href="/menu"
+                  href="/account/sign-up"
                   className="pressable mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[15px] font-semibold text-paper"
                 >
-                  Start earning
+                  Claim your stamps
                   <ArrowRightIcon size={17} weight="bold" />
                 </Link>
               </div>
-              <div className="grid grid-cols-5 gap-2.5">
-                {Array.from({ length: 10 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="grid aspect-square place-items-center rounded-full border border-coffee/30 bg-paper-raised/60 text-coffee"
-                  >
-                    {i === 9 ? (
-                      <GiftIcon size={18} weight="regular" className="text-coffee/50" />
-                    ) : (
-                      <CoffeeIcon size={18} weight={i < 4 ? "fill" : "regular"} className={i < 4 ? "" : "text-coffee/40"} />
-                    )}
-                  </div>
-                ))}
+              <div className="grid grid-cols-6 gap-2.5">
+                {Array.from({ length: 12 }).map((_, i) => {
+                  const isReward = i === 11;
+                  // The first two are the welcome gift; show them filled so the
+                  // head start reads at a glance.
+                  const gifted = i < 2;
+                  return (
+                    <div
+                      key={i}
+                      className={clsx(
+                        "grid aspect-square place-items-center rounded-full border",
+                        gifted
+                          ? "border-transparent bg-coffee text-paper"
+                          : "border-coffee/30 bg-paper-raised/60 text-coffee",
+                      )}
+                    >
+                      {isReward ? (
+                        <GiftIcon size={18} weight="regular" className="text-coffee/50" />
+                      ) : (
+                        <CoffeeIcon
+                          size={18}
+                          weight={gifted ? "fill" : "regular"}
+                          className={gifted ? "" : "text-coffee/40"}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </Reveal>

@@ -120,8 +120,17 @@ export function signatureItems(menu: MenuData): MenuItem[] {
 /* Loyalty                                                             */
 /* ------------------------------------------------------------------ */
 
-/** Stamps that make one free drink. The card shows nine cups plus the reward. */
-export const STAMPS_PER_REWARD = 10;
+/**
+ * Stamps that make one free drink. The card is a 12-slot grid: the first two
+ * come free (see WELCOME_STAMPS), then ten real purchases fill the rest, so the
+ * reward costs the same ten drinks it always has. A card you have already
+ * started gets finished far more often than an empty one (the endowed-progress
+ * effect), so the head start lifts completion without giving a drink away.
+ */
+export const STAMPS_PER_REWARD = 12;
+
+/** Free stamps a new account opens with, and a guest is promised at sign-up. */
+export const WELCOME_STAMPS = 2;
 
 /** A sticker is earned per drink bought; food (cookies, snacks, pastries) isn't. */
 export function isDrinkItem(menu: MenuData, itemId: string): boolean {

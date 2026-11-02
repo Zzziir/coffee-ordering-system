@@ -27,8 +27,8 @@ export default async function CustomerSignUpPage({
           Join Craffe Rewards
         </h1>
         <p className="mt-1.5 text-[15px] text-ink-soft">
-          Save your orders and earn a sticker for every drink. Buy nine, the tenth
-          is on us.
+          Start with 2 free stamps, then earn one for every drink. Your free
+          coffee is closer from day one.
         </p>
 
         <GoogleButton action={signInWithGoogle} next={next ?? null} />

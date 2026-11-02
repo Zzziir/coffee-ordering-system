@@ -348,8 +348,8 @@ export function OrderStatus({
           />
         ) : (
           // A guest's on-device tally is bumped at checkout, so it's already
-          // counted for them.
-          <StampCard earnedThisOrder={stampsThisOrder} />
+          // counted for them. Nudge them to sign up and claim the welcome stamps.
+          <StampCard earnedThisOrder={stampsThisOrder} signUpNudge />
         )}
       </div>
 
