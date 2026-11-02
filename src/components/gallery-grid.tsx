@@ -35,7 +35,7 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:auto-rows-[300px] lg:gap-4">
         {photos.map((p, i) => (
           <BlurFade
             key={p.src + i}

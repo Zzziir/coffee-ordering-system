@@ -13,10 +13,10 @@ export const metadata = {
 
 const PHOTOS: GalleryPhoto[] = [
   { src: "/brand/hero-drinks.jpg", alt: "Three Craffé signature drinks in warm light", span: "lg:col-span-2 lg:row-span-2", ratio: "aspect-[4/5] lg:aspect-auto" },
-  { src: "/brand/storefront-day.jpg", alt: "The Craffé storefront by day", span: "", ratio: "aspect-[4/3]" },
-  { src: "/brand/truffles.jpg", alt: "Trays of dusted chocolate truffles", span: "", ratio: "aspect-[4/3]" },
-  { src: "/brand/team.jpg", alt: "The Craffé team outside the shop", span: "lg:col-span-2", ratio: "aspect-[16/10]" },
-  { src: "/brand/sign-dusk.jpg", alt: "The glowing Craffé sign at dusk", span: "", ratio: "aspect-[4/3]" },
+  { src: "/brand/storefront-day.jpg", alt: "The Craffé storefront by day", span: "", ratio: "aspect-[4/3] lg:aspect-auto" },
+  { src: "/brand/truffles.jpg", alt: "Trays of dusted chocolate truffles", span: "", ratio: "aspect-[4/3] lg:aspect-auto" },
+  { src: "/brand/team.jpg", alt: "The Craffé team outside the shop", span: "lg:col-span-2", ratio: "aspect-[16/10] lg:aspect-auto" },
+  { src: "/brand/sign-dusk.jpg", alt: "The glowing Craffé sign at dusk", span: "", ratio: "aspect-[4/3] lg:aspect-auto" },
 ];
 
 export default function GalleryPage() {
