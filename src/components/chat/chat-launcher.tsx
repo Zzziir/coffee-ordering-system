@@ -7,28 +7,14 @@ import {
   ChatCircleDotsIcon,
   XIcon,
   PaperPlaneRightIcon,
-  CheckCircleIcon,
-  PlusIcon,
   ArrowRightIcon,
   CaretLeftIcon,
 } from "@phosphor-icons/react";
 import { CupMark } from "@/components/brand";
-import { ItemThumb } from "@/components/item-thumb";
+import { RichText } from "@/components/chat/rich-text";
+import { ChatProducts, type ProductCard } from "@/components/chat/chat-products";
 import { useCart } from "@/components/cart-provider";
-import { peso } from "@/lib/menu";
 import { clsx } from "@/lib/clsx";
-
-type ProductCard = {
-  id: string;
-  name: string;
-  price: number;
-  categoryId: string;
-  signature: boolean;
-  description: string | null;
-  action: "recommend" | "add";
-  quantity?: number;
-  added?: boolean;
-};
 
 type Msg = { role: "user" | "model"; text: string; products?: ProductCard[] };
 
@@ -347,13 +333,17 @@ export function ChatLauncher() {
                       {(m.text || m.role === "user" || !m.products?.length) && (
                         <div
                           className={clsx(
-                            "max-w-[85%] whitespace-pre-wrap rounded-[var(--radius-md)] px-4 py-2.5 text-[15px] leading-relaxed",
+                            "max-w-[85%] rounded-[var(--radius-md)] px-4 py-2.5 text-[15px] leading-relaxed",
                             m.role === "user"
-                              ? "rounded-br-md bg-ink text-paper"
+                              ? "whitespace-pre-wrap rounded-br-md bg-ink text-paper"
                               : "rounded-bl-md border border-line bg-paper-raised text-ink",
                           )}
                         >
-                          {m.text || (
+                          {m.role === "user" ? (
+                            m.text
+                          ) : m.text ? (
+                            <RichText text={m.text} />
+                          ) : (
                             <span className="inline-flex gap-1 py-1">
                               <Dot /> <Dot delay={0.15} /> <Dot delay={0.3} />
                             </span>
@@ -361,19 +351,19 @@ export function ChatLauncher() {
                         </div>
                       )}
 
-                      {/* Product cards */}
-                      {m.products?.map((p, pi) => (
-                        <ChatProduct
-                          key={p.id + pi}
-                          product={p}
-                          onAdd={() => {
+                      {/* Product cards: one detail row, or a browse carousel for several */}
+                      {m.products?.length ? (
+                        <ChatProducts
+                          products={m.products}
+                          reduce={reduce}
+                          onAdd={(p) => {
                             addProductToCart(p);
                             markAdded(i, p.id);
                           }}
-                          onView={() => goToProduct(p.id)}
+                          onView={goToProduct}
                           onViewBag={goToBag}
                         />
-                      ))}
+                      ) : null}
                     </div>
                   ))
                 )}
@@ -408,80 +398,6 @@ export function ChatLauncher() {
         )}
       </AnimatePresence>
     </>
-  );
-}
-
-function ChatProduct({
-  product,
-  onAdd,
-  onView,
-  onViewBag,
-}: {
-  product: ProductCard;
-  onAdd: () => void;
-  onView: () => void;
-  onViewBag: () => void;
-}) {
-  const added = product.added;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
-      className="mt-2 flex w-[85%] max-w-[320px] gap-3 overflow-hidden rounded-[var(--radius-md)] border border-line bg-paper-raised p-3"
-    >
-      {/* Thumbnail */}
-      <div className="relative size-[76px] shrink-0 overflow-hidden rounded-[var(--radius-sm)]">
-        <ItemThumb item={{ id: product.id, name: product.name }} iconClassName="size-8" sizes="76px" />
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-start gap-1.5">
-          <h4 className="text-[14.5px] font-semibold leading-tight text-ink">{product.name}</h4>
-        </div>
-        <p className="mt-0.5 text-[13px] text-ink-soft">
-          {peso(product.price)}
-          {product.signature && <span className="text-coffee"> · Signature</span>}
-          {added && product.quantity && product.quantity > 1 && (
-            <span> · {product.quantity}×</span>
-          )}
-        </p>
-
-        <div className="mt-auto flex items-center gap-2 pt-2.5">
-          {added ? (
-            <>
-              <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-ready">
-                <CheckCircleIcon size={16} weight="fill" />
-                In your bag
-              </span>
-              <button
-                onClick={onViewBag}
-                className="pressable ml-auto inline-flex h-9 items-center gap-1 rounded-full bg-ink px-3 text-[12.5px] font-semibold text-paper"
-              >
-                View bag
-                <ArrowRightIcon size={13} weight="bold" />
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={onView}
-                className="pressable h-9 rounded-full border border-line-strong px-3 text-[12.5px] font-medium text-ink"
-              >
-                View product
-              </button>
-              <button
-                onClick={onAdd}
-                className="pressable inline-flex h-9 items-center gap-1 rounded-full bg-ink px-3 text-[12.5px] font-semibold text-paper"
-              >
-                <PlusIcon size={13} weight="bold" />
-                Add
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    </motion.div>
   );
 }
 
