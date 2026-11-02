@@ -145,22 +145,36 @@ export default async function ContactPage() {
         {/* Work with Craffé — franchising and event coffee carts. The copy below
             is placeholder: swap in real inclusions, packages, coverage, and any
             pricing once they're settled. */}
-        <section id="partner" className="scroll-mt-24 border-t border-line bg-paper-sunk/40">
-          <div className="mx-auto max-w-[1080px] px-5 py-16 lg:px-8 lg:py-24">
+        <section id="partner" className="relative scroll-mt-24 overflow-hidden border-t border-line bg-paper-sunk/40">
+          {/* Warm depth: soft brand-tinted glows behind the content. */}
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute -left-28 top-8 size-80 rounded-full bg-coffee/10 blur-3xl" />
+            <div className="absolute -right-24 bottom-0 size-96 rounded-full bg-gold/10 blur-3xl" />
+          </div>
+
+          <div className="relative mx-auto max-w-[1120px] px-5 py-16 lg:px-8 lg:py-24">
             <Reveal>
-              <div className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+              <div className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:items-start lg:gap-16">
                 {/* The pitch */}
                 <div>
-                  <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-coffee">
+                  <p className="inline-flex items-center gap-2 rounded-full border border-coffee/20 bg-coffee/5 px-3 py-1 text-[12.5px] font-semibold uppercase tracking-[0.12em] text-coffee">
+                    <StorefrontIcon size={14} weight="fill" />
                     Work with Craffé
                   </p>
-                  <h2 className="mt-3 text-[clamp(2rem,4.5vw,3rem)] font-bold leading-[1.05] tracking-tight text-ink">
+                  <h2 className="mt-4 text-[clamp(2rem,4.5vw,3rem)] font-bold leading-[1.05] tracking-tight text-ink">
                     Bring Craffé to more people.
                   </h2>
                   <p className="mt-4 max-w-[48ch] text-[17px] leading-relaxed text-ink-soft">
                     A café of your own, or a coffee cart at your celebration. Two
                     ways to grow with us, one conversation to start it.
                   </p>
+
+                  {/* Proof strip */}
+                  <dl className="mt-8 grid grid-cols-3 gap-4 border-y border-line/70 py-5">
+                    <Stat value="2" label="branches" />
+                    <Stat value="3,000+" label="regulars" />
+                    <Stat value="2" label="ways to grow" />
+                  </dl>
 
                   <div className="mt-8 flex flex-col gap-4">
                     <OfferCard
@@ -174,18 +188,45 @@ export default async function ContactPage() {
                       body="Freshly pulled espresso for weddings, debuts, and corporate events. Share your date and headcount and we'll put a package together."
                     />
                   </div>
+
+                  {/* A real storefront, so the pitch feels like a place. */}
+                  <div className="relative mt-6 hidden aspect-[16/8] overflow-hidden rounded-[var(--radius-lg)] border border-line lg:block">
+                    <Image
+                      src="/brand/storefront-day.jpg"
+                      alt="A Craffé storefront by day"
+                      fill
+                      sizes="560px"
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+                    <p className="absolute bottom-4 left-5 flex items-center gap-2 text-[14px] font-medium text-white">
+                      <MapPinIcon size={16} weight="fill" />
+                      Your Craffé could be next.
+                    </p>
+                  </div>
                 </div>
 
                 {/* The form */}
-                <div className="rounded-[var(--radius-xl)] border border-line bg-paper-raised p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] lg:p-8">
-                  <h3 className="text-[20px] font-semibold tracking-tight text-ink">
-                    Tell us what you have in mind
-                  </h3>
-                  <p className="mt-1.5 text-[14.5px] leading-relaxed text-ink-soft">
-                    Pick what fits and we&apos;ll take it from there.
-                  </p>
-                  <div className="mt-6">
-                    <InquiryForm />
+                <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-line bg-paper-raised shadow-[var(--shadow-pop)]">
+                  {/* Accent sheen along the top edge. */}
+                  <div aria-hidden className="h-1 w-full bg-gradient-to-r from-coffee via-gold to-coffee" />
+                  <div className="p-6 lg:p-8">
+                    <div className="flex items-center gap-3">
+                      <span className="grid size-10 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-gradient-to-br from-coffee to-coffee-deep text-paper shadow-[var(--shadow-card)]">
+                        <ChatCircleDotsIcon size={20} weight="fill" />
+                      </span>
+                      <div>
+                        <h3 className="text-[20px] font-semibold leading-tight tracking-tight text-ink">
+                          Tell us what you have in mind
+                        </h3>
+                        <p className="mt-0.5 text-[14px] leading-relaxed text-ink-soft">
+                          Pick what fits and we&apos;ll take it from there.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-6">
+                      <InquiryForm />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -275,14 +316,26 @@ function OfferCard({
   body: string;
 }) {
   return (
-    <div className="flex gap-4 rounded-[var(--radius-lg)] border border-line bg-paper-raised p-5">
-      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-coffee-tint/70 text-coffee">
-        <Icon size={22} weight="fill" />
+    <div className="group flex gap-4 rounded-[var(--radius-lg)] border border-line bg-paper-raised p-5 transition-all duration-300 hover:border-coffee/30 hover:shadow-[var(--shadow-card)]">
+      <span className="grid size-12 shrink-0 place-items-center rounded-[var(--radius-md)] bg-gradient-to-br from-coffee to-coffee-deep text-paper shadow-[var(--shadow-card)] transition-transform duration-300 group-hover:scale-105">
+        <Icon size={23} weight="fill" />
       </span>
       <div>
         <h3 className="text-[16px] font-semibold text-ink">{title}</h3>
         <p className="mt-1 text-[14.5px] leading-relaxed text-ink-soft">{body}</p>
       </div>
+    </div>
+  );
+}
+
+/** A single proof point in the "Work with Craffé" strip. */
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <dt className="text-[clamp(1.5rem,2.5vw,1.9rem)] font-bold leading-none tracking-tight text-ink">
+        {value}
+      </dt>
+      <dd className="mt-1.5 text-[13px] text-ink-soft">{label}</dd>
     </div>
   );
 }
