@@ -210,8 +210,6 @@ export default async function ContactPage() {
 
                 {/* The form */}
                 <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-line bg-paper-raised shadow-[var(--shadow-pop)]">
-                  {/* Accent sheen along the top edge. */}
-                  <div aria-hidden className="h-1 w-full bg-gradient-to-r from-coffee via-gold to-coffee" />
                   <div className="p-6 lg:p-8">
                     <div className="flex items-center gap-3">
                       <span className="grid size-10 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-gradient-to-br from-coffee to-coffee-deep text-paper shadow-[var(--shadow-card)]">
