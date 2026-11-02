@@ -30,10 +30,10 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-// Applies the saved dashboard theme before first paint, so a staff member who
-// chose dark never sees a light flash on reload. Dark styling is scoped to the
-// dashboard (.dashboard-surface), so this class is inert on customer pages.
-const THEME_INIT = `try{if(localStorage.getItem('craffe-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}`;
+// Applies the saved theme before first paint, so anyone who chose dark never
+// sees a light flash on reload. `.dark` flips the tokens site-wide (globals.css)
+// and we move the browser-chrome colour to match in the same breath.
+const THEME_INIT = `try{if(localStorage.getItem('craffe-theme')==='dark'){document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#1b1a17')}}catch(e){}`;
 
 export default function RootLayout({
   children,

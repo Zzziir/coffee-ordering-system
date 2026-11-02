@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CaretLeftIcon, BagIcon } from "@phosphor-icons/react";
 import { Wordmark } from "./brand";
 import { useCart } from "./cart-provider";
+import { AnimatedThemeToggler } from "./animated-theme-toggler";
 import { clsx } from "@/lib/clsx";
 
 export function SiteHeader({
@@ -28,7 +29,7 @@ export function SiteHeader({
       <div
         className={clsx(
           "mx-auto flex h-16 items-center justify-between",
-          wide ? "max-w-7xl px-5 lg:px-8" : "max-w-2xl px-4",
+          wide ? "max-w-6xl px-5 lg:px-8" : "max-w-2xl px-4",
         )}
       >
         <div className="flex min-w-0 items-center gap-1">
@@ -60,23 +61,26 @@ export function SiteHeader({
           )}
         </div>
 
-        {showBag && (
-          <Link
-            href="/cart"
-            aria-label={`Bag, ${hydrated ? count : 0} items`}
-            className="pressable relative grid size-11 place-items-center rounded-full text-ink hover:bg-paper-sunk"
-          >
-            <BagIcon size={23} weight="regular" />
-            <span
-              className={clsx(
-                "absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-coffee px-1 text-[11px] font-bold leading-5 text-paper-raised transition-all duration-200",
-                hydrated && count > 0 ? "scale-100 opacity-100" : "scale-75 opacity-0",
-              )}
+        <div className="flex shrink-0 items-center gap-1">
+          <AnimatedThemeToggler />
+          {showBag && (
+            <Link
+              href="/cart"
+              aria-label={`Bag, ${hydrated ? count : 0} items`}
+              className="pressable relative grid size-11 place-items-center rounded-full text-ink hover:bg-paper-sunk"
             >
-              {hydrated ? count : 0}
-            </span>
-          </Link>
-        )}
+              <BagIcon size={23} weight="regular" />
+              <span
+                className={clsx(
+                  "absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-coffee px-1 text-[11px] font-bold leading-5 text-paper-raised transition-all duration-200",
+                  hydrated && count > 0 ? "scale-100 opacity-100" : "scale-75 opacity-0",
+                )}
+              >
+                {hydrated ? count : 0}
+              </span>
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );

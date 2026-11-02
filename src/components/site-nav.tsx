@@ -10,6 +10,7 @@ import { useCart } from "./cart-provider";
 import { BranchChip } from "./branch-picker";
 import { useAccountNav } from "./use-account-nav";
 import { InstallPrompt } from "./pwa/install-prompt";
+import { AnimatedThemeToggler } from "./animated-theme-toggler";
 import { clsx } from "@/lib/clsx";
 
 const LINKS = [
@@ -84,6 +85,10 @@ export function SiteNav() {
         <div className="flex shrink-0 items-center gap-2">
           {/* Only appears once a branch is chosen — it's the way to switch. */}
           <BranchChip />
+
+          {/* Theme toggle sits on every breakpoint so it's reachable without
+              opening the mobile menu. */}
+          <AnimatedThemeToggler />
 
           <Link
             href="/cart"

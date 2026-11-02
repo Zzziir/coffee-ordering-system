@@ -130,19 +130,22 @@ body {
 }
 
 /*
-  Dark mode is scoped to the staff / admin dashboard only — the customer-facing
-  brand pages stay locked to the warm-light world above (Section 4.11). The
-  dashboard wraps its shell in `.dashboard-surface`; when `.dark` is on <html>,
-  we redefine the design tokens *inside* that surface, so every `bg-paper`,
-  `text-ink`, etc. flips without a single `dark:` utility, while anything outside
-  the dashboard is untouched.
+  Dark mode. When `.dark` is on <html> we redefine the design tokens at the
+  root, so every `bg-paper`, `text-ink`, `border-line`, etc. across the whole
+  app flips without a single `dark:` utility. The toggle
+  (components/animated-theme-toggler) lives in the customer nav and the
+  dashboard alike; the choice is remembered and re-applied before paint by the
+  inline script in the root layout, so there's no flash on reload.
+
+  `.dashboard-surface` stays as a plain surface helper for the admin / staff
+  shells; it no longer gates dark, it just paints its own background.
 */
 .dashboard-surface {
   background-color: var(--color-paper);
   color: var(--color-ink);
 }
 
-html.dark .dashboard-surface {
+html.dark {
   color-scheme: dark;
 
   --color-paper: #1b1a17;
