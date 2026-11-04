@@ -257,6 +257,28 @@ html.dark {
   }
 }
 
+/* Cart line — the same lift-and-zoom language as the menu card, tuned quieter
+   for a list you scan rather than browse. The thumbnail creeps in slowly (Ken
+   Burns) while the whole row lifts a hair and borrows a coffee-tinted border.
+   Touch is excluded so a tap doesn't leave a row stuck hovered. */
+.cart-card {
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out),
+    border-color 200ms var(--ease-out);
+}
+.cart-thumb-zoom {
+  transition: transform 450ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cart-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+    border-color: color-mix(in srgb, var(--color-coffee) 35%, transparent);
+  }
+  .cart-card:hover .cart-thumb-zoom {
+    transform: scale(1.07);
+  }
+}
+
 /* Wordmark tracking to echo the logo's geometric spacing */
 .wordmark {
   font-weight: 700;
