@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { MagnifyingGlassIcon, PencilSimpleIcon, PlusIcon, StorefrontIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, MagnifyingGlassIcon, PlusIcon, StorefrontIcon, XIcon } from "@phosphor-icons/react";
 import { isAvailableAt, peso, type MenuData, type MenuItem } from "@/lib/menu";
 import type { BranchId } from "@/lib/types";
 import { setBranchAvailability } from "./actions";
@@ -199,15 +199,19 @@ function ItemRow({
   };
 
   return (
+    // The whole card opens the item (its name is the link, stretched over the
+    // card); the availability switch sits above that so it still flips here.
     <div
       className={clsx(
-        "quiet-hover flex items-center gap-3 rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3",
+        "row-link flex items-center gap-3 rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3 [--row-radius:var(--radius-md)]",
         !available && "opacity-60",
       )}
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-[15px] font-medium text-ink">
-          {item.name}
+          <Link href={`/admin/menu/${item.id}`} aria-label={`Edit ${item.name}`} className="row-link-anchor">
+            <span className="row-link-text">{item.name}</span>
+          </Link>
           {item.signature && (
             <span className="ml-2 align-middle text-[11px] font-semibold uppercase tracking-wide text-coffee">
               Signature
@@ -222,7 +226,7 @@ function ItemRow({
           Off everywhere
         </span>
       ) : (
-        <div className="flex shrink-0 items-center gap-2.5">
+        <div className="row-above flex shrink-0 items-center gap-2.5">
           <span
             className={clsx(
               "text-[12.5px] font-semibold",
@@ -253,13 +257,7 @@ function ItemRow({
         </div>
       )}
 
-      <Link
-        href={`/admin/menu/${item.id}`}
-        aria-label={`Edit ${item.name}`}
-        className="pressable grid size-9 shrink-0 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk hover:text-ink"
-      >
-        <PencilSimpleIcon size={17} weight="bold" />
-      </Link>
+      <ArrowRightIcon size={16} weight="bold" aria-hidden className="row-link-arrow shrink-0 text-coffee" />
     </div>
   );
 }

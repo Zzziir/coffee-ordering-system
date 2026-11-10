@@ -2,14 +2,15 @@
 
 import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { CheckIcon, ImageIcon, UploadSimpleIcon } from "@phosphor-icons/react";
+import Link from "next/link";
+import { CaretLeftIcon, CheckIcon, ImageIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { saveItem, type ItemFormState } from "./actions";
 import type { Category, DietTag, MenuItem } from "@/lib/menu";
 import { Select } from "@/components/select";
 import { clsx } from "@/lib/clsx";
 
 const inputClass =
-  "h-12 w-full rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee";
+  "h-11 w-full rounded-[var(--radius-sm)] border border-line bg-paper px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee";
 
 type TagOption = { id: DietTag; label: string };
 
@@ -49,89 +50,148 @@ export function ItemForm({
   const editing = !!item;
 
   return (
-    <form
-      action={formAction}
-      encType="multipart/form-data"
-      className="mt-8 flex flex-col gap-4"
-    >
+    // No encType: with a function action React sends multipart itself, and
+    // warns if one is set.
+    <form action={formAction} className="flex flex-col gap-6">
       {editing && <input type="hidden" name="id" value={item.id} />}
 
-      <Label label="Name" htmlFor="name">
-        <input id="name" name="name" required defaultValue={item?.name} className={inputClass} />
-      </Label>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Label label="Category" htmlFor="categoryId">
-          <Select
-            id="categoryId"
-            name="categoryId"
-            defaultValue={item?.categoryId ?? categories[0]?.id}
-            className={inputClass}
+      {/* The item is the heading; the one thing to do with it, save, sits
+          beside it, so it is never a scroll away. */}
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <Link
+            href="/admin/menu"
+            className="pressable -ml-1 inline-flex h-9 items-center gap-1 text-[14px] font-medium text-ink-soft hover:text-ink"
           >
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-        </Label>
-        <Label label="Price (₱)" htmlFor="price">
-          <input
-            id="price"
-            name="price"
-            type="number"
-            min={0}
-            required
-            inputMode="numeric"
-            defaultValue={item?.price}
-            className={inputClass}
-          />
-        </Label>
-      </div>
-
-      <Label label="Description" htmlFor="description" optional>
-        <textarea
-          id="description"
-          name="description"
-          rows={2}
-          defaultValue={item?.description ?? ""}
-          className={inputClass.replace("h-12", "min-h-12 py-3")}
-        />
-      </Label>
-
-      <PhotoField current={item?.image} />
-
-      <DietTags initial={item?.tags ?? []} />
-
-      <div className="flex flex-col gap-1.5">
-        <span className="text-[14px] font-medium text-ink">On the menu</span>
-        <div className="divide-y divide-line rounded-[var(--radius-sm)] border border-line bg-paper-raised">
-          <SwitchRow
-            name="signature"
-            label="Signature"
-            hint="Marked as a bestseller wherever it's listed."
-            defaultChecked={item?.signature}
-          />
-          <SwitchRow
-            name="available"
-            label="Listed"
-            hint="Off takes it off the menu at every branch. For one store running out, use Sold out instead."
-            defaultChecked={item ? item.available : true}
-          />
+            <CaretLeftIcon size={16} weight="bold" />
+            Menu
+          </Link>
+          <h1 className="mt-1 truncate text-2xl font-bold tracking-tight text-ink">
+            {editing ? item.name : "Add an item"}
+          </h1>
+          <p className="mt-1 max-w-[62ch] text-[14.5px] text-ink-soft">
+            {editing
+              ? "Changes reach every branch's menu as soon as you save."
+              : "It joins the end of its category. Sizes and milk options come from the category."}
+          </p>
         </div>
-      </div>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/menu"
+            className="pressable inline-flex h-11 items-center rounded-full px-4 text-[14px] font-medium text-ink-soft hover:text-ink"
+          >
+            Cancel
+          </Link>
+          <SubmitButton editing={editing} />
+        </div>
+      </header>
 
       {state?.error && (
-        <p
-          role="alert"
-          className="rounded-[var(--radius-sm)] bg-warn/10 px-4 py-3 text-[14px] text-warn"
-        >
+        <p role="alert" className="rounded-[var(--radius-sm)] bg-warn/10 px-4 py-3 text-[14px] text-warn">
           {state.error}
         </p>
       )}
 
-      <SubmitButton editing={editing} />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <div className="flex flex-col gap-6">
+          <Section title="Details">
+            <div className="flex flex-col gap-4">
+              <Label label="Name" htmlFor="name">
+                <input id="name" name="name" required defaultValue={item?.name} className={inputClass} />
+              </Label>
+              <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_11rem]">
+                <Label label="Category" htmlFor="categoryId">
+                  <Select
+                    id="categoryId"
+                    name="categoryId"
+                    defaultValue={item?.categoryId ?? categories[0]?.id}
+                    className={inputClass}
+                  >
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Label>
+                <Label label="Price" htmlFor="price">
+                  <div className="relative">
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[15px] text-ink-faint"
+                    >
+                      ₱
+                    </span>
+                    <input
+                      id="price"
+                      name="price"
+                      type="number"
+                      min={0}
+                      required
+                      inputMode="numeric"
+                      defaultValue={item?.price}
+                      className={clsx(
+                        inputClass,
+                        "pl-9 tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+                      )}
+                    />
+                  </div>
+                </Label>
+              </div>
+              <Label label="Description" htmlFor="description" optional>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows={3}
+                  defaultValue={item?.description ?? ""}
+                  placeholder="A line customers see under the name."
+                  className={clsx(inputClass, "h-auto resize-none py-3 leading-relaxed")}
+                />
+              </Label>
+            </div>
+          </Section>
+
+          <Section title="On the menu">
+            <div className="-my-3 divide-y divide-line">
+              <SwitchRow
+                name="signature"
+                label="Signature"
+                hint="Marked as a bestseller wherever it's listed."
+                defaultChecked={item?.signature}
+              />
+              <SwitchRow
+                name="available"
+                label="Listed"
+                hint="Off takes it off the menu at every branch. For one store running out, use Sold out instead."
+                defaultChecked={item ? item.available : true}
+              />
+            </div>
+          </Section>
+        </div>
+
+        <div className="flex flex-col gap-6">
+          <Section title="Photo" hint="Optional">
+            <PhotoField current={item?.image} />
+          </Section>
+          <Section title="Diet notes" hint="Optional. The chat assistant uses these to answer diet questions.">
+            <DietTags initial={item?.tags ?? []} />
+          </Section>
+        </div>
+      </div>
     </form>
+  );
+}
+
+/** A titled card that holds one group of fields. */
+function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-[var(--radius-md)] border border-line bg-paper-raised p-5">
+      <div className="mb-4">
+        <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
+        {hint && <p className="mt-0.5 text-[12.5px] text-ink-faint">{hint}</p>}
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -159,51 +219,46 @@ function PhotoField({ current }: { current?: string }) {
   };
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="flex items-center gap-2 text-[14px] font-medium text-ink">
-        Photo
-        <span className="text-[12px] font-normal text-ink-faint">Optional</span>
-      </span>
-
+    <div className="flex flex-col gap-3">
       {/* Carries the existing photo through, and whether to clear it. */}
       <input type="hidden" name="currentImage" value={current ?? ""} />
       <input type="hidden" name="removePhoto" value={removed ? "on" : ""} />
 
-      <div className="flex items-center gap-4">
-        <div className="relative grid size-20 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-md)] border border-line bg-paper-sunk">
-          {shown ? (
-            // eslint-disable-next-line @next/next/no-img-element -- object-URL / preview, not an optimized asset
-            <img src={shown} alt="" className="size-full object-cover" />
-          ) : (
-            <ImageIcon size={24} className="text-ink-faint" />
-          )}
-        </div>
+      {/* The frame is the upload target: one obvious place to click. */}
+      <label className="group relative grid h-52 w-full cursor-pointer place-items-center overflow-hidden rounded-[var(--radius-sm)] border border-dashed border-line-strong bg-paper transition-colors hover:border-coffee focus-within:border-coffee">
+        <input
+          ref={inputRef}
+          type="file"
+          name="imageFile"
+          accept="image/png,image/jpeg,image/webp,image/avif"
+          onChange={onPick}
+          className="sr-only"
+        />
+        {shown ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- object-URL / preview, not an optimized asset */}
+            <img src={shown} alt="" className="absolute inset-0 size-full object-cover" />
+            <span className="absolute bottom-3 left-3 inline-flex h-9 items-center gap-1.5 rounded-full bg-ink/80 px-3.5 text-[13px] font-medium text-paper opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+              <UploadSimpleIcon size={15} weight="bold" />
+              Change photo
+            </span>
+          </>
+        ) : (
+          <span className="flex flex-col items-center gap-2 text-center">
+            <span className="grid size-11 place-items-center rounded-full bg-coffee-tint text-coffee transition-transform group-hover:scale-105">
+              <ImageIcon size={20} weight="bold" />
+            </span>
+            <span className="text-[14px] font-medium text-ink">Upload a photo</span>
+            <span className="text-[12.5px] text-ink-faint">PNG, JPG or WebP, up to 5 MB</span>
+          </span>
+        )}
+      </label>
 
-        <div className="flex flex-col items-start gap-2">
-          <label className="pressable inline-flex h-10 cursor-pointer items-center gap-2 rounded-full border border-line bg-paper-raised px-4 text-[13.5px] font-medium text-ink">
-            <UploadSimpleIcon size={16} weight="bold" />
-            {shown ? "Change photo" : "Upload photo"}
-            <input
-              ref={inputRef}
-              type="file"
-              name="imageFile"
-              accept="image/png,image/jpeg,image/webp,image/avif"
-              onChange={onPick}
-              className="hidden"
-            />
-          </label>
-          {shown && (
-            <button
-              type="button"
-              onClick={onRemove}
-              className="pressable text-[13px] font-medium text-warn"
-            >
-              Remove photo
-            </button>
-          )}
-        </div>
-      </div>
-      <p className="text-[12px] text-ink-faint">PNG, JPG or WebP, up to 5 MB.</p>
+      {shown && (
+        <button type="button" onClick={onRemove} className="pressable self-start text-[13px] font-medium text-warn">
+          Remove photo
+        </button>
+      )}
     </div>
   );
 }
@@ -214,7 +269,7 @@ function SubmitButton({ editing }: { editing: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="pressable mt-2 flex h-14 w-full items-center justify-center rounded-full bg-ink text-[16px] font-semibold text-paper disabled:opacity-70"
+      className="pressable inline-flex h-11 items-center justify-center rounded-full bg-ink px-6 text-[14.5px] font-semibold text-paper disabled:opacity-70"
     >
       {pending ? "Saving…" : editing ? "Save changes" : "Add to menu"}
     </button>
@@ -262,19 +317,14 @@ function DietTags({ initial }: { initial: DietTag[] }) {
     });
 
   return (
-    <fieldset className="flex flex-col gap-1.5">
-      <legend className="flex items-center gap-2 text-[14px] font-medium text-ink">
-        Diet notes
-        <span className="text-[12px] font-normal text-ink-faint">Optional</span>
-      </legend>
-      <p className="-mt-0.5 text-[12.5px] text-ink-faint">The chat assistant uses these to answer diet questions.</p>
+    <div role="group" aria-label="Diet notes">
       {[...chosen].map((id) => (
         <input key={id} type="hidden" name="tags" value={id} />
       ))}
-      <div className="mt-1 divide-y divide-line rounded-[var(--radius-sm)] border border-line bg-paper-raised">
+      <div className="-my-3 divide-y divide-line">
         {TAG_GROUPS.map((group) => (
-          <div key={group.label} className="flex items-start gap-4 px-4 py-3">
-            <span className="w-20 shrink-0 pt-2 text-[13px] text-ink-soft">{group.label}</span>
+          <div key={group.label} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-start sm:gap-4">
+            <span className="shrink-0 text-[13px] text-ink-soft sm:w-20 sm:pt-2">{group.label}</span>
             <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
               {[...group.oneOf, ...(group.also ?? [])].map((tag) => {
                 const on = chosen.has(tag.id);
@@ -301,7 +351,7 @@ function DietTags({ initial }: { initial: DietTag[] }) {
           </div>
         ))}
       </div>
-    </fieldset>
+    </div>
   );
 }
 
@@ -318,7 +368,7 @@ function SwitchRow({
   defaultChecked?: boolean;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-4 px-4 py-3">
+    <label className="flex cursor-pointer items-center gap-4 py-3">
       <span className="min-w-0 flex-1">
         <span className="block text-[14.5px] font-medium text-ink">{label}</span>
         <span className="block text-[12.5px] text-ink-faint">{hint}</span>

@@ -368,6 +368,8 @@ html.dark {
 .row-link-anchor:focus-visible::after {
   outline: 2px solid var(--color-coffee);
   outline-offset: -2px;
+  /* A card that is a row link sets --row-radius so the ring follows it. */
+  border-radius: var(--row-radius, 0);
 }
 .row-above {
   position: relative;
