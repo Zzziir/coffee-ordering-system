@@ -6,7 +6,7 @@ import { getBranch } from "@/lib/branches";
 import { peso } from "@/lib/menu";
 import { coversDay, listEvents, type SalesEvent } from "@/lib/sales-events";
 import { dateSpan, plural } from "@/components/admin/format";
-import { EmptyState, PageHeader } from "@/components/admin/report-ui";
+import { EmptyState, StickyHeader } from "@/components/admin/report-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -25,23 +25,24 @@ export default async function AdminEventsPage() {
   const all = summarize(sales.filter((o) => o.paid));
 
   return (
-    <div className="flex flex-col gap-8">
-      <PageHeader
+    <div className="flex flex-col gap-6">
+      <StickyHeader
         title="Events"
         sub={
           events.length === 0
             ? "Bazaars and pop-ups, each with its own sales report and till count."
             : `${plural(events.length, "event")} so far, ${peso(all.revenue)} from ${plural(all.orders, "sale")}.`
         }
-      >
-        <Link
-          href="/admin/events/new"
-          className="pressable inline-flex h-10 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-[14px] font-semibold text-paper"
-        >
-          <PlusIcon size={16} weight="bold" />
-          New event
-        </Link>
-      </PageHeader>
+        actions={
+          <Link
+            href="/admin/events/new"
+            className="pressable inline-flex h-10 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-[14px] font-semibold text-paper"
+          >
+            <PlusIcon size={16} weight="bold" />
+            New event
+          </Link>
+        }
+      />
 
       {events.length === 0 && (
         <EmptyState title="No events yet.">

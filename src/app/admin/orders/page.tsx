@@ -11,11 +11,11 @@ import { hrefWith, orderHref, plural, stamp } from "@/components/admin/format";
 import {
   EmptyState,
   FilterPills,
-  PageHeader,
   Pagination,
   RowArrow,
   RowLink,
   SearchField,
+  StickyHeader,
   TableShell,
   Th,
   rowLinkClass,
@@ -90,7 +90,7 @@ export default async function AdminTransactionsPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <StickyHeader
         title="Transactions"
         sub={
           <>
@@ -98,76 +98,78 @@ export default async function AdminTransactionsPage({
             {" "}Open any row for the full receipt and timeline.
           </>
         }
-      >
-        <Link
-          href={hrefWith("/admin/sales", { range: params.range }, {})}
-          className="pressable inline-flex h-10 items-center rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
-        >
-          Sales report
-        </Link>
-      </PageHeader>
-
-      <div id="orders" className="flex scroll-mt-32 flex-wrap items-center gap-2">
-        <FilterPills
-          label="Period"
-          options={RANGE_KEYS.map((key) => ({
-            href: hrefWith(PATH, query, { range: key === DEFAULT_RANGE ? undefined : key }),
-            label: RANGE_LABEL[key],
-            active: key === rangeKey,
-          }))}
-        />
-        <FilterSelect
-          label="Sold at"
-          name="event"
-          value={query.event ?? ""}
-          path={PATH}
-          query={query}
-          options={[
-            { value: "", label: "Anywhere" },
-            { value: STORE_ONLY, label: "Stores only" },
-            ...events.map((e) => ({ value: e.id, label: e.name })),
-          ]}
-        />
-        <FilterSelect
-          label="Branch"
-          name="branch"
-          value={query.branch ?? ""}
-          path={PATH}
-          query={query}
-          options={[
-            { value: "", label: "All" },
-            ...BRANCH_LIST.map((b) => ({ value: b.id, label: b.name })),
-          ]}
-        />
-        <FilterSelect
-          label="Paid by"
-          name="pay"
-          value={query.pay ?? ""}
-          path={PATH}
-          query={query}
-          options={[
-            { value: "", label: "Any" },
-            ...PAYMENT_METHODS.map((m) => ({ value: m, label: PAYMENT_LABEL[m] })),
-          ]}
-        />
-        <SearchField
-          path={PATH}
-          value={params.q ?? ""}
-          label="Search orders by code or customer"
-          placeholder="Search code or customer"
-          keep={{ ...query, q: undefined }}
-          clearHref={hrefWith(PATH, query, { q: undefined })}
-        />
-        {filtered && (
+        actions={
           <Link
-            href={hrefWith(PATH, { range: params.range }, {})}
-            scroll={false}
-            className="pressable flex h-10 items-center px-2 text-[13.5px] font-semibold text-coffee"
+            href={hrefWith("/admin/sales", { range: params.range }, {})}
+            className="pressable inline-flex h-10 items-center rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
           >
-            Clear filters
+            Sales report
           </Link>
-        )}
-      </div>
+        }
+        toolbar={
+          <>
+            <FilterPills
+              label="Period"
+              options={RANGE_KEYS.map((key) => ({
+                href: hrefWith(PATH, query, { range: key === DEFAULT_RANGE ? undefined : key }),
+                label: RANGE_LABEL[key],
+                active: key === rangeKey,
+              }))}
+            />
+            <FilterSelect
+              label="Sold at"
+              name="event"
+              value={query.event ?? ""}
+              path={PATH}
+              query={query}
+              options={[
+                { value: "", label: "Anywhere" },
+                { value: STORE_ONLY, label: "Stores only" },
+                ...events.map((e) => ({ value: e.id, label: e.name })),
+              ]}
+            />
+            <FilterSelect
+              label="Branch"
+              name="branch"
+              value={query.branch ?? ""}
+              path={PATH}
+              query={query}
+              options={[
+                { value: "", label: "All" },
+                ...BRANCH_LIST.map((b) => ({ value: b.id, label: b.name })),
+              ]}
+            />
+            <FilterSelect
+              label="Paid by"
+              name="pay"
+              value={query.pay ?? ""}
+              path={PATH}
+              query={query}
+              options={[
+                { value: "", label: "Any" },
+                ...PAYMENT_METHODS.map((m) => ({ value: m, label: PAYMENT_LABEL[m] })),
+              ]}
+            />
+            <SearchField
+              path={PATH}
+              value={params.q ?? ""}
+              label="Search orders by code or customer"
+              placeholder="Search code or customer"
+              keep={{ ...query, q: undefined }}
+              clearHref={hrefWith(PATH, query, { q: undefined })}
+            />
+            {filtered && (
+              <Link
+                href={hrefWith(PATH, { range: params.range }, {})}
+                scroll={false}
+                className="pressable flex h-10 items-center px-2 text-[13.5px] font-semibold text-coffee"
+              >
+                Clear filters
+              </Link>
+            )}
+          </>
+        }
+      />
 
       {orders.length === 0 ? (
         <EmptyState title="No orders in this view.">
@@ -189,7 +191,7 @@ export default async function AdminTransactionsPage({
           .
         </EmptyState>
       ) : (
-        <>
+        <div id="orders" className="flex scroll-mt-[calc(var(--admin-header-h)+var(--band-title-h)+4.5rem)] flex-col gap-6">
           <TableShell minWidth="900px">
             <thead className={tableHeadClass}>
               <tr>
@@ -258,7 +260,7 @@ export default async function AdminTransactionsPage({
             noun="order"
             hrefFor={(n) => `${hrefWith(PATH, query, { page: n > 1 ? String(n) : undefined })}#orders`}
           />
-        </>
+        </div>
       )}
     </div>
   );

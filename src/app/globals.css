@@ -467,6 +467,111 @@ html.dark {
   }
 }
 
+/*
+  Sticky page bands. The admin header (wordmark row plus tab row) is always
+  pinned; each page can pin a title band and a toolbar band under it. They are
+  separate sticky siblings so nothing changes height when they stick: the
+  page description simply scrolls up beneath the title band, and the toolbar
+  slides up to meet it. components/admin/sticky-band marks a band [data-stuck]
+  while it is pinned, which is when it takes its frosted background.
+
+  The numbers mirror the layout: the header is a 4rem row, a 2.5rem tab row
+  with 0.5rem below it, and a 1px border. The gutter matches ADMIN_CONTAINER,
+  so a pinned band can paint edge to edge under the content's side padding.
+*/
+.admin-shell {
+  --admin-header-h: calc(7rem + 1px);
+  --band-title-h: 3.5rem;
+  --gutter: 1.25rem;
+}
+@media (width >= 40rem) {
+  .admin-shell {
+    --gutter: 1.5rem;
+  }
+}
+@media (width >= 64rem) {
+  .admin-shell {
+    --gutter: 2.5rem;
+  }
+}
+
+.sticky-band {
+  position: sticky;
+  z-index: 30;
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+  transition: background-color 200ms ease, box-shadow 200ms ease;
+}
+.sticky-band[data-stuck] {
+  background-color: color-mix(in srgb, var(--color-paper) 88%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.sticky-band[data-stuck][data-edge] {
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-line) 70%, transparent);
+}
+
+.band-title {
+  top: var(--admin-header-h);
+  display: flex;
+  align-items: center;
+  height: var(--band-title-h);
+}
+/* The title eases down a size once pinned, so the band reads as a toolbar
+   rather than a second page heading. */
+.band-title h1 {
+  transform-origin: left center;
+  transition: transform 220ms var(--ease-out);
+}
+.band-title[data-stuck] h1 {
+  transform: scale(0.84);
+}
+
+.band-toolbar {
+  top: calc(var(--admin-header-h) + var(--band-title-h));
+  padding-block: 0.5rem;
+}
+/* A toolbar with no title band above it (a list part way down a page). */
+.band-toolbar.band-solo {
+  top: var(--admin-header-h);
+}
+
+/* Phones keep one slim pinned row. When a page has a toolbar, the title
+   scrolls away and the toolbar pins straight under the header as a single
+   row you swipe sideways, running edge to edge. */
+@media (width < 40rem) {
+  .band-title.band-has-toolbar {
+    position: static;
+  }
+  .band-toolbar {
+    top: var(--admin-header-h);
+  }
+  .band-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    scroll-padding-inline: var(--gutter);
+  }
+  .band-row::-webkit-scrollbar {
+    display: none;
+  }
+  .band-row > * {
+    flex-shrink: 0;
+    max-width: none;
+  }
+  .band-row > [role="search"] {
+    width: 15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .band-title[data-stuck] h1 {
+    transform: none;
+  }
+}
+
 /* Detail pages settle in: short and small, because they open often. */
 @keyframes craffe-settle {
   from {

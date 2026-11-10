@@ -36,6 +36,7 @@ import {
   rowLinkClass,
   tableHeadClass,
 } from "@/components/admin/report-ui";
+import { StickyToolbar } from "@/components/admin/sticky-band";
 import { SegmentBadge } from "./segment-badge";
 
 export const dynamic = "force-dynamic";
@@ -155,7 +156,7 @@ export default async function AdminCustomersPage({
       </div>
 
       <section id="list" className="flex scroll-mt-32 flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
+        <StickyToolbar solo className="-mt-2">
           <FilterPills
             label="Segment"
             options={[
@@ -183,7 +184,7 @@ export default async function AdminCustomersPage({
             keep={{ ...query, q: undefined }}
             clearHref={hrefWith(PATH, query, { q: undefined })}
           />
-        </div>
+        </StickyToolbar>
 
         {shown.length === 0 ? (
           <EmptyState title={customers.length === 0 ? "No customers yet." : "No customers match."}>

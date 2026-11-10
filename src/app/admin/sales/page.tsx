@@ -30,7 +30,7 @@ import { peso } from "@/lib/menu";
 import { CHANNEL_LABEL, PAYMENT_LABEL, type OrderChannel, type PaymentMethod } from "@/lib/types";
 import { ColumnChart, RankBars, RushHeatmap, type RankRow } from "@/components/admin/charts";
 import { hrefWith, percent, plural, shortDay } from "@/components/admin/format";
-import { EmptyState, FilterPills, PageHeader, Panel, StatTile } from "@/components/admin/report-ui";
+import { EmptyState, FilterPills, Panel, StatTile, StickyHeader } from "@/components/admin/report-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -115,48 +115,50 @@ export default async function AdminSalesPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <StickyHeader
         title="Sales"
         sub="Paid orders across the stores and every bazaar. Times are Manila time."
-      >
-        <Link
-          href={hrefWith("/admin/orders", { range: params.range }, {})}
-          className="pressable inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
-        >
-          Transactions
-          <ArrowRightIcon size={15} weight="bold" />
-        </Link>
-      </PageHeader>
-
-      <div className="flex flex-wrap gap-2">
-        <FilterPills
-          label="Period"
-          options={RANGE_KEYS.map((key) => ({
-            href: hrefWith(PATH, query, { range: key === DEFAULT_RANGE ? undefined : key }),
-            label: RANGE_LABEL[key],
-            active: key === rangeKey,
-          }))}
-        />
-        <FilterPills
-          label="Where it was sold"
-          options={SOURCES.map((key) => ({
-            href: hrefWith(PATH, query, { source: key === "all" ? undefined : key }),
-            label: SOURCE_LABEL[key],
-            active: key === source,
-          }))}
-        />
-        <FilterPills
-          label="Branch"
-          options={[
-            { href: hrefWith(PATH, query, { branch: undefined }), label: "All branches", active: !branchId },
-            ...BRANCH_LIST.map((b) => ({
-              href: hrefWith(PATH, query, { branch: b.id }),
-              label: b.name,
-              active: b.id === branchId,
-            })),
-          ]}
-        />
-      </div>
+        actions={
+          <Link
+            href={hrefWith("/admin/orders", { range: params.range }, {})}
+            className="pressable inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
+          >
+            Transactions
+            <ArrowRightIcon size={15} weight="bold" />
+          </Link>
+        }
+        toolbar={
+          <>
+            <FilterPills
+              label="Period"
+              options={RANGE_KEYS.map((key) => ({
+                href: hrefWith(PATH, query, { range: key === DEFAULT_RANGE ? undefined : key }),
+                label: RANGE_LABEL[key],
+                active: key === rangeKey,
+              }))}
+            />
+            <FilterPills
+              label="Where it was sold"
+              options={SOURCES.map((key) => ({
+                href: hrefWith(PATH, query, { source: key === "all" ? undefined : key }),
+                label: SOURCE_LABEL[key],
+                active: key === source,
+              }))}
+            />
+            <FilterPills
+              label="Branch"
+              options={[
+                { href: hrefWith(PATH, query, { branch: undefined }), label: "All branches", active: !branchId },
+                ...BRANCH_LIST.map((b) => ({
+                  href: hrefWith(PATH, query, { branch: b.id }),
+                  label: b.name,
+                  active: b.id === branchId,
+                })),
+              ]}
+            />
+          </>
+        }
+      />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile

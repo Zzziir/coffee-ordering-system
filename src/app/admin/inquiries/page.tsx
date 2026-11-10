@@ -13,7 +13,7 @@ import { INQUIRY_STATUSES, listInquiries, type Inquiry, type InquiryKind } from 
 import { clsx } from "@/lib/clsx";
 import { paginate } from "@/lib/paginate";
 import { hrefWith } from "@/components/admin/format";
-import { EmptyState, FilterPills, Pagination } from "@/components/admin/report-ui";
+import { EmptyState, FilterPills, Pagination, StickyHeader } from "@/components/admin/report-ui";
 import { StatusControl } from "./status-control";
 
 export const dynamic = "force-dynamic";
@@ -63,20 +63,50 @@ export default async function AdminInquiriesPage({
   const page = paginate(shown, params.page, PAGE_SIZE);
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Inquiries</h1>
-        <p className="mt-1 text-[14.5px] text-ink-soft">
-          Franchise and event coffee cart leads from the contact page.
-          {inquiries.length > 0 && (
+    <div className="flex flex-col gap-6">
+      <StickyHeader
+        title="Inquiries"
+        sub={
+          <>
+            Franchise and event coffee cart leads from the contact page.
+            {inquiries.length > 0 && (
+              <>
+                {" "}
+                <span className="font-medium text-ink">{open}</span> still open of{" "}
+                {inquiries.length}.
+              </>
+            )}
+          </>
+        }
+        toolbar={
+          inquiries.length > 0 && (
             <>
-              {" "}
-              <span className="font-medium text-ink">{open}</span> still open of{" "}
-              {inquiries.length}.
+              <FilterPills
+                label="Status"
+                options={[
+                  { href: hrefWith(PATH, query, { status: undefined }), label: `All ${ofKind.length}`, active: !status },
+                  ...INQUIRY_STATUSES.map((s) => ({
+                    href: hrefWith(PATH, query, { status: s }),
+                    label: `${STATUS_LABEL[s]} ${ofKind.filter((i) => i.status === s).length}`,
+                    active: s === status,
+                  })),
+                ]}
+              />
+              <FilterPills
+                label="Kind of inquiry"
+                options={[
+                  { href: hrefWith(PATH, query, { kind: undefined }), label: "Any kind", active: !kind },
+                  ...KINDS.map((k) => ({
+                    href: hrefWith(PATH, query, { kind: k.id }),
+                    label: `${k.label} ${ofStatus.filter((i) => i.kind === k.id).length}`,
+                    active: k.id === kind,
+                  })),
+                ]}
+              />
             </>
-          )}
-        </p>
-      </div>
+          )
+        }
+      />
 
       {inquiries.length === 0 ? (
         <div className="rounded-[var(--radius-lg)] border border-dashed border-line bg-paper-raised px-6 py-16 text-center">
@@ -87,31 +117,7 @@ export default async function AdminInquiriesPage({
           </p>
         </div>
       ) : (
-        <section id="leads" className="flex scroll-mt-32 flex-col gap-4">
-          <div className="flex flex-wrap gap-2">
-            <FilterPills
-              label="Status"
-              options={[
-                { href: hrefWith(PATH, query, { status: undefined }), label: `All ${ofKind.length}`, active: !status },
-                ...INQUIRY_STATUSES.map((s) => ({
-                  href: hrefWith(PATH, query, { status: s }),
-                  label: `${STATUS_LABEL[s]} ${ofKind.filter((i) => i.status === s).length}`,
-                  active: s === status,
-                })),
-              ]}
-            />
-            <FilterPills
-              label="Kind of inquiry"
-              options={[
-                { href: hrefWith(PATH, query, { kind: undefined }), label: "Any kind", active: !kind },
-                ...KINDS.map((k) => ({
-                  href: hrefWith(PATH, query, { kind: k.id }),
-                  label: `${k.label} ${ofStatus.filter((i) => i.kind === k.id).length}`,
-                  active: k.id === kind,
-                })),
-              ]}
-            />
-          </div>
+        <section id="leads" className="flex scroll-mt-[calc(var(--admin-header-h)+var(--band-title-h)+4.5rem)] flex-col gap-4">
 
           {shown.length === 0 ? (
             <EmptyState title="No inquiries match.">

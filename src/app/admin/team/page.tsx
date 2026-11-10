@@ -16,7 +16,7 @@ import { hrefWith, initials } from "@/components/admin/format";
 import {
   EmptyState,
   FilterPills,
-  PageHeader,
+  StickyHeader,
   TableShell,
   Th,
   tableHeadClass,
@@ -62,28 +62,26 @@ export default async function AdminTeamPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <StickyHeader
         title="Team"
         sub={`Who can sign in to the barista boards and back office at ${scope}. ${activeCount} active ${activeCount === 1 ? "account" : "accounts"}.`}
-      >
-        <AddTeammate roles={manageableRoles(actor)} branches={assignableBranches(actor)} />
-      </PageHeader>
-
-      {isOwner && (
-        <div className="flex">
-          <FilterPills
-            label="Branch"
-            options={[
-              { href: PATH, label: "All branches", active: !branchFilter },
-              ...BRANCH_LIST.map((branch) => ({
-                href: hrefWith(PATH, {}, { branch: branch.id }),
-                label: branch.name,
-                active: branchFilter === branch.id,
-              })),
-            ]}
-          />
-        </div>
-      )}
+        actions={<AddTeammate roles={manageableRoles(actor)} branches={assignableBranches(actor)} />}
+        toolbar={
+          isOwner && (
+            <FilterPills
+              label="Branch"
+              options={[
+                { href: PATH, label: "All branches", active: !branchFilter },
+                ...BRANCH_LIST.map((branch) => ({
+                  href: hrefWith(PATH, {}, { branch: branch.id }),
+                  label: branch.name,
+                  active: branchFilter === branch.id,
+                })),
+              ]}
+            />
+          )
+        }
+      />
 
       {shown.length === 0 ? (
         <EmptyState title="Nobody here yet">

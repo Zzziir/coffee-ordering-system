@@ -12,6 +12,7 @@ import { clsx } from "@/lib/clsx";
 import { pageWindow, type Page } from "@/lib/paginate";
 import { plural } from "./format";
 import { Spotlight } from "./spotlight";
+import { StickyBand, StickyToolbar } from "./sticky-band";
 
 /** Shared building blocks for the back office report pages. */
 
@@ -33,6 +34,44 @@ export function PageHeader({
       </div>
       {children}
     </div>
+  );
+}
+
+/**
+ * A page heading that pins under the admin header as you scroll: the title and
+ * its actions in one band, the filters in a second band below. The description
+ * between them scrolls away underneath.
+ *
+ * Pass the filters as `toolbar`. When the page renders its own toolbar further
+ * down (a client component that owns the filter state), set `toolbarBelow`
+ * instead so the title band leaves the bottom rule and the phone row to it.
+ */
+export function StickyHeader({
+  title,
+  sub,
+  actions,
+  toolbar,
+  toolbarBelow = false,
+}: {
+  title: string;
+  sub: React.ReactNode;
+  actions?: React.ReactNode;
+  toolbar?: React.ReactNode;
+  toolbarBelow?: boolean;
+}) {
+  const hasToolbar = Boolean(toolbar) || toolbarBelow;
+  return (
+    <>
+      <StickyBand edge={!hasToolbar} className={clsx("band-title", hasToolbar && "band-has-toolbar")}>
+        <div className="flex w-full min-w-0 items-center justify-between gap-4">
+          <h1 className="truncate text-2xl font-bold tracking-tight text-ink">{title}</h1>
+          {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+        </div>
+      </StickyBand>
+      {/* Pulled up to sit just under the title, inside the band's height. */}
+      <p className="-mt-8 max-w-[62ch] text-[14.5px] text-ink-soft">{sub}</p>
+      {toolbar && <StickyToolbar className="-mt-2">{toolbar}</StickyToolbar>}
+    </>
   );
 }
 
@@ -299,10 +338,14 @@ export function Th({ children, className }: { children?: React.ReactNode; classN
   return <th className={clsx("px-4 py-2.5 font-semibold", className)}>{children}</th>;
 }
 
-/** The scrolling shell every report table sits in. */
+/**
+ * The scrolling shell every report table sits in. Positioned so that anything
+ * absolutely placed inside (a screen-reader-only label) is clipped with the
+ * table instead of widening the page on a phone.
+ */
 export function TableShell({ children, minWidth }: { children: React.ReactNode; minWidth: string }) {
   return (
-    <div className="overflow-x-auto rounded-[var(--radius-md)] border border-line">
+    <div className="relative overflow-x-auto rounded-[var(--radius-md)] border border-line">
       <table className="w-full text-left text-[14px]" style={{ minWidth }}>
         {children}
       </table>

@@ -10,6 +10,7 @@ import { setBranchAvailability } from "./actions";
 import { clsx } from "@/lib/clsx";
 import { useToast } from "@/components/toast";
 import { Select } from "@/components/select";
+import { StickyToolbar } from "@/components/admin/sticky-band";
 
 type BranchOption = { id: BranchId; name: string };
 
@@ -38,34 +39,29 @@ export function MenuManager({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Availability is per branch; prices and details are shared. This says
-          which store the switches below act on. */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3">
-        <StorefrontIcon size={17} weight="bold" className="text-coffee" />
-        <span className="text-[13.5px] text-ink-soft">Availability for</span>
-        {branches.length > 1 ? (
-          <Select
-            value={branch}
-            onChange={(e) => setBranch(e.target.value as BranchId)}
-            aria-label="Branch to manage"
-            className="h-9 rounded-full border border-line bg-paper pl-4 text-ink outline-none transition-colors focus:border-coffee disabled:opacity-60 text-[13.5px] font-semibold"
-          >
-            {branches.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </Select>
-        ) : (
-          <span className="text-[13.5px] font-semibold text-ink">{branchName}</span>
-        )}
-        <span className="ml-auto text-[12.5px] text-ink-faint">
-          Prices and details apply to every branch.
-        </span>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full sm:w-64">
+      {/* Availability is per branch; prices and details are shared. The first
+          control says which store the switches below act on. */}
+      <StickyToolbar className="-mt-2">
+        <label className="flex h-10 items-center gap-1.5 rounded-full border border-coffee/60 bg-coffee-tint/50 pl-3.5 text-[13px] focus-within:border-coffee">
+          <StorefrontIcon size={16} weight="bold" className="shrink-0 text-coffee" />
+          <span className="shrink-0 text-ink-soft">Availability for</span>
+          {branches.length > 1 ? (
+            <Select
+              value={branch}
+              onChange={(e) => setBranch(e.target.value as BranchId)}
+              className="h-full bg-transparent font-semibold text-ink outline-none"
+            >
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </Select>
+          ) : (
+            <span className="pr-4 font-semibold text-ink">{branchName}</span>
+          )}
+        </label>
+        <div role="search" className="relative w-full sm:w-64">
           <MagnifyingGlassIcon
             size={17}
             className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
@@ -102,7 +98,7 @@ export function MenuManager({
         >
           Sold out at {branchName} ({soldOutCount})
         </button>
-      </div>
+      </StickyToolbar>
 
       {sections.length === 0 && (
         <div className="rounded-[var(--radius-lg)] border border-dashed border-line bg-paper-raised px-6 py-12 text-center">
