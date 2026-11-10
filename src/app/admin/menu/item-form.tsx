@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { ImageIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { saveItem, type ItemFormState } from "./actions";
 import type { Category, DietTag, MenuItem } from "@/lib/menu";
+import { Select } from "@/components/select";
 
 const inputClass =
   "h-12 w-full rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee";
@@ -42,7 +43,7 @@ export function ItemForm({
 
       <div className="grid grid-cols-2 gap-3">
         <Label label="Category" htmlFor="categoryId">
-          <select
+          <Select
             id="categoryId"
             name="categoryId"
             defaultValue={item?.categoryId ?? categories[0]?.id}
@@ -53,7 +54,7 @@ export function ItemForm({
                 {c.name}
               </option>
             ))}
-          </select>
+          </Select>
         </Label>
         <Label label="Price (₱)" htmlFor="price">
           <input

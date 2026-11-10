@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { BRANCH_LIST } from "@/lib/branches";
 import type { SalesEvent } from "@/lib/sales-events";
 import { textInputClass } from "@/components/text-input";
+import { Select } from "@/components/select";
 import { saveEvent, type EventFormState } from "./actions";
 
 /** Create or edit a bazaar. With `event` it edits; without, it creates. */
@@ -58,7 +59,7 @@ export function EventForm({ event }: { event?: SalesEvent }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Run by" htmlFor="branchId" hint="The branch that staffs and stocks the booth.">
-          <select
+          <Select
             id="branchId"
             name="branchId"
             defaultValue={event?.branchId ?? BRANCH_LIST[0].id}
@@ -69,7 +70,7 @@ export function EventForm({ event }: { event?: SalesEvent }) {
                 {branch.name}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label="Organizer" htmlFor="organizer" optional>
           <input

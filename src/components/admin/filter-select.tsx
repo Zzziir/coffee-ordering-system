@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { clsx } from "@/lib/clsx";
+import { Select } from "@/components/select";
 import { hrefWith } from "./format";
 
 export type SelectOption = { value: string; label: string };
@@ -36,26 +37,26 @@ export function FilterSelect({
   return (
     <label
       className={clsx(
-        "flex h-10 min-w-0 items-center gap-1.5 rounded-full border pl-3.5 pr-2 text-[13px] transition-[border-color,background-color,opacity] focus-within:border-coffee",
+        "flex h-10 min-w-0 items-center gap-1.5 rounded-full border pl-3.5 text-[13px] transition-[border-color,background-color,opacity] focus-within:border-coffee",
         value ? "border-coffee/60 bg-coffee-tint/50" : "border-line bg-paper-raised",
         pending && "opacity-60",
       )}
     >
       <span className="shrink-0 text-ink-soft">{label}</span>
-      <select
+      <Select
         value={value}
         onChange={(e) => {
           const next = e.target.value || undefined;
           startTransition(() => router.push(hrefWith(path, query, { [name]: next }), { scroll: false }));
         }}
-        className="min-w-0 max-w-[11rem] cursor-pointer truncate bg-transparent py-1 font-semibold text-ink outline-none"
+        className="h-full max-w-[13rem] bg-transparent font-semibold text-ink outline-none"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }

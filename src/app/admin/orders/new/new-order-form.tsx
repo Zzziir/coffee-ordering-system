@@ -22,6 +22,7 @@ import {
 import { CustomizeSheet } from "@/components/customize-sheet";
 import { logOrder, type LogOrderState } from "./actions";
 import { clsx } from "@/lib/clsx";
+import { Select } from "@/components/select";
 
 const inputClass =
   "h-12 w-full rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee";
@@ -127,7 +128,7 @@ export function NewOrderForm({
 
       {events.length > 0 && (
         <Field label="Sold at">
-          <select
+          <Select
             name="eventId"
             value={eventId}
             onChange={(e) => setEventId(e.target.value)}
@@ -139,7 +140,7 @@ export function NewOrderForm({
                 {e.name}
               </option>
             ))}
-          </select>
+          </Select>
           {event && (
             <p className="mt-1.5 text-[12.5px] text-ink-soft">
               Counted under this event, not the store. It skips the barista board.
@@ -150,7 +151,7 @@ export function NewOrderForm({
 
       <div className="grid grid-cols-2 gap-3">
         <Field label={event ? "Run by" : "Branch"}>
-          <select
+          <Select
             name="branchId"
             value={branchId}
             // The server takes the branch from the event, so a disabled field
@@ -164,16 +165,16 @@ export function NewOrderForm({
                 {b.name}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label="Payment">
-          <select name="paymentMethod" defaultValue="cash" className={inputClass}>
+          <Select name="paymentMethod" defaultValue="cash" className={inputClass}>
             {branch.payments.map((p) => (
               <option key={p} value={p}>
                 {PAYMENT_LABEL[p]}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
       </div>
 

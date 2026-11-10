@@ -2,6 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { Select } from "@/components/select";
 import { useToast } from "@/components/toast";
 import { moveOrder } from "../events/actions";
 
@@ -49,12 +50,12 @@ export function EventSelect({
 
   return (
     <>
-      <select
+      <Select
         aria-label={`Where order ${orderCode} was sold`}
         value={optimistic}
         disabled={pending}
         onChange={(e) => setTarget(e.target.value)}
-        className="h-9 max-w-[11rem] truncate rounded-full border border-line bg-paper px-3 text-[13px] font-medium text-ink outline-none transition-colors focus:border-coffee disabled:opacity-60"
+        className="h-9 max-w-[11rem] rounded-full border border-line bg-paper pl-4 text-ink outline-none transition-colors focus:border-coffee disabled:opacity-60 text-[13px] font-medium"
       >
         <option value={STORE_SALE}>Store sale</option>
         {events.map((event) => (
@@ -62,7 +63,7 @@ export function EventSelect({
             {event.name}
           </option>
         ))}
-      </select>
+      </Select>
 
       <ConfirmDialog
         open={target !== null}

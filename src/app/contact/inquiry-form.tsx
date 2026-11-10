@@ -11,6 +11,7 @@ import {
   CaretLeftIcon,
 } from "@phosphor-icons/react";
 import { textInputClass } from "@/components/text-input";
+import { Select } from "@/components/select";
 import { submitInquiry, type InquiryState } from "./actions";
 import type { InquiryKind } from "@/lib/inquiries";
 
@@ -240,7 +241,7 @@ function EventFields() {
     <>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Event type" htmlFor="eventType" optional>
-          <select id="eventType" name="eventType" defaultValue="" className={`${textInputClass} appearance-none`}>
+          <Select id="eventType" name="eventType" defaultValue="" className={textInputClass}>
             <option value="" disabled>
               Choose one
             </option>
@@ -249,7 +250,7 @@ function EventFields() {
                 {t}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label="Event date" htmlFor="eventDate" optional>
           <input id="eventDate" name="eventDate" type="date" className={textInputClass} />

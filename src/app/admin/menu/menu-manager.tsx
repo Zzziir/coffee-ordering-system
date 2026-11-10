@@ -9,6 +9,7 @@ import type { BranchId } from "@/lib/types";
 import { setBranchAvailability } from "./actions";
 import { clsx } from "@/lib/clsx";
 import { useToast } from "@/components/toast";
+import { Select } from "@/components/select";
 
 type BranchOption = { id: BranchId; name: string };
 
@@ -43,18 +44,18 @@ export function MenuManager({
         <StorefrontIcon size={17} weight="bold" className="text-coffee" />
         <span className="text-[13.5px] text-ink-soft">Availability for</span>
         {branches.length > 1 ? (
-          <select
+          <Select
             value={branch}
             onChange={(e) => setBranch(e.target.value as BranchId)}
             aria-label="Branch to manage"
-            className="h-9 rounded-full border border-line bg-paper px-3 text-[13.5px] font-semibold text-ink outline-none transition-colors focus:border-coffee"
+            className="h-9 rounded-full border border-line bg-paper pl-4 text-ink outline-none transition-colors focus:border-coffee disabled:opacity-60 text-[13.5px] font-semibold"
           >
             {branches.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name}
               </option>
             ))}
-          </select>
+          </Select>
         ) : (
           <span className="text-[13.5px] font-semibold text-ink">{branchName}</span>
         )}
