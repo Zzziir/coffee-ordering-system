@@ -469,11 +469,11 @@ html.dark {
 
 /*
   Sticky page bands. The admin header (wordmark row plus tab row) is always
-  pinned; each page can pin a title band and a toolbar band under it. They are
-  separate sticky siblings so nothing changes height when they stick: the
-  page description simply scrolls up beneath the title band, and the toolbar
-  slides up to meet it. components/admin/sticky-band marks a band [data-stuck]
-  while it is pinned, which is when it takes its frosted background.
+  pinned; under it each page pins one band. A page with filters pins its
+  filter row, which carries the actions at its far right and gains the page
+  name at its start once pinned. A page without filters pins its title band.
+  components/admin/sticky-band marks a band [data-stuck] while it is pinned,
+  which is when it takes its frosted background.
 
   The numbers mirror the layout: the header is a 4rem row, a 2.5rem tab row
   with 0.5rem below it, and a 1px border. The gutter matches ADMIN_CONTAINER,
@@ -528,23 +528,52 @@ html.dark {
 }
 
 .band-toolbar {
-  top: calc(var(--admin-header-h) + var(--band-title-h));
+  top: var(--admin-header-h);
   padding-block: 0.5rem;
 }
-/* A toolbar with no title band above it (a list part way down a page). */
-.band-toolbar.band-solo {
-  top: var(--admin-header-h);
+
+/* The page name at the start of a pinned toolbar. Collapsed to nothing (and
+   its gap cancelled) until the bar pins, then it widens in with a hairline
+   divider after it, nudging the filters along. */
+.band-mini-title {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 2.5rem;
+  max-width: 0;
+  margin-right: -0.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  opacity: 0;
+  border-right: 1px solid transparent;
+  transition: max-width 280ms var(--ease-out), margin-right 280ms var(--ease-out),
+    padding-right 280ms var(--ease-out), opacity 200ms ease, border-color 200ms ease;
+}
+.band-toolbar[data-stuck] .band-mini-title {
+  max-width: 14rem;
+  margin-right: 0.25rem;
+  padding-right: 1rem;
+  opacity: 1;
+  border-right-color: var(--color-line-strong);
 }
 
-/* Phones keep one slim pinned row. When a page has a toolbar, the title
-   scrolls away and the toolbar pins straight under the header as a single
-   row you swipe sideways, running edge to edge. */
+/* A search box in a toolbar takes what room is left, between a floor and
+   its usual width, so a busy row fits on one line before it wraps. */
+.band-filters > [role="search"] {
+  flex: 1 1 11rem;
+  width: auto;
+  max-width: 16rem;
+}
+
+/* Phones keep one slim pinned row: the toolbar runs edge to edge as a single
+   row you swipe sideways, and the pinned page name is left out for room. */
 @media (width < 40rem) {
-  .band-title.band-has-toolbar {
-    position: static;
-  }
-  .band-toolbar {
-    top: var(--admin-header-h);
+  .band-mini-title {
+    display: none;
   }
   .band-row {
     flex-wrap: nowrap;
@@ -557,18 +586,28 @@ html.dark {
   .band-row::-webkit-scrollbar {
     display: none;
   }
-  .band-row > * {
+  .band-filters {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+  .band-row > *,
+  .band-filters > * {
     flex-shrink: 0;
     max-width: none;
   }
-  .band-row > [role="search"] {
+  .band-filters > [role="search"] {
+    flex: none;
     width: 15rem;
+    max-width: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .band-title[data-stuck] h1 {
     transform: none;
+  }
+  .band-mini-title {
+    transition-property: opacity, border-color;
   }
 }
 

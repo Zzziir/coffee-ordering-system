@@ -38,39 +38,45 @@ export function PageHeader({
 }
 
 /**
- * A page heading that pins under the admin header as you scroll: the title and
- * its actions in one band, the filters in a second band below. The description
- * between them scrolls away underneath.
+ * A page heading that pins under the admin header as you scroll.
  *
- * Pass the filters as `toolbar`. When the page renders its own toolbar further
- * down (a client component that owns the filter state), set `toolbarBelow`
- * instead so the title band leaves the bottom rule and the phone row to it.
+ * With filters (`toolbar`), the title and description stay in the page and the
+ * filter row pins, carrying the actions at its far right and, once pinned, the
+ * page name at its start: one balanced bar instead of a heading stacked on a
+ * toolbar. Without filters, the title band itself pins with its actions.
  */
 export function StickyHeader({
   title,
   sub,
   actions,
   toolbar,
-  toolbarBelow = false,
 }: {
   title: string;
   sub: React.ReactNode;
   actions?: React.ReactNode;
   toolbar?: React.ReactNode;
-  toolbarBelow?: boolean;
 }) {
-  const hasToolbar = Boolean(toolbar) || toolbarBelow;
+  if (!toolbar) {
+    return (
+      <>
+        <StickyBand edge className="band-title">
+          <div className="flex w-full min-w-0 items-center justify-between gap-4">
+            <h1 className="truncate text-2xl font-bold tracking-tight text-ink">{title}</h1>
+            {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+          </div>
+        </StickyBand>
+        {/* Pulled up to sit just under the title, inside the band's height. */}
+        <p className="-mt-8 max-w-[62ch] text-[14.5px] text-ink-soft">{sub}</p>
+      </>
+    );
+  }
+
   return (
     <>
-      <StickyBand edge={!hasToolbar} className={clsx("band-title", hasToolbar && "band-has-toolbar")}>
-        <div className="flex w-full min-w-0 items-center justify-between gap-4">
-          <h1 className="truncate text-2xl font-bold tracking-tight text-ink">{title}</h1>
-          {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
-        </div>
-      </StickyBand>
-      {/* Pulled up to sit just under the title, inside the band's height. */}
-      <p className="-mt-8 max-w-[62ch] text-[14.5px] text-ink-soft">{sub}</p>
-      {toolbar && <StickyToolbar className="-mt-2">{toolbar}</StickyToolbar>}
+      <PageHeader title={title} sub={sub} />
+      <StickyToolbar title={title} actions={actions} className="-mt-2">
+        {toolbar}
+      </StickyToolbar>
     </>
   );
 }

@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import { getMenu } from "@/lib/menu-store";
 import { getStaffMember, isAdmin } from "@/lib/staff";
 import { BRANCH_LIST, getBranch } from "@/lib/branches";
-import { StickyHeader } from "@/components/admin/report-ui";
+import { PageHeader } from "@/components/admin/report-ui";
 import { MenuManager } from "./menu-manager";
 
 export const dynamic = "force-dynamic";
@@ -26,19 +24,9 @@ export default async function AdminMenuPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <StickyHeader
+      <PageHeader
         title="Menu"
         sub="Edit prices and details, which every branch shares, or mark an item sold out at a branch."
-        actions={
-          <Link
-            href="/admin/menu/new"
-            className="pressable inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-[14px] font-semibold text-paper"
-          >
-            <PlusIcon size={16} weight="bold" />
-            Add item
-          </Link>
-        }
-        toolbarBelow
       />
 
       <MenuManager menu={menu} branches={branches} initialBranch={branches[0].id} />

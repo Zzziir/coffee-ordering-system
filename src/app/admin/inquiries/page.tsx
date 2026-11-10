@@ -117,7 +117,7 @@ export default async function AdminInquiriesPage({
           </p>
         </div>
       ) : (
-        <section id="leads" className="flex scroll-mt-[calc(var(--admin-header-h)+var(--band-title-h)+4.5rem)] flex-col gap-4">
+        <section id="leads" className="flex scroll-mt-[calc(var(--admin-header-h)+4.5rem)] flex-col gap-4">
 
           {shown.length === 0 ? (
             <EmptyState title="No inquiries match.">

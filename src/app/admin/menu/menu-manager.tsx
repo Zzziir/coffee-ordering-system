@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { MagnifyingGlassIcon, PencilSimpleIcon, StorefrontIcon, XIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, PencilSimpleIcon, PlusIcon, StorefrontIcon, XIcon } from "@phosphor-icons/react";
 import { isAvailableAt, peso, type MenuData, type MenuItem } from "@/lib/menu";
 import type { BranchId } from "@/lib/types";
 import { setBranchAvailability } from "./actions";
@@ -41,7 +41,19 @@ export function MenuManager({
     <div className="flex flex-col gap-6">
       {/* Availability is per branch; prices and details are shared. The first
           control says which store the switches below act on. */}
-      <StickyToolbar className="-mt-2">
+      <StickyToolbar
+        title="Menu"
+        className="-mt-2"
+        actions={
+          <Link
+            href="/admin/menu/new"
+            className="pressable inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-[14px] font-semibold text-paper"
+          >
+            <PlusIcon size={16} weight="bold" />
+            Add item
+          </Link>
+        }
+      >
         <label className="flex h-10 items-center gap-1.5 rounded-full border border-coffee/60 bg-coffee-tint/50 pl-3.5 text-[13px] focus-within:border-coffee">
           <StorefrontIcon size={16} weight="bold" className="shrink-0 text-coffee" />
           <span className="shrink-0 text-ink-soft">Availability for</span>

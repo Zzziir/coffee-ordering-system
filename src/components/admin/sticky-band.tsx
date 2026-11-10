@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ComponentProps } from "react";
+import { useEffect, useRef, type ComponentProps, type ReactNode } from "react";
 import { clsx } from "@/lib/clsx";
 
 /**
@@ -51,18 +51,33 @@ export function StickyBand({
 }
 
 /**
- * A pinned row of filters and actions. On a phone it becomes one row you swipe
- * sideways. `solo` is for a toolbar with no title band above it.
+ * A pinned row: filters on the left, the page's actions at the far right. Once
+ * pinned, `title` slides in at the start of the row, so the whole page header
+ * condenses into this one balanced bar. On a phone it is one row you swipe
+ * sideways, actions included.
  */
 export function StickyToolbar({
-  solo = false,
+  title,
+  actions,
   className,
   children,
   ...props
-}: ComponentProps<"div"> & { solo?: boolean }) {
+}: ComponentProps<"div"> & { title?: string; actions?: ReactNode }) {
   return (
-    <StickyBand edge className={clsx("band-toolbar", solo && "band-solo", className)} {...props}>
-      <div className="band-row flex flex-wrap items-center gap-2">{children}</div>
+    <StickyBand edge className={clsx("band-toolbar", className)} {...props}>
+      {/* Only the filters wrap, inside their own group, so on a narrower
+          screen the actions hold the right edge of the first line rather than
+          dropping onto a line of their own. */}
+      <div className="band-row flex items-start gap-2">
+        {title && (
+          // The real heading stays in the page; this is its pinned echo.
+          <span aria-hidden className="band-mini-title">
+            {title}
+          </span>
+        )}
+        <div className="band-filters flex min-w-0 flex-1 flex-wrap items-center gap-2">{children}</div>
+        {actions && <div className="band-actions flex shrink-0 items-center gap-2">{actions}</div>}
+      </div>
     </StickyBand>
   );
 }

@@ -154,7 +154,7 @@ export default async function AdminTransactionsPage({
               path={PATH}
               value={params.q ?? ""}
               label="Search orders by code or customer"
-              placeholder="Search code or customer"
+              placeholder="Code or customer"
               keep={{ ...query, q: undefined }}
               clearHref={hrefWith(PATH, query, { q: undefined })}
             />
@@ -191,7 +191,7 @@ export default async function AdminTransactionsPage({
           .
         </EmptyState>
       ) : (
-        <div id="orders" className="flex scroll-mt-[calc(var(--admin-header-h)+var(--band-title-h)+4.5rem)] flex-col gap-6">
+        <div id="orders" className="flex scroll-mt-[calc(var(--admin-header-h)+4.5rem)] flex-col gap-6">
           <TableShell minWidth="900px">
             <thead className={tableHeadClass}>
               <tr>

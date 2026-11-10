@@ -156,7 +156,7 @@ export default async function AdminCustomersPage({
       </div>
 
       <section id="list" className="flex scroll-mt-32 flex-col gap-3">
-        <StickyToolbar solo className="-mt-2">
+        <StickyToolbar title="Customers" className="-mt-2">
           <FilterPills
             label="Segment"
             options={[
