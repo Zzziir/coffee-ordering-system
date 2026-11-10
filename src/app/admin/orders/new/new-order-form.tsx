@@ -23,6 +23,7 @@ import { CustomizeSheet } from "@/components/customize-sheet";
 import { logOrder, type LogOrderState } from "./actions";
 import { clsx } from "@/lib/clsx";
 import { Select } from "@/components/select";
+import { ADMIN_CONTAINER } from "@/components/admin/container";
 
 const inputClass =
   "h-12 w-full rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee";
@@ -313,8 +314,8 @@ export function NewOrderForm({
         </div>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-end gap-4">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md">
+        <div className={clsx(ADMIN_CONTAINER, "flex items-center justify-end gap-4")}>
           <div className="text-right">
             <p className="text-[12.5px] text-ink-soft">
               {count} {count === 1 ? "item" : "items"}

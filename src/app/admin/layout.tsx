@@ -10,6 +10,8 @@ import { getCustomer } from "@/lib/customer";
 import { getStaffMember, isAdmin, landingPath } from "@/lib/staff";
 import { SignOutButton } from "../staff/sign-out-button";
 import { AdminNav } from "./admin-nav";
+import { ADMIN_CONTAINER } from "@/components/admin/container";
+import { clsx } from "@/lib/clsx";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +41,7 @@ export default async function AdminLayout({
   return (
     <div className="dashboard-surface flex min-h-[100dvh] flex-col">
       <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
+        <div className={clsx(ADMIN_CONTAINER, "flex h-16 items-center justify-between")}>
           <Link href="/admin" className="pressable flex items-center gap-2.5">
             <Wordmark className="text-[18px] text-ink" />
             <span className="hidden rounded-full bg-paper-sunk px-2.5 py-1 text-[12px] font-medium text-ink-soft sm:inline">
@@ -60,7 +62,7 @@ export default async function AdminLayout({
         <Suspense>
           <FlashToast />
         </Suspense>
-        <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-6">{children}</main>
+        <main className={clsx(ADMIN_CONTAINER, "flex-1 py-6 lg:py-8")}>{children}</main>
       </ToastProvider>
     </div>
   );

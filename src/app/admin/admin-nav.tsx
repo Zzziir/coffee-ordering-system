@@ -12,6 +12,7 @@ import {
   UsersThreeIcon,
 } from "@phosphor-icons/react";
 import { clsx } from "@/lib/clsx";
+import { ADMIN_CONTAINER } from "@/components/admin/container";
 
 const TABS = [
   { href: "/admin", label: "Overview", icon: ChartLineUpIcon },
@@ -37,7 +38,7 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="no-scrollbar mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 pb-2">
+    <nav className={clsx(ADMIN_CONTAINER, "no-scrollbar flex gap-1 overflow-x-auto pb-2")}>
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
