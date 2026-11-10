@@ -36,6 +36,9 @@ export async function getStaffMember(): Promise<StaffMember | null> {
     .from("staff")
     .select("id, email, name, branch_id, role")
     .eq("id", user.id)
+    // A deactivated teammate keeps their row (for order history) but loses
+    // access on their very next request, not when their token runs out.
+    .is("deactivated_at", null)
     .maybeSingle();
   if (!data) return null;
 

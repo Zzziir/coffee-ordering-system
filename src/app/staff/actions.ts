@@ -27,7 +27,8 @@ export async function signIn(
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
     // Deliberately vague: distinguishing "no such account" from "wrong
-    // password" tells an attacker which emails are real.
+    // password" tells an attacker which emails are real. That includes
+    // deactivated staff: Supabase reports a ban even for a wrong password.
     return { error: "That email and password don't match." };
   }
 

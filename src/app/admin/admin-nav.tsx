@@ -6,6 +6,7 @@ import {
   ChartBarIcon,
   ChartLineUpIcon,
   ForkKnifeIcon,
+  IdentificationBadgeIcon,
   PlusCircleIcon,
   TentIcon,
   TrayIcon,
@@ -21,6 +22,7 @@ const TABS = [
   { href: "/admin/events", label: "Events", icon: TentIcon },
   { href: "/admin/menu", label: "Menu", icon: ForkKnifeIcon },
   { href: "/admin/inquiries", label: "Inquiries", icon: TrayIcon },
+  { href: "/admin/team", label: "Team", icon: IdentificationBadgeIcon },
   { href: "/admin/orders/new", label: "Log order", icon: PlusCircleIcon },
 ];
 
