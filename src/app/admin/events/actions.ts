@@ -122,6 +122,7 @@ export async function moveOrder(orderId: string, eventId: string | null): Promis
 
   await setOrderEvent(orderId, eventId);
   revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/events");
   revalidatePath("/admin/sales");
 }

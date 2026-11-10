@@ -24,6 +24,16 @@ const stampFmt = new Intl.DateTimeFormat("en-PH", {
   hour: "numeric",
   minute: "2-digit",
 });
+const longStampFmt = new Intl.DateTimeFormat("en-PH", {
+  timeZone: TZ,
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+const clockFmt = new Intl.DateTimeFormat("en-PH", { timeZone: TZ, hour: "numeric", minute: "2-digit" });
 const hourFmt = new Intl.DateTimeFormat("en-PH", { timeZone: TZ, weekday: "short", hour: "numeric" });
 
 /** "Aug 15" from a timestamp or a "YYYY-MM-DD" day. */
@@ -39,6 +49,31 @@ export const fullDay = (at: number | string) =>
 
 /** "Aug 15, 2:30 PM" */
 export const stamp = (at: number) => stampFmt.format(at);
+
+/** "Sat, Aug 15, 2026, 2:30 PM" */
+export const longStamp = (at: number) => longStampFmt.format(at);
+
+/** "2:30 PM" */
+export const clock = (at: number) => clockFmt.format(at);
+
+/** "45 sec", "12 min", "1 hr 5 min": a span of time in the largest sensible unit. */
+export function duration(ms: number): string {
+  const minutes = Math.floor(ms / 60_000);
+  if (minutes < 1) return `${Math.max(0, Math.round(ms / 1000))} sec`;
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours} hr ${rest} min` : `${hours} hr`;
+}
+
+/** "AC" from "Ana Cruz": up to two initials for an avatar. */
+export const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]!.toUpperCase())
+    .join("");
 
 /** "Sat 2 PM" */
 export const weekdayHour = (at: number) => hourFmt.format(at);
@@ -81,3 +116,10 @@ export function hrefWith(
   const query = params.toString();
   return query ? `${path}?${query}` : path;
 }
+
+/**
+ * The order detail page. `from` is the list the admin came from, so its back
+ * link returns to the same filters and page rather than the default view.
+ */
+export const orderHref = (id: string, from?: string) =>
+  from ? `/admin/orders/${id}?from=${encodeURIComponent(from)}` : `/admin/orders/${id}`;

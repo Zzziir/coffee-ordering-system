@@ -1,4 +1,4 @@
-import type { Order } from "./types";
+import type { Order, OrderStatus } from "./types";
 import { ORDER_SELECT, toOrder, type OrderRow } from "./store";
 import { supabaseAdmin } from "./supabase/admin";
 
@@ -68,6 +68,42 @@ export async function listOrders(filter: OrderFilter = {}): Promise<AdminOrder[]
     all.push(...rows.map(toAdminOrder));
     if (rows.length < PAGE) return all;
   }
+}
+
+/** One step in an order's life, and who on staff moved it there. */
+export type OrderStep = { status: OrderStatus; at: number; staffName: string | null };
+
+export type AdminOrderDetail = AdminOrder & { steps: OrderStep[] };
+
+/** One order with its full history, for the detail page. undefined when missing. */
+export async function getAdminOrder(id: string): Promise<AdminOrderDetail | undefined> {
+  // An id from a URL is not necessarily a uuid; a malformed one is "not found",
+  // not a 500.
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return undefined;
+
+  const db = supabaseAdmin();
+  const [order, steps] = await Promise.all([
+    db.from("orders").select(ADMIN_SELECT).eq("id", id).maybeSingle<AdminRow>(),
+    db
+      .from("order_events")
+      .select("status, at, staff_name")
+      .eq("order_id", id)
+      .order("at", { ascending: true })
+      .returns<{ status: OrderStatus; at: string; staff_name: string | null }[]>(),
+  ]);
+
+  if (order.error) throw new Error(`Could not read order ${id}: ${order.error.message}`);
+  if (steps.error) throw new Error(`Could not read order ${id} history: ${steps.error.message}`);
+  if (!order.data) return undefined;
+
+  return {
+    ...toAdminOrder(order.data),
+    steps: (steps.data ?? []).map((step) => ({
+      status: step.status,
+      at: new Date(step.at).getTime(),
+      staffName: step.staff_name,
+    })),
+  };
 }
 
 /** Move a sale onto an event, or back to a plain store sale with null. */
