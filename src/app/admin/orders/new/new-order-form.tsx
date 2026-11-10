@@ -26,7 +26,7 @@ import { Select } from "@/components/select";
 import { ADMIN_CONTAINER } from "@/components/admin/container";
 
 const inputClass =
-  "h-12 w-full rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee";
+  "h-11 w-full rounded-[var(--radius-sm)] border border-line bg-paper px-3.5 text-[14.5px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee";
 
 /** A bazaar the till can ring a sale up against. */
 export type EventOption = { id: string; name: string; branchId: BranchId };
@@ -123,209 +123,213 @@ export function NewOrderForm({
     })),
   );
 
+  const summary = (
+    <div>
+      <p className="text-[12.5px] text-ink-soft">
+        {count} {count === 1 ? "item" : "items"}
+      </p>
+      <p className="text-[20px] font-bold tracking-tight tabular-nums text-ink">{peso(total)}</p>
+    </div>
+  );
+
   return (
-    <form action={formAction} className="flex flex-col gap-5 pb-28">
+    <form
+      action={formAction}
+      className="grid items-start gap-6 pb-28 lg:grid-cols-[minmax(0,1fr)_minmax(360px,420px)] lg:pb-0"
+    >
       <input type="hidden" name="payload" value={payload} />
 
-      {events.length > 0 && (
-        <Field label="Sold at">
-          <Select
-            name="eventId"
-            value={eventId}
-            onChange={(e) => setEventId(e.target.value)}
-            className={inputClass}
-          >
-            <option value={STORE_SALE}>In store</option>
-            {events.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-              </option>
-            ))}
-          </Select>
-          {event && (
-            <p className="mt-1.5 text-[12.5px] text-ink-soft">
-              Counted under this event, not the store. It skips the barista board.
-            </p>
-          )}
-        </Field>
-      )}
-
-      <div className="grid grid-cols-2 gap-3">
-        <Field label={event ? "Run by" : "Branch"}>
-          <Select
-            name="branchId"
-            value={branchId}
-            // The server takes the branch from the event, so a disabled field
-            // dropping out of the submission is fine.
-            disabled={Boolean(event)}
-            onChange={(e) => setBranchId(e.target.value as BranchId)}
-            className={clsx(inputClass, "disabled:opacity-60")}
-          >
-            {BRANCH_LIST.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label="Payment">
-          <Select name="paymentMethod" defaultValue="cash" className={inputClass}>
-            {branch.payments.map((p) => (
-              <option key={p} value={p}>
-                {PAYMENT_LABEL[p]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-      </div>
-
-      <Field label="Customer name (optional)">
-        <input
-          name="customerName"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          placeholder="Walk-in"
-          className={inputClass}
-        />
-      </Field>
-
-      <div className="grid gap-4 lg:h-[60vh] lg:grid-cols-[1.35fr_1fr]">
-        {/* Picker: search the catalog and tap to configure */}
-        <div className="flex flex-col lg:h-full">
-          <p className="text-[15px] font-semibold text-ink">Items</p>
-          <div className="mt-3 flex flex-col rounded-[var(--radius-md)] border border-line bg-paper-raised lg:min-h-0 lg:flex-1">
-            <div className="shrink-0 border-b border-line p-3">
-              <div className="relative">
-                <MagnifyingGlassIcon
-                  size={17}
-                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
-                />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search items..."
-                  aria-label="Search items"
-                  className="h-11 w-full rounded-full border border-line bg-paper pl-10 pr-4 text-[14.5px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee"
-                />
-              </div>
-            </div>
-
-            <div className="flex max-h-[52vh] flex-col gap-6 overflow-y-auto p-4 lg:max-h-none lg:min-h-0 lg:flex-1">
-              {catalog.map(({ cat, items }) => (
-                <section key={cat.id}>
-                  <h3 className="text-[13px] font-semibold uppercase tracking-wide text-ink-faint">
-                    {cat.name}
-                  </h3>
-                  <div className="mt-2 flex flex-col gap-1">
-                    {items.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setSheetItem(item)}
-                        className="pressable group flex items-center gap-3 rounded-[var(--radius-sm)] px-2 py-1.5 text-left transition-colors hover:bg-paper-sunk"
-                      >
-                        <span className="min-w-0 flex-1 truncate text-[14.5px] text-ink">
-                          {item.name}
-                          <span className="ml-2 text-[12.5px] text-ink-soft">
-                            {peso(item.price)}
-                          </span>
-                        </span>
-                        <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-ink transition-colors duration-200 group-hover:border-coffee group-hover:bg-coffee group-hover:text-paper">
-                          <PlusIcon
-                            size={15}
-                            weight="bold"
-                            className="transition-transform duration-300 ease-[var(--ease-out)] motion-safe:group-hover:rotate-90"
-                          />
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              ))}
-
-              {catalog.length === 0 && (
-                <p className="py-6 text-center text-[14px] text-ink-soft">
-                  {q ? `No items match "${query.trim()}".` : "No items available."}
+      {/* The register: who and how, what's on the order, and the total. On a
+          wide screen it pins beside the menu so it never scrolls out of reach;
+          only its list of lines scrolls when the order runs long. */}
+      <aside
+        aria-label="This order"
+        className="flex flex-col rounded-[var(--radius-lg)] border border-line bg-paper-raised lg:sticky lg:top-[calc(var(--admin-header-h)+0.75rem)] lg:order-2 lg:max-h-[calc(100dvh-var(--admin-header-h)-1.5rem)]"
+      >
+        <div className="grid shrink-0 grid-cols-2 gap-3 border-b border-line p-4">
+          {events.length > 0 && (
+            <Field label="Sold at" className="col-span-2">
+              <Select
+                name="eventId"
+                value={eventId}
+                onChange={(e) => setEventId(e.target.value)}
+                className={inputClass}
+              >
+                <option value={STORE_SALE}>In store</option>
+                {events.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </Select>
+              {event && (
+                <p className="mt-1 text-[12.5px] text-ink-soft">
+                  Counted under this event, not the store. It skips the barista board.
                 </p>
               )}
-            </div>
+            </Field>
+          )}
+          <Field label={event ? "Run by" : "Branch"}>
+            <Select
+              name="branchId"
+              value={branchId}
+              // The server takes the branch from the event, so a disabled field
+              // dropping out of the submission is fine.
+              disabled={Boolean(event)}
+              onChange={(e) => setBranchId(e.target.value as BranchId)}
+              className={clsx(inputClass, "disabled:opacity-60")}
+            >
+              {BRANCH_LIST.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Payment">
+            <Select name="paymentMethod" defaultValue="cash" className={inputClass}>
+              {branch.payments.map((p) => (
+                <option key={p} value={p}>
+                  {PAYMENT_LABEL[p]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Customer name (optional)" className="col-span-2">
+            <input
+              name="customerName"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Walk-in"
+              className={inputClass}
+            />
+          </Field>
+        </div>
+
+        <div className="flex shrink-0 items-baseline justify-between px-4 pb-1 pt-4">
+          <h2 className="text-[15px] font-semibold text-ink">In this order</h2>
+          {count > 0 && (
+            <span className="text-[12.5px] text-ink-soft">
+              {count} {count === 1 ? "item" : "items"}
+            </span>
+          )}
+        </div>
+        {lines.length === 0 ? (
+          <p className="px-4 pb-6 pt-2 text-[14px] text-ink-soft">
+            Nothing yet. Tap an item on the menu to add it.
+          </p>
+        ) : (
+          <div className="flex flex-col divide-y divide-line lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+            {lines.map((line) => (
+              <div key={line.id} className="flex items-start gap-3 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14.5px] font-medium text-ink">{line.name}</p>
+                  {describeLine(line) && (
+                    <p className="mt-0.5 text-[12.5px] text-ink-soft">{describeLine(line)}</p>
+                  )}
+                  <p className="mt-0.5 text-[12.5px] font-medium tabular-nums text-ink-soft">
+                    {peso(lineTotal(line))}
+                  </p>
+                </div>
+                <Stepper qty={line.qty} onChange={(n) => setQty(line.id, n)} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {(error || logged) && (
+          <div className="shrink-0 px-4 pb-3">
+            {error && (
+              <p role="alert" className="rounded-[var(--radius-sm)] bg-warn/10 px-3.5 py-3 text-[13.5px] text-warn">
+                {error}
+              </p>
+            )}
+            {logged && (
+              <div
+                role="status"
+                className="flex items-start gap-2.5 rounded-[var(--radius-sm)] border border-ready/30 bg-ready/10 px-3.5 py-3 text-[13.5px] text-ink"
+              >
+                <CheckCircleIcon size={19} weight="fill" className="mt-px shrink-0 text-ready" />
+                <span>
+                  <span className="font-semibold">{logged.code}</span>{" "}
+                  {logged.eventName
+                    ? `is logged to ${logged.eventName}.`
+                    : `is on the ${logged.branchName} board.`}{" "}
+                  Ring up the next one.
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="hidden shrink-0 items-center justify-between gap-4 border-t border-line p-4 lg:flex">
+          {summary}
+          <SubmitButton disabled={count === 0} />
+        </div>
+      </aside>
+
+      {/* The menu scrolls with the page; its search pins under the header. */}
+      <section aria-label="Menu" className="min-w-0 lg:order-1">
+        <div className="sticky top-[var(--admin-header-h)] z-20 -mt-3 bg-paper/90 py-3 backdrop-blur-md">
+          <div role="search" className="relative">
+            <MagnifyingGlassIcon
+              size={17}
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
+            />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search the menu"
+              aria-label="Search the menu"
+              className="h-11 w-full rounded-full border border-line bg-paper-raised pl-10 pr-4 text-[14.5px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee [&::-webkit-search-cancel-button]:hidden"
+            />
           </div>
         </div>
 
-        {/* Order summary: matches the picker's height, scrolls on its own */}
-        <div className="flex flex-col lg:h-full">
-          <div className="flex items-baseline justify-between">
-            <p className="text-[15px] font-semibold text-ink">In this order</p>
-            {count > 0 && (
-              <span className="text-[12.5px] text-ink-soft">
-                {count} {count === 1 ? "item" : "items"}
-              </span>
-            )}
-          </div>
-          <div className="mt-3 flex flex-col rounded-[var(--radius-md)] border border-line bg-paper-raised lg:min-h-0 lg:flex-1">
-            {lines.length === 0 ? (
-              <div className="grid place-items-center px-4 py-12 lg:flex-1">
-                <p className="text-center text-[14px] text-ink-soft">
-                  No items yet. Search on the left and tap to add.
-                </p>
-              </div>
-            ) : (
-              <div className="flex max-h-[52vh] flex-col divide-y divide-line overflow-y-auto lg:max-h-none lg:min-h-0 lg:flex-1">
-                {lines.map((line) => (
-                  <div key={line.id} className="flex items-start gap-3 px-4 py-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[14.5px] font-medium text-ink">{line.name}</p>
-                      {describeLine(line) && (
-                        <p className="mt-0.5 text-[12.5px] text-ink-soft">
-                          {describeLine(line)}
-                        </p>
-                      )}
-                      <p className="mt-0.5 text-[12.5px] font-medium tabular-nums text-ink-soft">
-                        {peso(lineTotal(line))}
-                      </p>
-                    </div>
-                    <Stepper qty={line.qty} onChange={(n) => setQty(line.id, n)} />
-                  </div>
+        <div className="mt-3 flex flex-col gap-6">
+          {catalog.map(({ cat, items }) => (
+            <section key={cat.id}>
+              <h3 className="text-[13px] font-semibold uppercase tracking-wide text-ink-faint">
+                {cat.name}
+              </h3>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
+                {items.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSheetItem(item)}
+                    className="pressable group flex items-center gap-3 rounded-[var(--radius-sm)] border border-line bg-paper-raised px-3.5 py-3 text-left transition-colors hover:border-coffee/50"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[14.5px] font-medium text-ink">{item.name}</span>
+                      <span className="block text-[12.5px] tabular-nums text-ink-soft">{peso(item.price)}</span>
+                    </span>
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-ink transition-colors duration-200 group-hover:border-coffee group-hover:bg-coffee group-hover:text-paper">
+                      <PlusIcon
+                        size={15}
+                        weight="bold"
+                        className="transition-transform duration-300 ease-[var(--ease-out)] motion-safe:group-hover:rotate-90"
+                      />
+                    </span>
+                  </button>
                 ))}
               </div>
-            )}
-          </div>
-        </div>
-      </div>
+            </section>
+          ))}
 
-      {error && (
-        <p
-          role="alert"
-          className="rounded-[var(--radius-sm)] bg-warn/10 px-4 py-3 text-[14px] text-warn"
-        >
-          {error}
-        </p>
-      )}
-
-      {logged && (
-        <div
-          role="status"
-          className="flex items-center gap-3 rounded-[var(--radius-sm)] border border-ready/30 bg-ready/10 px-4 py-3 text-[14px] text-ink"
-        >
-          <CheckCircleIcon size={20} weight="fill" className="shrink-0 text-ready" />
-          <span>
-            <span className="font-semibold">{logged.code}</span>{" "}
-            {logged.eventName
-              ? `is logged to ${logged.eventName}.`
-              : `is on the ${logged.branchName} board.`}{" "}
-            Ring up the next one below.
-          </span>
-        </div>
-      )}
-
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md">
-        <div className={clsx(ADMIN_CONTAINER, "flex items-center justify-end gap-4")}>
-          <div className="text-right">
-            <p className="text-[12.5px] text-ink-soft">
-              {count} {count === 1 ? "item" : "items"}
+          {catalog.length === 0 && (
+            <p className="py-6 text-center text-[14px] text-ink-soft">
+              {q ? `No items match "${query.trim()}".` : "No items available."}
             </p>
-            <p className="text-[18px] font-bold tabular-nums text-ink">{peso(total)}</p>
-          </div>
+          )}
+        </div>
+      </section>
+
+      {/* Phones and tablets: the total and the button ride the bottom edge. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md lg:hidden">
+        <div className={clsx(ADMIN_CONTAINER, "flex items-center justify-end gap-4")}>
+          <div className="text-right">{summary}</div>
           <SubmitButton disabled={count === 0} />
         </div>
       </div>
@@ -391,17 +395,25 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     <button
       type="submit"
       disabled={disabled || pending}
-      className="pressable flex h-14 items-center justify-center rounded-full bg-ink px-8 text-[15px] font-semibold text-paper disabled:opacity-40"
+      className="pressable flex h-12 items-center justify-center rounded-full bg-ink px-7 text-[15px] font-semibold text-paper disabled:opacity-40"
     >
       {pending ? "Logging…" : "Log order"}
     </button>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  className,
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-[14px] font-medium text-ink">{label}</label>
+    <div className={clsx("flex min-w-0 flex-col gap-1.5", className)}>
+      <label className="text-[13px] font-medium text-ink-soft">{label}</label>
       {children}
     </div>
   );
