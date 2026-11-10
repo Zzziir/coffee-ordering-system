@@ -1,21 +1,32 @@
 import Link from "next/link";
-import { TrendUpIcon, ReceiptIcon, UsersIcon, CoffeeIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  ArrowRightIcon,
+  CoffeeIcon,
+  ReceiptIcon,
+  TrendUpIcon,
+  UsersIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { listOrders } from "@/lib/admin-orders";
 import { peso } from "@/lib/menu";
 import { BRANCH_LIST, getBranch } from "@/lib/branches";
 import { STATUS_LABEL, type Order } from "@/lib/types";
+import { hrefWith, orderHref, stamp } from "@/components/admin/format";
+import {
+  RowArrow,
+  RowLink,
+  StatTile,
+  TableShell,
+  Th,
+  rowLinkClass,
+  tableHeadClass,
+} from "@/components/admin/report-ui";
+import { Spotlight } from "@/components/admin/spotlight";
 
 export const dynamic = "force-dynamic";
 
+const PATH = "/admin";
 const DAY = 86_400_000;
 const manilaDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" });
-const stamp = new Intl.DateTimeFormat("en-PH", {
-  timeZone: "Asia/Manila",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
 
 const revenueOf = (orders: Order[]) => orders.reduce((sum, o) => sum + o.subtotal, 0);
 
@@ -47,7 +58,13 @@ export default async function AdminOverviewPage() {
   const bySource = [
     ...BRANCH_LIST.map((branch) => {
       const list = paid.filter((o) => o.branchId === branch.id && !o.eventId);
-      return { key: branch.id, name: branch.name, revenue: revenueOf(list), count: list.length };
+      return {
+        key: branch.id,
+        name: branch.name,
+        revenue: revenueOf(list),
+        count: list.length,
+        href: hrefWith("/admin/sales", {}, { range: "all", source: "stores", branch: branch.id }),
+      };
     }),
     ...(boothSales.length > 0
       ? [
@@ -56,6 +73,7 @@ export default async function AdminOverviewPage() {
             name: "Bazaars and events",
             revenue: revenueOf(boothSales),
             count: boothSales.length,
+            href: hrefWith("/admin/sales", {}, { range: "all", source: "events" }),
           },
         ]
       : []),
@@ -76,25 +94,25 @@ export default async function AdminOverviewPage() {
 
       {/* Headline stats */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat
+        <StatTile
           icon={<TrendUpIcon size={20} weight="fill" />}
           label="Sales today"
           value={peso(revenueOf(paidToday))}
           sub={`${paidToday.length} ${paidToday.length === 1 ? "order" : "orders"}`}
         />
-        <Stat
+        <StatTile
           icon={<ReceiptIcon size={20} weight="fill" />}
           label="Last 7 days"
           value={peso(revenueOf(paid7))}
           sub={`${paid7.length} ${paid7.length === 1 ? "order" : "orders"}`}
         />
-        <Stat
+        <StatTile
           icon={<CoffeeIcon size={20} weight="fill" />}
           label="All-time sales"
           value={peso(revenueOf(paid))}
           sub={`${paid.length} paid`}
         />
-        <Stat
+        <StatTile
           icon={<UsersIcon size={20} weight="fill" />}
           label="In progress"
           value={String(activeCount)}
@@ -107,12 +125,13 @@ export default async function AdminOverviewPage() {
         <section>
           <h2 className="text-[15px] font-semibold text-ink">Where sales came from</h2>
           <div className="mt-3 flex flex-col gap-2.5">
-            {bySource.map(({ key, name, revenue, count }) => (
-              <div
+            {bySource.map(({ key, name, revenue, count, href }) => (
+              <Link
                 key={key}
-                className="flex items-center justify-between rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3.5"
+                href={href}
+                className="lift-card flex items-center gap-4 rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3.5"
               >
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-[15px] font-semibold text-ink">{name}</p>
                   <p className="text-[12.5px] text-ink-soft">
                     {count} {count === 1 ? "order" : "orders"}
@@ -121,7 +140,13 @@ export default async function AdminOverviewPage() {
                 <p className="text-[16px] font-semibold tabular-nums text-ink">
                   {peso(revenue)}
                 </p>
-              </div>
+                <ArrowRightIcon
+                  size={16}
+                  weight="bold"
+                  aria-hidden
+                  className="lift-arrow -ml-1 shrink-0 text-coffee"
+                />
+              </Link>
             ))}
           </div>
         </section>
@@ -133,19 +158,18 @@ export default async function AdminOverviewPage() {
           ) : (
             <ol className="mt-3 flex flex-col gap-2">
               {topItems.map((item, i) => (
-                <li
-                  key={item.name}
-                  className="flex items-center gap-3 rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3"
-                >
-                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-coffee-tint/70 text-[13px] font-bold text-coffee">
-                    {i + 1}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-[14.5px] font-medium text-ink">
-                    {item.name}
-                  </span>
-                  <span className="shrink-0 text-[13px] text-ink-soft">
-                    {item.qty} sold · {peso(item.revenue)}
-                  </span>
+                <li key={item.name}>
+                  <Spotlight className="flex items-center gap-3 rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3">
+                    <span className="spot-rank grid size-7 shrink-0 place-items-center rounded-full bg-coffee-tint/70 text-[13px] font-bold text-coffee">
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-[14.5px] font-medium text-ink">
+                      {item.name}
+                    </span>
+                    <span className="shrink-0 text-[13px] tabular-nums text-ink-soft">
+                      {item.qty} sold · {peso(item.revenue)}
+                    </span>
+                  </Spotlight>
                 </li>
               ))}
             </ol>
@@ -161,23 +185,28 @@ export default async function AdminOverviewPage() {
             All transactions
           </Link>
         </div>
-        <div className="mt-3 overflow-x-auto rounded-[var(--radius-md)] border border-line">
-          <table className="w-full min-w-[560px] text-left text-[14px]">
-            <thead className="bg-paper-sunk text-[12.5px] uppercase tracking-wide text-ink-faint">
+        <div className="mt-3">
+          <TableShell minWidth="600px">
+            <thead className={tableHeadClass}>
               <tr>
                 <Th>Code</Th>
                 <Th>Branch</Th>
                 <Th>When</Th>
                 <Th>Status</Th>
                 <Th className="text-right">Total</Th>
+                <Th />
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
               {orders.slice(0, 12).map((o) => (
-                <tr key={o.id} className="bg-paper-raised">
-                  <td className="px-4 py-3 font-semibold text-ink">{o.code}</td>
+                <tr key={o.id} className={rowLinkClass}>
+                  <td className="px-4 py-3">
+                    <RowLink href={orderHref(o.id, PATH)} label={`Open order ${o.code}`}>
+                      {o.code}
+                    </RowLink>
+                  </td>
                   <td className="px-4 py-3 text-ink-soft">{getBranch(o.branchId).name}</td>
-                  <td className="px-4 py-3 text-ink-soft">{stamp.format(o.createdAt)}</td>
+                  <td className="px-4 py-3 text-ink-soft">{stamp(o.createdAt)}</td>
                   <td className="px-4 py-3">
                     <span className="rounded-full bg-paper-sunk px-2.5 py-1 text-[12px] font-medium text-ink-soft">
                       {STATUS_LABEL[o.status]}
@@ -187,10 +216,11 @@ export default async function AdminOverviewPage() {
                     {peso(o.subtotal)}
                     {!o.paid && <span className="ml-1 text-[11px] text-warn">unpaid</span>}
                   </td>
+                  <RowArrow />
                 </tr>
               ))}
             </tbody>
-          </table>
+          </TableShell>
         </div>
         {orders.length === 0 && (
           <p className="mt-4 text-center text-[14px] text-ink-soft">
@@ -204,31 +234,4 @@ export default async function AdminOverviewPage() {
       </section>
     </div>
   );
-}
-
-function Stat({
-  icon,
-  label,
-  value,
-  sub,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  sub: string;
-}) {
-  return (
-    <div className="rounded-[var(--radius-md)] border border-line bg-paper-raised p-4">
-      <div className="flex items-center gap-2 text-coffee">
-        {icon}
-        <span className="text-[12.5px] font-medium text-ink-soft">{label}</span>
-      </div>
-      <p className="mt-2 text-[22px] font-bold tracking-tight text-ink">{value}</p>
-      <p className="text-[12.5px] text-ink-faint">{sub}</p>
-    </div>
-  );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <th className={`px-4 py-2.5 font-semibold ${className ?? ""}`}>{children}</th>;
 }

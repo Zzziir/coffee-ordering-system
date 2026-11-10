@@ -222,7 +222,7 @@ export function NewOrderForm({
                         key={item.id}
                         type="button"
                         onClick={() => setSheetItem(item)}
-                        className="pressable flex items-center gap-3 rounded-[var(--radius-sm)] px-2 py-1.5 text-left transition-colors hover:bg-paper-sunk"
+                        className="pressable group flex items-center gap-3 rounded-[var(--radius-sm)] px-2 py-1.5 text-left transition-colors hover:bg-paper-sunk"
                       >
                         <span className="min-w-0 flex-1 truncate text-[14.5px] text-ink">
                           {item.name}
@@ -230,8 +230,12 @@ export function NewOrderForm({
                             {peso(item.price)}
                           </span>
                         </span>
-                        <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-ink">
-                          <PlusIcon size={15} weight="bold" />
+                        <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-ink transition-colors duration-200 group-hover:border-coffee group-hover:bg-coffee group-hover:text-paper">
+                          <PlusIcon
+                            size={15}
+                            weight="bold"
+                            className="transition-transform duration-300 ease-[var(--ease-out)] motion-safe:group-hover:rotate-90"
+                          />
                         </span>
                       </button>
                     ))}

@@ -7,15 +7,18 @@ import { listEvents } from "@/lib/sales-events";
 import { paginate } from "@/lib/paginate";
 import { PAYMENT_LABEL, STATUS_LABEL, type PaymentMethod } from "@/lib/types";
 import { FilterSelect } from "@/components/admin/filter-select";
-import { hrefWith, plural, stamp } from "@/components/admin/format";
+import { hrefWith, orderHref, plural, stamp } from "@/components/admin/format";
 import {
   EmptyState,
   FilterPills,
   PageHeader,
   Pagination,
+  RowArrow,
+  RowLink,
   SearchField,
   TableShell,
   Th,
+  rowLinkClass,
   tableHeadClass,
 } from "@/components/admin/report-ui";
 import { EventSelect } from "./event-select";
@@ -82,6 +85,8 @@ export default async function AdminTransactionsPage({
   const filtered = Boolean(query.event || query.branch || query.pay || query.q);
   const page = paginate(orders, params.page, PAGE_SIZE);
   const eventOptions = events.map((e) => ({ id: e.id, name: e.name }));
+  // Where an opened order's back link returns: this exact view.
+  const here = hrefWith(PATH, query, { page: page.page > 1 ? String(page.page) : undefined });
 
   return (
     <div className="flex flex-col gap-6">
@@ -90,7 +95,7 @@ export default async function AdminTransactionsPage({
         sub={
           <>
             {plural(orders.length, "order")}, {peso(totals.revenue)} paid.
-            {" "}Use the last column to move a sale onto a bazaar, or back to the store.
+            {" "}Open any row for the full receipt and timeline.
           </>
         }
       >
@@ -185,7 +190,7 @@ export default async function AdminTransactionsPage({
         </EmptyState>
       ) : (
         <>
-          <TableShell minWidth="860px">
+          <TableShell minWidth="900px">
             <thead className={tableHeadClass}>
               <tr>
                 <Th>Code</Th>
@@ -195,19 +200,25 @@ export default async function AdminTransactionsPage({
                 <Th>Paid by</Th>
                 <Th className="text-right">Total</Th>
                 <Th>Sold at</Th>
+                <Th />
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
               {page.rows.map((o) => (
-                <tr key={o.id} className="bg-paper-raised align-middle">
+                <tr key={o.id} className={`${rowLinkClass} align-middle`}>
                   <td className="px-4 py-3">
-                    <span className="font-semibold text-ink">{o.code}</span>
+                    <RowLink href={orderHref(o.id, here)} label={`Open order ${o.code}`}>
+                      {o.code}
+                    </RowLink>
                     <span className="block text-[12px] text-ink-faint">{getBranch(o.branchId).name}</span>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-ink-soft">{stamp(o.createdAt)}</td>
                   <td className="px-4 py-3 text-ink-soft">
                     {o.customerId ? (
-                      <Link href={`/admin/customers/${o.customerId}`} className="font-medium text-coffee">
+                      <Link
+                        href={`/admin/customers/${o.customerId}`}
+                        className="row-above font-medium text-coffee hover:underline"
+                      >
                         {o.customerName}
                       </Link>
                     ) : (
@@ -228,13 +239,16 @@ export default async function AdminTransactionsPage({
                     )}
                   </td>
                   <td className="px-4 py-2">
-                    <EventSelect
+                    <div className="row-above">
+                      <EventSelect
                       orderId={o.id}
                       orderCode={o.code}
                       eventId={o.eventId}
-                      events={eventOptions}
-                    />
+                        events={eventOptions}
+                      />
+                    </div>
                   </td>
+                  <RowArrow />
                 </tr>
               ))}
             </tbody>

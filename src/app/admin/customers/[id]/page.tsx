@@ -19,14 +19,17 @@ import { STAMPS_PER_REWARD, peso } from "@/lib/menu";
 import { listEvents } from "@/lib/sales-events";
 import { PAYMENT_LABEL, STATUS_LABEL } from "@/lib/types";
 import { RankBars } from "@/components/admin/charts";
-import { ago, fullDay, percent, plural, stamp } from "@/components/admin/format";
+import { ago, fullDay, orderHref, percent, plural, stamp } from "@/components/admin/format";
 import {
   EmptyState,
   Pagination,
   Panel,
+  RowArrow,
+  RowLink,
   StatTile,
   TableShell,
   Th,
+  rowLinkClass,
   tableHeadClass,
 } from "@/components/admin/report-ui";
 import { SegmentBadge } from "../segment-badge";
@@ -60,6 +63,7 @@ export default async function AdminCustomerPage({
   const stats = customerStats(paid, now);
   const eventName = new Map(events.map((e) => [e.id, e.name]));
   const history = paginate(orders, requestedPage, HISTORY_PAGE_SIZE);
+  const here = `/admin/customers/${profile.id}${history.page > 1 ? `?page=${history.page}` : ""}#history`;
 
   const places = breakdown(
     paid,
@@ -200,7 +204,7 @@ export default async function AdminCustomerPage({
             This customer has an account but hasn&apos;t placed an order while signed in.
           </EmptyState>
         ) : (
-          <TableShell minWidth="680px">
+          <TableShell minWidth="720px">
             <thead className={tableHeadClass}>
               <tr>
                 <Th>Code</Th>
@@ -209,12 +213,17 @@ export default async function AdminCustomerPage({
                 <Th>Where</Th>
                 <Th>Paid by</Th>
                 <Th className="text-right">Total</Th>
+                <Th />
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
               {history.rows.map((o) => (
-                <tr key={o.id} className="bg-paper-raised">
-                  <td className="px-4 py-3 font-semibold text-ink">{o.code}</td>
+                <tr key={o.id} className={rowLinkClass}>
+                  <td className="px-4 py-3">
+                    <RowLink href={orderHref(o.id, here)} label={`Open order ${o.code}`}>
+                      {o.code}
+                    </RowLink>
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3 text-ink-soft">{stamp(o.createdAt)}</td>
                   <td className="max-w-[16rem] truncate px-4 py-3 text-ink-soft">
                     {o.items.map((l) => `${l.qty}× ${l.name}`).join(", ")}
@@ -231,6 +240,7 @@ export default async function AdminCustomerPage({
                       </span>
                     )}
                   </td>
+                  <RowArrow />
                 </tr>
               ))}
             </tbody>

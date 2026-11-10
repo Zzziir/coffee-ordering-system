@@ -148,7 +148,7 @@ function InquiryCard({ inquiry: i }: { inquiry: Inquiry }) {
   return (
     <li
       className={clsx(
-        "rounded-[var(--radius-lg)] border bg-paper-raised p-5",
+        "quiet-hover rounded-[var(--radius-lg)] border bg-paper-raised p-5",
         i.status === "closed" ? "border-line opacity-70" : "border-line",
       )}
     >

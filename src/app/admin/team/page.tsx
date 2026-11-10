@@ -12,7 +12,7 @@ import {
   visibleTo,
   type Teammate,
 } from "@/lib/team-rules";
-import { hrefWith } from "@/components/admin/format";
+import { hrefWith, initials } from "@/components/admin/format";
 import {
   EmptyState,
   FilterPills,
@@ -37,15 +37,6 @@ function byRoster(a: Teammate, b: Teammate) {
     ROLE_ORDER[a.role] - ROLE_ORDER[b.role] ||
     a.name.localeCompare(b.name)
   );
-}
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]!.toUpperCase())
-    .join("");
 }
 
 export default async function AdminTeamPage({
@@ -118,7 +109,7 @@ export default async function AdminTeamPage({
               return (
                 <tr
                   key={member.id}
-                  className={clsx("bg-paper-raised align-middle", !member.active && "text-ink-faint")}
+                  className={clsx("quiet-hover bg-paper-raised align-middle", !member.active && "text-ink-faint")}
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">

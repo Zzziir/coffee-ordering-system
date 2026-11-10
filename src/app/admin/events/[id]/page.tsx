@@ -28,13 +28,16 @@ import { peso } from "@/lib/menu";
 import { coversDay, getEvent, reconcileCash } from "@/lib/sales-events";
 import { PAYMENT_LABEL, type PaymentMethod } from "@/lib/types";
 import { CumulativeChart, RankBars, type ChartPoint } from "@/components/admin/charts";
-import { dateSpan, percent, plural, shortDay, stamp, weekdayHour } from "@/components/admin/format";
+import { dateSpan, orderHref, percent, plural, shortDay, stamp, weekdayHour } from "@/components/admin/format";
 import {
   EmptyState,
   Panel,
+  RowArrow,
+  RowLink,
   StatTile,
   TableShell,
   Th,
+  rowLinkClass,
   tableHeadClass,
 } from "@/components/admin/report-ui";
 import { clsx } from "@/lib/clsx";
@@ -292,12 +295,17 @@ export default async function AdminEventPage({ params }: { params: Promise<{ id:
                 <Th>Items</Th>
                 <Th>Paid by</Th>
                 <Th className="text-right">Total</Th>
+                <Th />
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
               {orders.slice(0, RECENT_SALES).map((o) => (
-                <tr key={o.id} className="bg-paper-raised">
-                  <td className="px-4 py-3 font-semibold text-ink">{o.code}</td>
+                <tr key={o.id} className={rowLinkClass}>
+                  <td className="px-4 py-3">
+                    <RowLink href={orderHref(o.id, `/admin/events/${event.id}`)} label={`Open order ${o.code}`}>
+                      {o.code}
+                    </RowLink>
+                  </td>
                   <td className="px-4 py-3 text-ink-soft">{stamp(o.createdAt)}</td>
                   <td className="max-w-[16rem] truncate px-4 py-3 text-ink-soft">
                     {o.items.map((l) => `${l.qty}× ${l.name}`).join(", ")}
@@ -306,6 +314,7 @@ export default async function AdminEventPage({ params }: { params: Promise<{ id:
                   <td className="px-4 py-3 text-right font-semibold tabular-nums text-ink">
                     {peso(o.subtotal)}
                   </td>
+                  <RowArrow />
                 </tr>
               ))}
             </tbody>

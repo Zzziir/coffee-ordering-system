@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarBlankIcon, MapPinIcon, PlusIcon } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRightIcon, CalendarBlankIcon, MapPinIcon, PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import { listOrders } from "@/lib/admin-orders";
 import { dayKey, summarize } from "@/lib/analytics";
 import { getBranch } from "@/lib/branches";
@@ -89,9 +89,12 @@ function EventGroup({
             <li key={event.id}>
               <Link
                 href={`/admin/events/${event.id}`}
-                className="menu-card flex h-full flex-col rounded-[var(--radius-md)] border border-line bg-paper-raised p-4"
+                className="lift-card flex h-full flex-col rounded-[var(--radius-md)] border border-line bg-paper-raised p-4"
               >
-                <p className="text-[16px] font-semibold leading-snug text-ink">{event.name}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-[16px] font-semibold leading-snug text-ink">{event.name}</p>
+                  <ArrowRightIcon size={16} weight="bold" aria-hidden className="lift-arrow mt-1 shrink-0 text-coffee" />
+                </div>
                 <p className="mt-1.5 flex items-center gap-1.5 text-[13.5px] text-ink-soft">
                   <CalendarBlankIcon size={15} className="shrink-0 text-ink-faint" />
                   {dateSpan(event.startsOn, event.endsOn)}

@@ -234,17 +234,17 @@ export function RankBars({ rows, empty }: { rows: RankRow[]; empty: string }) {
   return (
     <ol className="flex flex-col gap-3">
       {rows.map((row) => (
-        <li key={row.key}>
+        <li key={row.key} className="rank-row">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="min-w-0 truncate text-[14px] font-medium text-ink">{row.label}</span>
+            <span className="rank-label min-w-0 truncate text-[14px] font-medium text-ink">{row.label}</span>
             <span className="shrink-0 text-[13.5px] tabular-nums text-ink">
               {row.note && <span className="mr-2 text-ink-faint">{row.note}</span>}
               <span className="font-semibold">{row.display}</span>
             </span>
           </div>
-          <div className="mt-1.5 h-2 rounded-full bg-paper-sunk">
+          <div className="rank-track mt-1.5 h-2 rounded-full bg-paper-sunk">
             <div
-              className="h-full rounded-full bg-coffee"
+              className="rank-fill h-full rounded-full bg-coffee"
               style={{ width: `${(row.value / top) * 100}%`, minWidth: row.value > 0 ? 4 : 0 }}
             />
           </div>
@@ -290,7 +290,7 @@ export function RushHeatmap({ grid, rowLabels }: { grid: number[][]; rowLabels: 
                     key={hour}
                     tabIndex={0}
                     aria-label={`${name}: ${count} ${count === 1 ? "order" : "orders"}`}
-                    className="group relative h-6 min-w-0 flex-1 rounded-[3px] bg-paper-sunk outline-none focus-visible:ring-2 focus-visible:ring-coffee"
+                    className="group relative h-6 min-w-0 flex-1 rounded-[3px] bg-paper-sunk outline-none hover:z-10 hover:ring-2 hover:ring-coffee focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-coffee"
                   >
                     {count > 0 && (
                       <span

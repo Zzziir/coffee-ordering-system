@@ -279,6 +279,227 @@ html.dark {
   }
 }
 
+/*
+  Back office motion. One rule keeps it honest: things that open something lift
+  and point (an arrow slides in); things that only report catch the light (a
+  coffee glow follows the pointer) and never lift, so nothing looks clickable
+  that isn't. All of it is gated to real hover devices, so a tap on a tablet
+  never leaves a card stuck mid-effect.
+*/
+
+/* Pointer glow. components/admin/spotlight writes --spot-x/--spot-y onto the
+   element itself on pointermove. Painted on a ::before behind the content
+   (isolation keeps z-index -1 above the card's own background). */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+  transition: border-color 220ms var(--ease-out);
+}
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    260px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in srgb, var(--color-coffee) 16%, transparent),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 300ms var(--ease-out);
+}
+
+/* The stat tile icon tips and grows with a hint of overshoot: the one playful
+   beat on a tile that is otherwise all numbers. */
+.spot-icon {
+  transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Rank badge in a leaderboard row fills with coffee on hover. */
+.spot-rank {
+  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out),
+    transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* A card that opens something: lifts, borrows a coffee border, and its
+   trailing arrow slides in from the left. */
+.lift-card {
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out),
+    border-color 200ms var(--ease-out);
+  touch-action: manipulation;
+}
+.lift-card:active {
+  transform: scale(0.985);
+}
+.lift-arrow {
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 180ms var(--ease-out), transform 220ms var(--ease-out);
+}
+
+/* A table row that opens an order. The real link sits in the first cell and
+   stretches over the row with ::after (the row is the containing block). On
+   hover the row warms, the order code takes the coffee colour and leans toward
+   the arrow sliding in at the far end. Controls inside the row (a customer
+   link, the event picker) sit above the link with .row-above. */
+.row-link {
+  position: relative;
+  transition: background-color 160ms ease;
+}
+.row-link-anchor {
+  outline: none;
+  transition: color 160ms ease;
+}
+/* The nudge moves an inner span, never the anchor: a transformed anchor would
+   become the containing block of its ::after and shrink the click area to the
+   text, right as the pointer arrives. */
+.row-link-text {
+  display: inline-block;
+  transition: transform 220ms var(--ease-out);
+}
+.row-link-anchor::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.row-link-anchor:focus-visible::after {
+  outline: 2px solid var(--color-coffee);
+  outline-offset: -2px;
+}
+.row-above {
+  position: relative;
+  z-index: 2;
+}
+.row-link-arrow {
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 180ms var(--ease-out), transform 220ms var(--ease-out);
+}
+.row-link:active {
+  background-color: color-mix(in srgb, var(--color-coffee-tint) 90%, var(--color-paper-raised));
+}
+.row-link:has(.row-link-anchor:focus-visible) .row-link-arrow {
+  opacity: 1;
+  transform: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .spotlight:hover {
+    border-color: color-mix(in srgb, var(--color-coffee) 30%, var(--color-line));
+  }
+  .spotlight:hover::before {
+    opacity: 1;
+  }
+  .spotlight:hover .spot-icon {
+    transform: rotate(-10deg) scale(1.18);
+  }
+  .spotlight:hover .spot-rank {
+    background-color: var(--color-coffee);
+    color: var(--color-paper);
+    transform: scale(1.1);
+  }
+
+  .lift-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+    border-color: color-mix(in srgb, var(--color-coffee) 40%, var(--color-line));
+  }
+  .lift-card:hover .lift-arrow {
+    opacity: 1;
+    transform: none;
+  }
+  .lift-card:active {
+    transform: translateY(-1px) scale(0.985);
+  }
+
+  .row-link:hover {
+    background-color: color-mix(in srgb, var(--color-coffee-tint) 55%, var(--color-paper-raised));
+  }
+  .row-link:hover .row-link-anchor {
+    color: var(--color-coffee);
+  }
+  .row-link:hover .row-link-text {
+    transform: translateX(3px);
+  }
+  .row-link:hover .row-link-arrow {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A row or card that holds controls but opens nothing (menu items, team
+   members, inquiries): it only warms under the pointer, to show which one the
+   controls belong to. No lift, because there is nowhere to go. */
+.quiet-hover {
+  transition: background-color 160ms ease, border-color 200ms var(--ease-out),
+    opacity 200ms ease;
+}
+
+/* A ranked bar (top items, payment methods): the hovered row's label takes the
+   coffee colour and its bar thickens and deepens, to pick it out of the list. */
+.rank-label {
+  transition: color 160ms ease;
+}
+.rank-track {
+  transform-origin: left center;
+  transition: transform 240ms var(--ease-out);
+}
+.rank-fill {
+  transition: background-color 200ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .quiet-hover:hover {
+    background-color: color-mix(in srgb, var(--color-coffee-tint) 40%, var(--color-paper-raised));
+    border-color: color-mix(in srgb, var(--color-coffee) 25%, var(--color-line));
+  }
+  .rank-row:hover .rank-label {
+    color: var(--color-coffee);
+  }
+  .rank-row:hover .rank-track {
+    transform: scaleY(1.5);
+  }
+  .rank-row:hover .rank-fill {
+    background-color: var(--color-coffee-deep);
+  }
+}
+
+/* Detail pages settle in: short and small, because they open often. */
+@keyframes craffe-settle {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.settle {
+  animation: craffe-settle 280ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spot-icon,
+  .spot-rank,
+  .lift-card,
+  .lift-arrow,
+  .row-link-anchor,
+  .row-link-arrow {
+    transition-property: opacity, background-color, color, border-color, box-shadow;
+  }
+  .spotlight:hover .spot-icon,
+  .spotlight:hover .spot-rank,
+  .row-link:hover .row-link-text,
+  .rank-row:hover .rank-track,
+  .lift-card:hover,
+  .lift-card:active {
+    transform: none;
+  }
+  .settle {
+    animation: none;
+  }
+}
+
 /* Wordmark tracking to echo the logo's geometric spacing */
 .wordmark {
   font-weight: 700;

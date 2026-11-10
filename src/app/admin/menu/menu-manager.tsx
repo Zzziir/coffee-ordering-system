@@ -186,7 +186,7 @@ function ItemRow({
   return (
     <div
       className={clsx(
-        "flex items-center gap-3 rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3 transition-opacity",
+        "quiet-hover flex items-center gap-3 rounded-[var(--radius-md)] border border-line bg-paper-raised px-4 py-3",
         !available && "opacity-60",
       )}
     >

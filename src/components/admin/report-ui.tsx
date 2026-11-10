@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowDownRightIcon,
+  ArrowRightIcon,
   ArrowUpRightIcon,
   CaretLeftIcon,
   CaretRightIcon,
@@ -10,6 +11,7 @@ import {
 import { clsx } from "@/lib/clsx";
 import { pageWindow, type Page } from "@/lib/paginate";
 import { plural } from "./format";
+import { Spotlight } from "./spotlight";
 
 /** Shared building blocks for the back office report pages. */
 
@@ -78,18 +80,18 @@ export function StatTile({
   versus?: string;
 }) {
   return (
-    <div className="rounded-[var(--radius-md)] border border-line bg-paper-raised p-4">
+    <Spotlight className="rounded-[var(--radius-md)] border border-line bg-paper-raised p-4">
       <div className="flex items-center gap-2 text-coffee">
-        {icon}
+        {icon && <span className="spot-icon inline-flex">{icon}</span>}
         <span className="text-[12.5px] font-medium text-ink-soft">{label}</span>
       </div>
-      <p className="mt-2 text-[22px] font-bold tracking-tight text-ink">{value}</p>
+      <p className="mt-2 text-[22px] font-bold tracking-tight tabular-nums text-ink">{value}</p>
       {delta !== null && delta !== undefined ? (
         <Delta value={delta} versus={versus} />
       ) : (
         sub && <p className="text-[12.5px] text-ink-faint">{sub}</p>
       )}
-    </div>
+    </Spotlight>
   );
 }
 
@@ -309,3 +311,36 @@ export function TableShell({ children, minWidth }: { children: React.ReactNode; 
 }
 
 export const tableHeadClass = "bg-paper-sunk text-[12.5px] uppercase tracking-wide text-ink-faint";
+
+/**
+ * Rows that open something. Put `rowLinkClass` on the <tr>, a <RowLink> in its
+ * first cell (the link stretches over the whole row), and finish the row with
+ * <RowArrow />, under an empty <Th />. Anything else clickable in the row
+ * takes `row-above` so it stays reachable over the stretched link.
+ */
+export const rowLinkClass = "row-link bg-paper-raised";
+
+export function RowLink({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  /** What opening it does, for screen readers: "Open order R66". */
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link href={href} aria-label={label} className="row-link-anchor font-semibold text-ink">
+      <span className="row-link-text">{children}</span>
+    </Link>
+  );
+}
+
+export function RowArrow() {
+  return (
+    <td aria-hidden className="w-10 py-3 pr-4 text-right">
+      <ArrowRightIcon size={16} weight="bold" className="row-link-arrow inline-block text-coffee" />
+    </td>
+  );
+}

@@ -27,10 +27,13 @@ import {
   PageHeader,
   Pagination,
   Panel,
+  RowArrow,
+  RowLink,
   SearchField,
   StatTile,
   TableShell,
   Th,
+  rowLinkClass,
   tableHeadClass,
 } from "@/components/admin/report-ui";
 import { SegmentBadge } from "./segment-badge";
@@ -197,7 +200,7 @@ export default async function AdminCustomersPage({
               )}
           </EmptyState>
         ) : (
-          <TableShell minWidth="820px">
+          <TableShell minWidth="860px">
             <thead className={tableHeadClass}>
               <tr>
                 <Th>Customer</Th>
@@ -207,15 +210,16 @@ export default async function AdminCustomersPage({
                 <Th className="text-right">Avg order</Th>
                 <Th>Last order</Th>
                 <Th>Usually orders</Th>
+                <Th />
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
               {page.rows.map((c) => (
-                <tr key={c.id} className="bg-paper-raised">
+                <tr key={c.id} className={rowLinkClass}>
                   <td className="px-4 py-3">
-                    <Link href={`${PATH}/${c.id}`} className="font-semibold text-ink hover:text-coffee">
+                    <RowLink href={`${PATH}/${c.id}`} label={`Open ${c.firstName} ${c.lastName}`}>
                       {c.firstName} {c.lastName}
-                    </Link>
+                    </RowLink>
                     <span className="block text-[12.5px] text-ink-faint">{c.email}</span>
                   </td>
                   <td className="px-4 py-3">
@@ -239,6 +243,7 @@ export default async function AdminCustomersPage({
                       </span>
                     )}
                   </td>
+                  <RowArrow />
                 </tr>
               ))}
             </tbody>

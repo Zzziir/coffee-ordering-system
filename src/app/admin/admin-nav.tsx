@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MotionConfig, motion } from "motion/react";
 import {
   ChartBarIcon,
   ChartLineUpIcon,
@@ -26,13 +27,17 @@ const TABS = [
   { href: "/admin/orders/new", label: "Log order", icon: PlusCircleIcon },
 ];
 
-// The transactions list is the sales report's detail view, so it keeps the
-// Sales tab lit rather than claiming a tab of its own.
+// The transactions list and each order's page are the sales report's detail
+// views, so they keep the Sales tab lit rather than claiming a tab of their own.
 const TRANSACTIONS = "/admin/orders";
+const LOG_ORDER = "/admin/orders/new";
 
 function isActive(pathname: string, href: string) {
   if (href === "/admin") return pathname === "/admin";
-  if (href === "/admin/sales") return pathname.startsWith(href) || pathname === TRANSACTIONS;
+  if (href === "/admin/sales") {
+    const transactions = pathname === TRANSACTIONS || pathname.startsWith(`${TRANSACTIONS}/`);
+    return pathname.startsWith(href) || (transactions && !pathname.startsWith(LOG_ORDER));
+  }
   return pathname.startsWith(href);
 }
 
@@ -40,23 +45,40 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className={clsx(ADMIN_CONTAINER, "no-scrollbar flex gap-1 overflow-x-auto pb-2")}>
-      {TABS.map(({ href, label, icon: Icon }) => {
-        const active = isActive(pathname, href);
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={clsx(
-              "pressable flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[14px] font-medium transition-colors",
-              active ? "bg-ink text-paper" : "text-ink-soft hover:bg-paper-sunk hover:text-ink",
-            )}
-          >
-            <Icon size={17} weight={active ? "fill" : "regular"} />
-            {label}
-          </Link>
-        );
-      })}
-    </nav>
+    // The lit pill slides to the tab you open, so the move reads as one place
+    // changing rather than two tabs blinking. Reduced motion jumps it instead.
+    <MotionConfig reducedMotion="user">
+      <nav className={clsx(ADMIN_CONTAINER, "no-scrollbar flex gap-1 overflow-x-auto pb-2")}>
+        {TABS.map(({ href, label, icon: Icon }) => {
+          const active = isActive(pathname, href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              aria-current={active ? "page" : undefined}
+              className={clsx(
+                "pressable group relative isolate flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[14px] font-medium transition-colors duration-200",
+                active ? "text-paper" : "text-ink-soft hover:bg-paper-sunk hover:text-ink",
+              )}
+            >
+              {active && (
+                <motion.span
+                  layoutId="admin-nav-pill"
+                  aria-hidden
+                  className="absolute inset-0 -z-10 rounded-full bg-ink"
+                  transition={{ type: "spring", duration: 0.32, bounce: 0.12 }}
+                />
+              )}
+              <Icon
+                size={17}
+                weight={active ? "fill" : "regular"}
+                className="transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-safe:group-hover:-rotate-8 motion-safe:group-hover:scale-110"
+              />
+              {label}
+            </Link>
+          );
+        })}
+      </nav>
+    </MotionConfig>
   );
 }
