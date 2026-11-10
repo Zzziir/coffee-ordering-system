@@ -54,25 +54,6 @@ export function MenuManager({
           </Link>
         }
       >
-        <label className="flex h-10 items-center gap-1.5 rounded-full border border-coffee/60 bg-coffee-tint/50 pl-3.5 text-[13px] focus-within:border-coffee">
-          <StorefrontIcon size={16} weight="bold" className="shrink-0 text-coffee" />
-          <span className="shrink-0 text-ink-soft">Availability for</span>
-          {branches.length > 1 ? (
-            <Select
-              value={branch}
-              onChange={(e) => setBranch(e.target.value as BranchId)}
-              className="h-full bg-transparent font-semibold text-ink outline-none"
-            >
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </Select>
-          ) : (
-            <span className="pr-4 font-semibold text-ink">{branchName}</span>
-          )}
-        </label>
         <div role="search" className="relative w-full sm:w-64">
           <MagnifyingGlassIcon
             size={17}
@@ -82,7 +63,7 @@ export function MenuManager({
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search the menu"
+            placeholder="Search items"
             aria-label="Search the menu"
             className="h-10 w-full rounded-full border border-line bg-paper-raised pl-10 pr-10 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee [&::-webkit-search-cancel-button]:hidden"
           />
@@ -97,19 +78,45 @@ export function MenuManager({
             </button>
           )}
         </div>
-        <button
-          type="button"
-          aria-pressed={soldOutOnly}
-          onClick={() => setSoldOutOnly((on) => !on)}
-          className={clsx(
-            "pressable h-10 rounded-full border px-4 text-[13px] font-medium transition-colors",
-            soldOutOnly
-              ? "border-ink bg-ink text-paper"
-              : "border-line bg-paper-raised text-ink-soft hover:text-ink",
+        {/* Names the store the switches below act on. Owners can switch it;
+            a manager only ever sees their own. */}
+        <label className="flex h-10 items-center gap-1.5 rounded-full border border-line bg-paper-raised pl-3.5 text-[13px] focus-within:border-coffee">
+          <StorefrontIcon size={16} weight="bold" className="shrink-0 text-coffee" />
+          {branches.length > 1 ? (
+            <Select
+              value={branch}
+              onChange={(e) => setBranch(e.target.value as BranchId)}
+              aria-label="Branch the availability switches act on"
+              className="h-full bg-transparent font-semibold text-ink outline-none"
+            >
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </Select>
+          ) : (
+            <span className="pr-4 font-semibold text-ink">{branchName}</span>
           )}
-        >
-          Sold out at {branchName} ({soldOutCount})
-        </button>
+        </label>
+        {/* Only offered when there is something to find. */}
+        {(soldOutCount > 0 || soldOutOnly) && (
+          <button
+            type="button"
+            aria-pressed={soldOutOnly}
+            onClick={() => setSoldOutOnly((on) => !on)}
+            className={clsx(
+              "pressable inline-flex h-10 items-center gap-2 rounded-full border px-3.5 text-[13px] font-medium transition-colors",
+              soldOutOnly
+                ? "border-ink bg-ink text-paper"
+                : "border-line bg-paper-raised text-ink-soft hover:text-ink",
+            )}
+          >
+            <span aria-hidden className={clsx("size-1.5 rounded-full", soldOutOnly ? "bg-paper" : "bg-warn")} />
+            Sold out
+            <span className="tabular-nums opacity-70">{soldOutCount}</span>
+          </button>
+        )}
       </StickyToolbar>
 
       {sections.length === 0 && (

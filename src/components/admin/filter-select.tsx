@@ -1,12 +1,35 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { Fragment, useTransition } from "react";
 import { clsx } from "@/lib/clsx";
 import { Select } from "@/components/select";
 import { hrefWith } from "./format";
 
-export type SelectOption = { value: string; label: string };
+export type SelectOption = {
+  value: string;
+  label: string;
+  /** Shown but not pickable, e.g. a segment with nobody in it. */
+  disabled?: boolean;
+  /** Options sharing a group are listed together under that heading. */
+  group?: string;
+  /**
+   * The query params this option sets, when it stands for more than one (a
+   * "where" that sets both source and branch). Defaults to `{ [name]: value }`.
+   */
+  patch?: Record<string, string | undefined>;
+};
+
+/** Options in order, gathered into their groups where they have one. */
+function grouped(options: SelectOption[]) {
+  const sections: { group?: string; options: SelectOption[] }[] = [];
+  for (const option of options) {
+    const last = sections.at(-1);
+    if (last && last.group === option.group) last.options.push(option);
+    else sections.push({ group: option.group, options: [option] });
+  }
+  return sections;
+}
 
 /**
  * A filter with too many choices for a row of pills. Like the pills, it lives
@@ -46,16 +69,26 @@ export function FilterSelect({
       <Select
         value={value}
         onChange={(e) => {
-          const next = e.target.value || undefined;
-          startTransition(() => router.push(hrefWith(path, query, { [name]: next }), { scroll: false }));
+          const picked = options.find((option) => option.value === e.target.value);
+          const patch = picked?.patch ?? { [name]: e.target.value || undefined };
+          startTransition(() => router.push(hrefWith(path, query, patch), { scroll: false }));
         }}
         className="h-full max-w-[13rem] bg-transparent font-semibold text-ink outline-none"
       >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
+        {grouped(options).map((section, i) => {
+          const items = section.options.map((option) => (
+            <option key={option.value} value={option.value} disabled={option.disabled}>
+              {option.label}
+            </option>
+          ));
+          return section.group ? (
+            <optgroup key={section.group} label={section.group}>
+              {items}
+            </optgroup>
+          ) : (
+            <Fragment key={`plain-${i}`}>{items}</Fragment>
+          );
+        })}
       </Select>
     </label>
   );

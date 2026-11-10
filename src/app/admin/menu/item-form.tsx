@@ -2,21 +2,40 @@
 
 import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { ImageIcon, UploadSimpleIcon } from "@phosphor-icons/react";
+import { CheckIcon, ImageIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { saveItem, type ItemFormState } from "./actions";
 import type { Category, DietTag, MenuItem } from "@/lib/menu";
 import { Select } from "@/components/select";
+import { clsx } from "@/lib/clsx";
 
 const inputClass =
   "h-12 w-full rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-coffee";
 
-const TAGS: { id: DietTag; label: string }[] = [
-  { id: "coffee", label: "Has coffee" },
-  { id: "caffeine-free", label: "Caffeine-free" },
-  { id: "dairy", label: "Contains dairy" },
-  { id: "oat-available", label: "Oat milk available" },
-  { id: "contains-nuts", label: "Contains nuts" },
-  { id: "vegan-friendly", label: "Dairy-free" },
+type TagOption = { id: DietTag; label: string };
+
+/**
+ * The diet tags, chunked by what they answer, so the eye takes three short
+ * questions instead of six loose chips. Within a row, `oneOf` options rule
+ * each other out (a drink can't have coffee and be caffeine-free), so picking
+ * one clears the other; the rest stand on their own.
+ */
+const TAG_GROUPS: { label: string; oneOf: TagOption[]; also?: TagOption[] }[] = [
+  {
+    label: "Caffeine",
+    oneOf: [
+      { id: "coffee", label: "Has coffee" },
+      { id: "caffeine-free", label: "Caffeine-free" },
+    ],
+  },
+  {
+    label: "Dairy",
+    oneOf: [
+      { id: "dairy", label: "Contains dairy" },
+      { id: "vegan-friendly", label: "Dairy-free" },
+    ],
+    also: [{ id: "oat-available", label: "Oat milk available" }],
+  },
+  { label: "Allergens", oneOf: [], also: [{ id: "contains-nuts", label: "Contains nuts" }] },
 ];
 
 export function ItemForm({
@@ -82,37 +101,24 @@ export function ItemForm({
 
       <PhotoField current={item?.image} />
 
-      <fieldset>
-        <legend className="text-[14px] font-medium text-ink">Tags</legend>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {TAGS.map((t) => {
-            const checked = item?.tags?.includes(t.id);
-            return (
-              <label
-                key={t.id}
-                className="flex cursor-pointer items-center gap-2 rounded-full border border-line bg-paper-raised px-3.5 py-2 text-[13px] text-ink-soft has-[:checked]:border-coffee has-[:checked]:bg-coffee-tint/60 has-[:checked]:text-ink"
-              >
-                <input
-                  type="checkbox"
-                  name="tags"
-                  value={t.id}
-                  defaultChecked={checked}
-                  className="accent-coffee"
-                />
-                {t.label}
-              </label>
-            );
-          })}
-        </div>
-      </fieldset>
+      <DietTags initial={item?.tags ?? []} />
 
-      <div className="flex flex-col gap-2">
-        <Toggle name="signature" label="Signature (bestseller)" defaultChecked={item?.signature} />
-        <Toggle
-          name="available"
-          label="Listed at all branches"
-          defaultChecked={item ? item.available : true}
-        />
+      <div className="flex flex-col gap-1.5">
+        <span className="text-[14px] font-medium text-ink">On the menu</span>
+        <div className="divide-y divide-line rounded-[var(--radius-sm)] border border-line bg-paper-raised">
+          <SwitchRow
+            name="signature"
+            label="Signature"
+            hint="Marked as a bestseller wherever it's listed."
+            defaultChecked={item?.signature}
+          />
+          <SwitchRow
+            name="available"
+            label="Listed"
+            hint="Off takes it off the menu at every branch. For one store running out, use Sold out instead."
+            defaultChecked={item ? item.available : true}
+          />
+        </div>
       </div>
 
       {state?.error && (
@@ -237,19 +243,93 @@ function Label({
   );
 }
 
-function Toggle({
+/**
+ * The diet tags as three short rows. Each chip is a toggle; the chosen ones
+ * travel with the form as hidden `tags` fields, exactly as the checkboxes did.
+ */
+function DietTags({ initial }: { initial: DietTag[] }) {
+  const [chosen, setChosen] = useState<Set<DietTag>>(() => new Set(initial));
+
+  const toggle = (id: DietTag, rivals: TagOption[]) =>
+    setChosen((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else {
+        for (const rival of rivals) next.delete(rival.id);
+        next.add(id);
+      }
+      return next;
+    });
+
+  return (
+    <fieldset className="flex flex-col gap-1.5">
+      <legend className="flex items-center gap-2 text-[14px] font-medium text-ink">
+        Diet notes
+        <span className="text-[12px] font-normal text-ink-faint">Optional</span>
+      </legend>
+      <p className="-mt-0.5 text-[12.5px] text-ink-faint">The chat assistant uses these to answer diet questions.</p>
+      {[...chosen].map((id) => (
+        <input key={id} type="hidden" name="tags" value={id} />
+      ))}
+      <div className="mt-1 divide-y divide-line rounded-[var(--radius-sm)] border border-line bg-paper-raised">
+        {TAG_GROUPS.map((group) => (
+          <div key={group.label} className="flex items-start gap-4 px-4 py-3">
+            <span className="w-20 shrink-0 pt-2 text-[13px] text-ink-soft">{group.label}</span>
+            <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+              {[...group.oneOf, ...(group.also ?? [])].map((tag) => {
+                const on = chosen.has(tag.id);
+                const rivals = group.oneOf.some((t) => t.id === tag.id) ? group.oneOf : [];
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => toggle(tag.id, rivals)}
+                    className={clsx(
+                      "pressable inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors",
+                      on
+                        ? "border-coffee bg-coffee-tint text-ink"
+                        : "border-line text-ink-soft hover:border-line-strong hover:text-ink",
+                    )}
+                  >
+                    {on && <CheckIcon size={13} weight="bold" className="text-coffee" />}
+                    {tag.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+/** A labelled on/off switch that submits like a checkbox ("on" when set). */
+function SwitchRow({
   name,
   label,
+  hint,
   defaultChecked,
 }: {
   name: string;
   label: string;
+  hint: string;
   defaultChecked?: boolean;
 }) {
   return (
-    <label className="flex items-center gap-3 rounded-[var(--radius-sm)] border border-line bg-paper-raised px-4 py-3 text-[15px] text-ink">
-      <input type="checkbox" name={name} defaultChecked={defaultChecked} className="size-4 accent-coffee" />
-      {label}
+    <label className="flex cursor-pointer items-center gap-4 px-4 py-3">
+      <span className="min-w-0 flex-1">
+        <span className="block text-[14.5px] font-medium text-ink">{label}</span>
+        <span className="block text-[12.5px] text-ink-faint">{hint}</span>
+      </span>
+      <input type="checkbox" role="switch" name={name} defaultChecked={defaultChecked} className="peer sr-only" />
+      <span
+        aria-hidden
+        className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-line-strong px-0.5 transition-colors peer-checked:bg-coffee peer-focus-visible:ring-2 peer-focus-visible:ring-coffee/40 peer-checked:[&>span]:translate-x-5"
+      >
+        <span className="size-5 rounded-full bg-paper shadow-sm transition-transform duration-200 ease-[var(--ease-out)]" />
+      </span>
     </label>
   );
 }

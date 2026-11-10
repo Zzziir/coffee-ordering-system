@@ -23,7 +23,6 @@ import { FilterSelect } from "@/components/admin/filter-select";
 import { ago, hrefWith, percent } from "@/components/admin/format";
 import {
   EmptyState,
-  FilterPills,
   PageHeader,
   Pagination,
   Panel,
@@ -157,14 +156,28 @@ export default async function AdminCustomersPage({
 
       <section id="list" className="flex scroll-mt-32 flex-col gap-3">
         <StickyToolbar title="Customers" className="-mt-2">
-          <FilterPills
-            label="Segment"
+          <SearchField
+            path={PATH}
+            value={params.q ?? ""}
+            label="Search customers"
+            placeholder="Name, email or phone"
+            keep={{ ...query, q: undefined }}
+            clearHref={hrefWith(PATH, query, { q: undefined })}
+          />
+          {/* One standing at a time out of six: a select, with the empty ones
+              greyed out so nobody picks a view with nothing in it. */}
+          <FilterSelect
+            label="Standing"
+            name="segment"
+            value={segment ?? ""}
+            path={PATH}
+            query={query}
             options={[
-              { href: hrefWith(PATH, query, { segment: undefined }), label: `All ${customers.length}`, active: !segment },
+              { value: "", label: `Everyone (${customers.length})` },
               ...SEGMENTS.map((s) => ({
-                href: hrefWith(PATH, query, { segment: s }),
-                label: `${SEGMENT_LABEL[s]} ${counts.get(s) ?? 0}`,
-                active: s === segment,
+                value: s,
+                label: `${SEGMENT_LABEL[s]} (${counts.get(s) ?? 0})`,
+                disabled: !counts.get(s) && s !== segment,
               })),
             ]}
           />
@@ -175,14 +188,6 @@ export default async function AdminCustomersPage({
             path={PATH}
             query={query}
             options={SORTS.map(({ value, label }) => ({ value, label }))}
-          />
-          <SearchField
-            path={PATH}
-            value={params.q ?? ""}
-            label="Search customers"
-            placeholder="Search name, email, phone"
-            keep={{ ...query, q: undefined }}
-            clearHref={hrefWith(PATH, query, { q: undefined })}
           />
         </StickyToolbar>
 

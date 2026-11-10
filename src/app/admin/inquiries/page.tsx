@@ -13,6 +13,7 @@ import { INQUIRY_STATUSES, listInquiries, type Inquiry, type InquiryKind } from 
 import { clsx } from "@/lib/clsx";
 import { paginate } from "@/lib/paginate";
 import { hrefWith } from "@/components/admin/format";
+import { FilterSelect } from "@/components/admin/filter-select";
 import { EmptyState, FilterPills, Pagination, StickyHeader } from "@/components/admin/report-ui";
 import { StatusControl } from "./status-control";
 
@@ -92,15 +93,18 @@ export default async function AdminInquiriesPage({
                   })),
                 ]}
               />
-              <FilterPills
-                label="Kind of inquiry"
+              <FilterSelect
+                label="Kind"
+                name="kind"
+                value={kind ?? ""}
+                path={PATH}
+                query={query}
                 options={[
-                  { href: hrefWith(PATH, query, { kind: undefined }), label: "Any kind", active: !kind },
-                  ...KINDS.map((k) => ({
-                    href: hrefWith(PATH, query, { kind: k.id }),
-                    label: `${k.label} ${ofStatus.filter((i) => i.kind === k.id).length}`,
-                    active: k.id === kind,
-                  })),
+                  { value: "", label: `Any (${ofStatus.length})` },
+                  ...KINDS.map((k) => {
+                    const count = ofStatus.filter((i) => i.kind === k.id).length;
+                    return { value: k.id, label: `${k.label} (${count})`, disabled: !count && k.id !== kind };
+                  }),
                 ]}
               />
             </>

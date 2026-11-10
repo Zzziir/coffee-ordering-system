@@ -27,9 +27,10 @@ import {
 import { BRANCH_LIST, getBranch, isBranchId } from "@/lib/branches";
 import { getMenu } from "@/lib/menu-store";
 import { peso } from "@/lib/menu";
-import { CHANNEL_LABEL, PAYMENT_LABEL, type OrderChannel, type PaymentMethod } from "@/lib/types";
+import { CHANNEL_LABEL, PAYMENT_LABEL, type BranchId, type OrderChannel, type PaymentMethod } from "@/lib/types";
 import { ColumnChart, RankBars, RushHeatmap, type RankRow } from "@/components/admin/charts";
 import { hrefWith, percent, plural, shortDay } from "@/components/admin/format";
+import { FilterSelect, type SelectOption } from "@/components/admin/filter-select";
 import { EmptyState, FilterPills, Panel, StatTile, StickyHeader } from "@/components/admin/report-ui";
 
 export const dynamic = "force-dynamic";
@@ -40,11 +41,39 @@ const DEFAULT_RANGE: RangeKey = "30d";
 /** Where a sale was made: one of the stores, or a bazaar booth. */
 const SOURCES = ["all", "stores", "events"] as const;
 type Source = (typeof SOURCES)[number];
-const SOURCE_LABEL: Record<Source, string> = {
-  all: "Everything",
-  stores: "Stores",
-  events: "Bazaars",
-};
+
+/**
+ * Where-it-was-sold and which-branch as one choice, grouped, instead of two
+ * rows of pills: five options a glance can take in. A link from elsewhere may
+ * still carry a pairing this list doesn't offer (a branch's stores and its
+ * booths together); it gets an extra option so the select can show it.
+ */
+function whereOptions(source: Source, branchId: BranchId | null): SelectOption[] {
+  const options: SelectOption[] = [
+    { value: "", label: "Everywhere", patch: { source: undefined, branch: undefined } },
+    { value: "stores", label: "All stores", group: "Stores", patch: { source: "stores", branch: undefined } },
+    ...BRANCH_LIST.map((b) => ({
+      value: `stores:${b.id}`,
+      label: b.name,
+      group: "Stores",
+      patch: { source: "stores", branch: b.id },
+    })),
+    { value: "events", label: "All bazaars", group: "Bazaars", patch: { source: "events", branch: undefined } },
+  ];
+  const current = whereValue(source, branchId);
+  if (branchId && !options.some((o) => o.value === current)) {
+    const name = getBranch(branchId).name;
+    options.push({
+      value: current,
+      label: source === "events" ? `${name} bazaars` : `${name}, stores and bazaars`,
+      patch: {},
+    });
+  }
+  return options;
+}
+
+const whereValue = (source: Source, branchId: BranchId | null) =>
+  branchId ? `${source}:${branchId}` : source === "all" ? "" : source;
 const EVENTS_KEY = "events";
 
 const TOP_ROWS = 8;
@@ -137,24 +166,13 @@ export default async function AdminSalesPage({
                 active: key === rangeKey,
               }))}
             />
-            <FilterPills
-              label="Where it was sold"
-              options={SOURCES.map((key) => ({
-                href: hrefWith(PATH, query, { source: key === "all" ? undefined : key }),
-                label: SOURCE_LABEL[key],
-                active: key === source,
-              }))}
-            />
-            <FilterPills
-              label="Branch"
-              options={[
-                { href: hrefWith(PATH, query, { branch: undefined }), label: "All branches", active: !branchId },
-                ...BRANCH_LIST.map((b) => ({
-                  href: hrefWith(PATH, query, { branch: b.id }),
-                  label: b.name,
-                  active: b.id === branchId,
-                })),
-              ]}
+            <FilterSelect
+              label="Where"
+              name="where"
+              value={whereValue(source, branchId)}
+              path={PATH}
+              query={query}
+              options={whereOptions(source, branchId)}
             />
           </>
         }
