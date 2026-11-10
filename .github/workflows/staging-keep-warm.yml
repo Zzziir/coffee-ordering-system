@@ -1,0 +1,31 @@
+# Keeps the staging Supabase project awake.
+#
+# Free-tier Supabase pauses a project after ~7 days without database activity.
+# Production stays awake through the Vercel cron in vercel.json, but Vercel only
+# runs crons on production deployments, so staging (a Preview deployment) needs
+# its own knock. This runs the same trivial query as /api/cron/keep-warm, once a
+# day, straight against the staging REST API.
+#
+# The key below is staging's *publishable* key: it is designed to ship in
+# public client code, and row level security decides what it can read.
+name: Staging keep-warm
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      SUPABASE_URL: https://dyqmhdskjaxhcamitmrg.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_TghNl-NCBWcnN88KEyZ_KQ_qLeR_XBy
+    steps:
+      - name: Query staging
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 \
+            --head \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            "$SUPABASE_URL/rest/v1/menu_categories?select=id&limit=1"
