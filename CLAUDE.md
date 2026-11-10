@@ -13,7 +13,10 @@
 - **Project name:** Craffe
 - **Project ID (ref):** `rdfdoyqueynwddswgbwk`
 - **Project URL:** https://rdfdoyqueynwddswgbwk.supabase.co
-- **MCP server:** `Craffe-Supabase-MCP` (configured locally for this project). Use its tools for all Supabase interactions.
+- **MCP server:** `Craffe-Supabase-MCP` (configured locally for this project). Use its tools for all Supabase interactions. It is account-scoped, so it reaches both prod and staging; always pass the right `project_id`.
+- **Staging:** project "Craffe Staging", ref `dyqmhdskjaxhcamitmrg`, https://dyqmhdskjaxhcamitmrg.supabase.co (same org and region). Its schema is `supabase/migrations/0001` to `0015`, replayed in order. Credentials are in the gitignored `.env.staging`. New migrations go to staging first, then prod.
+  - Vercel Preview deployments (every non-`main` branch) use staging; Production uses prod. The `staging` git branch is served at https://craffecoffee-staging.lanceamiel.site.
+  - Staging keep-warm runs from `.github/workflows/staging-keep-warm.yml`, because Vercel crons only fire on production.
 
 # Menu Item Photos
 
@@ -44,6 +47,7 @@
   - **`emil-design-eng`** — Emil Kowalski's philosophy on UI polish, component design, animation decisions, and the invisible details that make software feel great.
   - **`impeccable`** — designing, redesigning, critiquing, and polishing interfaces: visual hierarchy, spacing, typography, color, motion, accessibility, and reusable design systems.
   - **`design-taste-frontend`** ("Taste") — anti-slop frontend design for landing pages, portfolios, and redesigns that don't look templated.
+  - **`ui-ux-pro-max`** — searchable UI/UX reference data (styles, product palettes, font pairings, UX guidelines, icons, chart types, stack-specific guidance). Use it alongside the three above to ground design decisions, not as a replacement for them. Craffé's existing brand tokens win over any palette or font it suggests.
 
 # Code Quality
 
