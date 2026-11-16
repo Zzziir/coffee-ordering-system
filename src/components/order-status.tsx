@@ -22,6 +22,7 @@ import { peso, STAMPS_PER_REWARD } from "@/lib/menu";
 import { StampCard } from "./stamp-card";
 import { RewardUnlockModal } from "./reward-unlock-modal";
 import { clsx } from "@/lib/clsx";
+import { haptic } from "@/lib/haptics";
 
 /** The last step reads differently depending on how the order is being taken. */
 function steps(order: Order, branch: Branch): { key: Status; label: string; hint: string }[] {
@@ -129,11 +130,11 @@ export function OrderStatus({
   // Two moments earn delight: it turns ready, and it's finally picked up.
   useEffect(() => {
     if (order.status === "ready" && prevStatus.current !== "ready") {
-      navigator.vibrate?.([40, 60, 40]);
+      haptic("ready");
       chime();
     }
     if (order.status === "completed" && prevStatus.current !== "completed") {
-      navigator.vibrate?.([20, 40, 20, 40, 60]);
+      haptic("celebrate");
       celebrate();
     }
     prevStatus.current = order.status;

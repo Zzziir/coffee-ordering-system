@@ -17,6 +17,7 @@ import { peso } from "@/lib/menu";
 import { clsx } from "@/lib/clsx";
 import { ConfirmDialog } from "./confirm-dialog";
 import { useToast } from "./toast";
+import { haptic } from "@/lib/haptics";
 
 export function StaffQueue({ branchId, initial }: { branchId: BranchId; initial: Order[] }) {
   const [orders, setOrders] = useState<Record<string, Order>>(
@@ -71,6 +72,7 @@ export function StaffQueue({ branchId, initial }: { branchId: BranchId; initial:
         toast.error(`Couldn't update ${order.code}. Check the connection and try again.`);
         return;
       }
+      haptic("confirm");
       // A finished ticket leaves the board, so say where it went. The earlier
       // steps stay on screen and speak for themselves.
       if (status === "completed") toast.success(`${order.code} picked up.`);

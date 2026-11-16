@@ -34,6 +34,7 @@ import {
 } from "@/lib/branches";
 import { clsx } from "@/lib/clsx";
 import { startStackTransition } from "@/components/stack-navigation";
+import { haptic } from "@/lib/haptics";
 
 const GUEST_KEY = "craffe.guest";
 const STAMP_KEY = "craffe.stamps";
@@ -293,6 +294,7 @@ export default function CheckoutPage() {
       }
 
       setPhase("done");
+      haptic("success");
       await new Promise((r) => setTimeout(r, 650));
       clear();
       // A guest lands on their order via the "save your progress" prompt; a

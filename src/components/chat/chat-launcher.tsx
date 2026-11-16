@@ -15,6 +15,7 @@ import { RichText } from "@/components/chat/rich-text";
 import { ChatProducts, type ProductCard } from "@/components/chat/chat-products";
 import { useCart } from "@/components/cart-provider";
 import { clsx } from "@/lib/clsx";
+import { haptic } from "@/lib/haptics";
 
 type Msg = { role: "user" | "model"; text: string; products?: ProductCard[] };
 
@@ -99,6 +100,7 @@ export function ChatLauncher() {
       groups: [],
       image: p.image ?? null,
     });
+    haptic("confirm");
   };
 
   const markAdded = (msgIndex: number, productId: string) => {

@@ -10,6 +10,7 @@ import { clsx } from "@/lib/clsx";
 import { useToast } from "@/components/toast";
 import { Select } from "@/components/select";
 import { StickyToolbar } from "@/components/admin/sticky-band";
+import { haptic } from "@/lib/haptics";
 
 type BranchOption = { id: BranchId; name: string };
 
@@ -185,6 +186,7 @@ function ItemRow({
       setOptimisticAvailable(next);
       try {
         await setBranchAvailability(item.id, branch, next);
+        haptic("confirm");
         toast.success(
           next
             ? `${item.name} is back on at ${branchName}.`

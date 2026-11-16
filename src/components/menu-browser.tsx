@@ -17,6 +17,7 @@ import { CustomizeSheet } from "./customize-sheet";
 import { ItemThumb } from "./item-thumb";
 import { useCart } from "./cart-provider";
 import { clsx } from "@/lib/clsx";
+import { haptic } from "@/lib/haptics";
 
 export function MenuBrowser({ menu }: { menu: MenuData }) {
   const params = useSearchParams();
@@ -197,6 +198,7 @@ export function MenuBrowser({ menu }: { menu: MenuData }) {
         onClose={() => setSheetItem(null)}
         onAdd={(payload) => {
           addLine(payload);
+          haptic("confirm");
           setSheetItem(null);
         }}
       />
