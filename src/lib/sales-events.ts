@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import type { BranchId } from "./types";
 import { isBranchId } from "./branches";
 import { supabaseAdmin } from "./supabase/admin";
@@ -79,8 +80,10 @@ function toEvent(row: EventRow): SalesEvent {
 
 const isUuid = (id: string) => /^[0-9a-f-]{36}$/i.test(id);
 
-/** Every event, newest first by start date; undated ones last. */
-export async function listEvents(): Promise<SalesEvent[]> {
+/** Cache tag for the events list. The event write actions call `updateTag` with this. */
+export const EVENTS_CACHE_TAG = "events";
+
+async function loadEvents(): Promise<SalesEvent[]> {
   const { data, error } = await supabaseAdmin()
     .from("sales_events")
     .select(EVENT_SELECT)
@@ -92,17 +95,24 @@ export async function listEvents(): Promise<SalesEvent[]> {
   return (data ?? []).map(toEvent);
 }
 
+/**
+ * Every event, newest first by start date; undated ones last.
+ *
+ * Cached: the list changes only when an admin saves, closes or reopens an
+ * event, and it is read on most back office pages (the till among them). One
+ * shared entry, tagged so those actions expire it on write, with a five-minute
+ * TTL as a safety net for an edit made outside the app. Admin gate only: the
+ * cache holds till figures, so it is read behind the same gate as before.
+ */
+export const listEvents = unstable_cache(loadEvents, ["events"], {
+  tags: [EVENTS_CACHE_TAG],
+  revalidate: 300,
+});
+
+/** One event, read from the cached list. undefined when missing. */
 export async function getEvent(id: string): Promise<SalesEvent | undefined> {
   if (!isUuid(id)) return undefined;
-
-  const { data, error } = await supabaseAdmin()
-    .from("sales_events")
-    .select(EVENT_SELECT)
-    .eq("id", id)
-    .maybeSingle<EventRow>();
-
-  if (error) throw new Error(`Could not read event ${id}: ${error.message}`);
-  return data ? toEvent(data) : undefined;
+  return (await listEvents()).find((event) => event.id === id);
 }
 
 /** The editable details. Cash fields are whole pesos. */

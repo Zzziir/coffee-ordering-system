@@ -3,7 +3,7 @@ import { supabaseAdmin } from "./supabase/admin";
 import type { AddOn, AddOnGroup, Category, DietTag, MenuData, MenuItem } from "./menu";
 import type { BranchId } from "./types";
 
-/** Cache tag for the menu catalog. Admin writes call `revalidateTag` with this. */
+/** Cache tag for the menu catalog. Admin writes call `updateTag` with this. */
 export const MENU_CACHE_TAG = "menu";
 
 /**

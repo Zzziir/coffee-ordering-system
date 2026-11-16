@@ -1,11 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { getStaffMember, isAdmin } from "@/lib/staff";
 import { isBranchId } from "@/lib/branches";
 import { setOrderEvent } from "@/lib/admin-orders";
 import {
+  EVENTS_CACHE_TAG,
   closeEvent,
   createEvent,
   getEvent,
@@ -22,6 +23,15 @@ import {
 async function assertAdmin() {
   const staff = await getStaffMember();
   if (!staff || !isAdmin(staff)) redirect("/staff/sign-in?next=/admin/events");
+}
+
+/**
+ * Expire the cached events list after a write. updateTag, not revalidateTag:
+ * the next read waits for fresh data, so the page an admin lands on shows the
+ * change, and the till can't ring a sale up against an event just closed.
+ */
+function refreshEvents() {
+  updateTag(EVENTS_CACHE_TAG);
 }
 
 export type EventFormState = { error: string } | null;
@@ -85,6 +95,7 @@ export async function saveEvent(
   const eventId = id ?? (await createEvent(input));
   if (id) await updateEvent(id, input);
 
+  refreshEvents();
   revalidatePath("/admin/events");
   // FlashToast on the event page confirms the save.
   redirect(`/admin/events/${eventId}?notice=${id ? "event-saved" : "event-created"}`);
@@ -101,6 +112,7 @@ export async function closeEventAction(formData: FormData): Promise<CloseEventSt
   if (Number.isNaN(closingCash)) return { error: "Enter the cash counted as a whole peso amount." };
 
   await closeEvent(id, closingCash);
+  refreshEvents();
   revalidatePath("/admin/events");
   revalidatePath(`/admin/events/${id}`);
   return null;
@@ -110,6 +122,7 @@ export async function reopenEventAction(id: string): Promise<void> {
   await assertAdmin();
 
   await reopenEvent(id);
+  refreshEvents();
   revalidatePath("/admin/events");
   revalidatePath(`/admin/events/${id}`);
 }

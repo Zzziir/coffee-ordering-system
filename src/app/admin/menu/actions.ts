@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidateTag } from "next/cache";
+import { updateTag } from "next/cache";
 import { MENU_CACHE_TAG } from "@/lib/menu-store";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -57,14 +57,16 @@ async function assertAdmin() {
 }
 
 /**
- * Whenever the catalog changes, bust the cached `getMenu` read. Every page is
+ * Whenever the catalog changes, expire the cached `getMenu` read. Every page is
  * `force-dynamic`, so there is no route cache to clear; the menu cache is the
  * one thing that outlives a request, and every storefront and admin surface
- * reads through it. `max` gives stale-while-revalidate so the next visitor is
- * served instantly while the fresh catalog loads behind them.
+ * reads through it. updateTag rather than revalidateTag(…, "max"): the latter
+ * serves the old catalog once more while it refreshes, so the list an admin is
+ * redirected to after saving would still show the item as it was, and a drink
+ * just marked sold out could still be ordered.
  */
 function revalidateMenu() {
-  revalidateTag(MENU_CACHE_TAG, "max");
+  updateTag(MENU_CACHE_TAG);
 }
 
 /**
