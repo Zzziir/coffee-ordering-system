@@ -1,9 +1,11 @@
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { MenuBrowser } from "@/components/menu-browser";
 import { BranchGate } from "@/components/branch-picker";
 import { getMenu } from "@/lib/menu-store";
+import { BRANCH_COOKIE, isBranchId } from "@/lib/branches";
 
 export const metadata = {
   title: "Menu · Craffé",
@@ -14,8 +16,17 @@ export const metadata = {
 // baking it into the build.
 export const dynamic = "force-dynamic";
 
-export default async function MenuPage() {
-  const menu = await getMenu();
+export default async function MenuPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ b?: string }>;
+}) {
+  const [menu, params, cookieStore] = await Promise.all([getMenu(), searchParams, cookies()]);
+  // The branch the browser will settle on: a scanned QR code's, else the one
+  // remembered last visit. Drawing the menu for it here means nothing moves
+  // when the page wakes up and drops what's sold out at that store.
+  const remembered = cookieStore.get(BRANCH_COOKIE)?.value;
+  const serverBranchId = isBranchId(params.b) ? params.b : isBranchId(remembered) ? remembered : null;
   return (
     <div className="flex min-h-[100dvh] flex-col">
       <SiteNav />
@@ -32,7 +43,7 @@ export default async function MenuPage() {
 
       <main className="flex-1">
         <Suspense fallback={null}>
-          <MenuBrowser menu={menu} />
+          <MenuBrowser menu={menu} serverBranchId={serverBranchId} />
         </Suspense>
       </main>
 

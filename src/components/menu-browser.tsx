@@ -18,10 +18,21 @@ import { ItemThumb } from "./item-thumb";
 import { useCart } from "./cart-provider";
 import { clsx } from "@/lib/clsx";
 import { haptic } from "@/lib/haptics";
+import type { BranchId } from "@/lib/types";
 
-export function MenuBrowser({ menu }: { menu: MenuData }) {
+export function MenuBrowser({
+  menu,
+  serverBranchId,
+}: {
+  menu: MenuData;
+  /** The branch the server drew the menu for, until the browser's own loads. */
+  serverBranchId: BranchId | null;
+}) {
   const params = useSearchParams();
-  const { addLine, count, subtotal, hydrated, branchId } = useCart();
+  const { addLine, count, subtotal, hydrated, branchId: storedBranchId } = useCart();
+  // Same answer on the server and the first client paint, so the grid doesn't
+  // reflow when the cart wakes up.
+  const branchId = hydrated ? storedBranchId : serverBranchId;
 
   // Availability is per branch: a drink sold out at this store drops from the
   // menu here but stays live at the other. Before a branch is chosen, the gate

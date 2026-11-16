@@ -11,7 +11,7 @@ import {
 import type { CartLine } from "@/lib/cart";
 import { cartCount, cartSubtotal } from "@/lib/cart";
 import type { BranchId } from "@/lib/types";
-import { isBranchId } from "@/lib/branches";
+import { BRANCH_COOKIE, isBranchId } from "@/lib/branches";
 
 const STORAGE_KEY = "craffe.cart.v1";
 const BRANCH_KEY = "craffe.branch.v1";
@@ -78,6 +78,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* storage full / private mode — the picker just asks again next visit */
     }
+    document.cookie = `${BRANCH_COOKIE}=${branchId}; path=/; max-age=31536000; samesite=lax`;
   }, [branchId, hydrated]);
 
   const addLine = useCallback((line: Omit<CartLine, "id">) => {

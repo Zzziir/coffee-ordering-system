@@ -121,6 +121,13 @@ export const BRANCH_LIST: Branch[] = [BRANCHES["east-rembo"], BRANCHES.mycc];
 export const DEFAULT_BRANCH_ID: BranchId = "east-rembo";
 
 /**
+ * The chosen branch, mirrored from the browser into a cookie so the server can
+ * draw the menu for that branch on the first paint, instead of drawing every
+ * item and then dropping the ones sold out there.
+ */
+export const BRANCH_COOKIE = "craffe-branch";
+
+/**
  * Guards untrusted input — the `?b=` link param and the order POST body.
  * Uses hasOwn, not `in`: `"toString" in BRANCHES` is true via the prototype.
  */
