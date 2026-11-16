@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { getCustomer } from "@/lib/customer";
 import { GoogleButton } from "@/components/google-button";
 import { signInWithGoogle } from "../actions";
 import { SignUpForm } from "./sign-up-form";
+import { StackLink } from "@/components/stack-navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export default async function CustomerSignUpPage({
     <div className="flex min-h-[100dvh] flex-col">
       <SiteHeader back="/account/sign-in" showBag={false} title="Create account" />
 
-      <main className="mx-auto w-full max-w-md flex-1 px-5 pb-16 pt-10">
+      <main data-stack-page className="mx-auto w-full max-w-md flex-1 px-5 pb-16 pt-10">
         <h1 className="text-[22px] font-bold tracking-tight text-ink">
           Join Craffe Rewards
         </h1>
@@ -36,12 +36,13 @@ export default async function CustomerSignUpPage({
 
         <p className="mt-6 text-center text-[14.5px] text-ink-soft">
           Already have an account?{" "}
-          <Link
+          <StackLink
             href={next ? `/account/sign-in?next=${encodeURIComponent(next)}` : "/account/sign-in"}
+          direction="pop"
             className="tap-dim font-semibold text-coffee"
           >
             Sign in
-          </Link>
+          </StackLink>
         </p>
       </main>
     </div>

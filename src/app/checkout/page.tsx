@@ -33,6 +33,7 @@ import {
   type Branch,
 } from "@/lib/branches";
 import { clsx } from "@/lib/clsx";
+import { startStackTransition } from "@/components/stack-navigation";
 
 const GUEST_KEY = "craffe.guest";
 const STAMP_KEY = "craffe.stamps";
@@ -301,6 +302,7 @@ export default function CheckoutPage() {
         setSavePrompt({ orderId: order.id, stamps: guestStamps });
         setPhase("idle");
       } else {
+        startStackTransition("push");
         router.replace(`/order/${order.id}`);
       }
     } catch (e) {
@@ -328,7 +330,7 @@ export default function CheckoutPage() {
     <div className="flex min-h-[100dvh] flex-col">
       <SiteNav />
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-5 pb-40 pt-6">
+      <main data-stack-page className="mx-auto w-full max-w-2xl flex-1 px-5 pb-40 pt-6">
         <h1 className="mb-1.5 text-2xl font-bold tracking-tight text-ink">Checkout</h1>
         <p className="mb-5 text-[14.5px] text-ink-soft">
           Ordering from{" "}
@@ -515,7 +517,11 @@ export default function CheckoutPage() {
         onSignIn={() =>
           savePrompt && router.push(`/account/sign-in?next=/order/${savePrompt.orderId}`)
         }
-        onDismiss={() => savePrompt && router.replace(`/order/${savePrompt.orderId}`)}
+        onDismiss={() => {
+          if (!savePrompt) return;
+          startStackTransition("push");
+          router.replace(`/order/${savePrompt.orderId}`);
+        }}
       />
     </div>
   );

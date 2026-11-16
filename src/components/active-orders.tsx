@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { CaretRightIcon } from "@phosphor-icons/react";
 import { getBranch } from "@/lib/branches";
 import { STATUS_LABEL, type Order, type OrderStatus } from "@/lib/types";
 import { useOrderStream } from "./use-order-stream";
 import { clsx } from "@/lib/clsx";
+import { StackLink } from "@/components/stack-navigation";
 
 // The stages an order moves through before it's picked up. Picked-up orders
 // aren't active, so they never appear here.
@@ -76,8 +76,9 @@ function ActiveOrderRow({
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
     >
-      <Link
+      <StackLink
         href={`/order/${order.id}`}
+        direction="push"
         className={clsx(
           "pressable block rounded-[var(--radius-md)] border bg-paper-raised p-4",
           isReady ? "border-ready/50" : "border-coffee/35",
@@ -113,7 +114,7 @@ function ActiveOrderRow({
             />
           ))}
         </div>
-      </Link>
+      </StackLink>
     </motion.div>
   );
 }

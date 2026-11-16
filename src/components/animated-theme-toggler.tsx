@@ -23,7 +23,7 @@ const STORAGE_KEY = "craffe-theme";
 const THEME_COLOR = { light: "#f6f3ec", dark: "#1b1a17" };
 
 type ViewTransitionDocument = Document & {
-  startViewTransition?: (callback: () => void) => { ready: Promise<void> };
+  startViewTransition?: (callback: () => void) => { ready: Promise<void>; finished: Promise<void> };
 };
 
 export function AnimatedThemeToggler({ className }: { className?: string }) {
@@ -69,7 +69,10 @@ export function AnimatedThemeToggler({ className }: { className?: string }) {
       Math.max(y, window.innerHeight - y),
     );
 
+    // Holds the new snapshot for the wipe; see globals.css.
+    document.documentElement.classList.add("theme-switching");
     const transition = doc.startViewTransition(() => flushSync(() => apply(next)));
+    transition.finished.finally(() => document.documentElement.classList.remove("theme-switching"));
     transition.ready.then(() => {
       document.documentElement.animate(
         {

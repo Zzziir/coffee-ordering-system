@@ -20,6 +20,7 @@ import { drinkStickers, peso } from "@/lib/menu";
 import { getBranch } from "@/lib/branches";
 import { STATUS_LABEL, type Order } from "@/lib/types";
 import { SignOutButton } from "./sign-out-button";
+import { StackLink } from "@/components/stack-navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +54,7 @@ export default async function AccountPage() {
     <div className="flex min-h-[100dvh] flex-col">
       <SiteHeader back="/" showBag={false} title="Account" wide />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 pb-20 pt-6 lg:px-8 lg:pt-10">
+      <main data-stack-page className="mx-auto w-full max-w-6xl flex-1 px-5 pb-20 pt-6 lg:px-8 lg:pt-10">
         {/* Identity */}
         <header className="flex items-center gap-4">
           <span className="grid size-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-coffee to-coffee-deep text-[20px] font-bold text-paper shadow-[var(--shadow-card)] lg:size-16 lg:text-[23px]">
@@ -134,13 +135,14 @@ export default async function AccountPage() {
         <section className="mt-5 rounded-[var(--radius-lg)] border border-line bg-paper-raised p-5 shadow-[var(--shadow-card)] lg:mt-6 lg:p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-semibold text-ink">Your details</h2>
-            <Link
+            <StackLink
               href="/account/edit"
+            direction="push"
               className="pressable tap-44 flex items-center gap-1.5 text-[13.5px] font-medium text-coffee"
             >
               <PencilSimpleIcon size={14} weight="bold" />
               Edit
-            </Link>
+            </StackLink>
           </div>
           <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
             <Detail label="Name" value={`${customer.firstName} ${customer.lastName}`} />
@@ -193,8 +195,9 @@ function OrderRow({ order }: { order: Order }) {
   const count = order.items.reduce((n, l) => n + l.qty, 0);
   return (
     <li>
-      <Link
+      <StackLink
         href={`/order/${order.id}`}
+        direction="push"
         className="tap-dim group flex items-center gap-3 rounded-[var(--radius-md)] px-2 py-3 transition-colors hover:bg-paper-sunk/60"
       >
         <span className="grid size-11 shrink-0 place-items-center rounded-full bg-coffee-tint/70 text-[14px] font-bold text-coffee">
@@ -214,7 +217,7 @@ function OrderRow({ order }: { order: Order }) {
           weight="bold"
           className="shrink-0 text-ink-faint transition-transform duration-200 group-hover:translate-x-0.5"
         />
-      </Link>
+      </StackLink>
     </li>
   );
 }

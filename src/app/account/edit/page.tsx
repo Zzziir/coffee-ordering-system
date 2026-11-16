@@ -13,7 +13,7 @@ export default async function EditProfilePage() {
     <div className="flex min-h-[100dvh] flex-col">
       <SiteHeader back="/account" showBag={false} title="Edit profile" />
 
-      <main className="mx-auto w-full max-w-md flex-1 px-5 pb-16 pt-8">
+      <main data-stack-page className="mx-auto w-full max-w-md flex-1 px-5 pb-16 pt-8">
         <h1 className="text-[22px] font-bold tracking-tight text-ink">
           Your details
         </h1>

@@ -7,6 +7,7 @@ import { Wordmark } from "./brand";
 import { useCart } from "./cart-provider";
 import { AnimatedThemeToggler } from "./animated-theme-toggler";
 import { clsx } from "@/lib/clsx";
+import { StackLink } from "@/components/stack-navigation";
 
 export function SiteHeader({
   back,
@@ -35,13 +36,14 @@ export function SiteHeader({
         <div className="flex min-w-0 items-center gap-1">
           {back ? (
             typeof back === "string" ? (
-              <Link
+              <StackLink
                 href={back}
+                direction="pop"
                 aria-label="Back"
                 className="pressable -ml-3 grid size-11 place-items-center rounded-full text-ink-soft hover:text-ink"
               >
                 <CaretLeftIcon size={22} weight="bold" />
-              </Link>
+              </StackLink>
             ) : (
               <button
                 onClick={() => router.back()}

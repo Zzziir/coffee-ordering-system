@@ -5,6 +5,7 @@ import { CartProvider } from "@/components/cart-provider";
 import { LoyaltyMigrator } from "@/components/loyalty-migrator";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { PressFeedback } from "@/components/press-feedback";
+import { StackNavigationListener } from "@/components/stack-navigation";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 
 const outfit = Outfit({
@@ -50,6 +51,7 @@ export default function RootLayout({
         <LoyaltyMigrator />
         <ServiceWorkerRegister />
         <PressFeedback />
+        <StackNavigationListener />
       </body>
     </html>
   );

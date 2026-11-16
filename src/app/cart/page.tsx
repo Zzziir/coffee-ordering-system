@@ -18,6 +18,7 @@ import { useCart } from "@/components/cart-provider";
 import { describeLine, lineTotal, type CartLine } from "@/lib/cart";
 import { peso } from "@/lib/menu";
 import { clsx } from "@/lib/clsx";
+import { startStackTransition } from "@/components/stack-navigation";
 
 const EASE = [0.23, 1, 0.32, 1] as const;
 
@@ -84,7 +85,7 @@ export default function CartPage() {
       <SiteNav />
 
       {hydrated && count === 0 ? (
-        <main className="flex flex-1 flex-col items-center justify-center px-6 pb-24 pt-16 text-center">
+        <main data-stack-page className="flex flex-1 flex-col items-center justify-center px-6 pb-24 pt-16 text-center">
           <span className="grid size-20 place-items-center rounded-full bg-paper-sunk text-ink-faint">
             <CupMark className="size-9" />
           </span>
@@ -102,7 +103,7 @@ export default function CartPage() {
         </main>
       ) : (
         <>
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-40 pt-6 lg:px-8 lg:pb-16">
+          <main data-stack-page className="mx-auto w-full max-w-6xl flex-1 px-4 pb-40 pt-6 lg:px-8 lg:pb-16">
             <div className="mb-5 flex items-end justify-between px-1">
               <h1 className="text-2xl font-bold tracking-tight text-ink lg:text-3xl">Your bag</h1>
               <span className="text-[14px] font-medium text-ink-soft">
@@ -229,7 +230,10 @@ export default function CartPage() {
                     />
                   </div>
                   <button
-                    onClick={() => router.push("/checkout")}
+                    onClick={() => {
+                      startStackTransition("push");
+                      router.push("/checkout");
+                    }}
                     className="pressable group mt-5 flex h-13 w-full items-center justify-center gap-2 rounded-full bg-ink text-[15px] font-semibold text-paper"
                   >
                     Continue to checkout
@@ -255,7 +259,10 @@ export default function CartPage() {
                 <Rolling value={peso(subtotal)} className="text-lg font-bold text-ink" />
               </div>
               <button
-                onClick={() => router.push("/checkout")}
+                onClick={() => {
+                      startStackTransition("push");
+                      router.push("/checkout");
+                    }}
                 className="pressable group flex h-14 w-full items-center justify-center gap-2 rounded-full bg-ink text-[16px] font-semibold text-paper"
               >
                 Continue to checkout

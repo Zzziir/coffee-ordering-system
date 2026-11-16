@@ -177,18 +177,79 @@ html.dark {
    the Web Animations API off the button's exact centre; this keep-alive keyframe
    only holds the new snapshot fully painted for the same duration, so the
    transition can't finish and tear the pseudo-elements down before the wipe
-   completes (which was making it snap). The old snapshot stays put underneath. */
+   completes (which was making it snap). The old snapshot stays put underneath.
+   Scoped to .theme-switching, which the toggler sets for the wipe only, so page
+   navigations don't sit through the 640ms hold. */
 ::view-transition-old(root) {
   animation: none;
 }
 ::view-transition-new(root) {
-  animation: craffe-theme-hold 640ms linear;
+  animation: none;
   mix-blend-mode: normal;
+}
+html.theme-switching::view-transition-new(root) {
+  animation: craffe-theme-hold 640ms linear;
 }
 @keyframes craffe-theme-hold {
   from,
   to {
     opacity: 1;
+  }
+}
+
+/* Stack navigation (components/stack-navigation). Going deeper slides the
+   page body left and the new one in from the right; going back reverses it.
+   The old page leaves quickly so it doesn't compete; the new one arrives a
+   beat later. The body is named only during these typed transitions, so tab
+   switches and the browser's own back gesture never pick it up. The header
+   and tab bar are part of the root snapshot, which swaps without animating,
+   so they stay put as the anchor. */
+html:active-view-transition-type(nav-forward, nav-back) [data-stack-page] {
+  view-transition-name: stack-page;
+}
+html:active-view-transition-type(nav-forward, nav-back)::view-transition-group(stack-page) {
+  animation: none;
+}
+html:active-view-transition-type(nav-forward)::view-transition-old(stack-page) {
+  --stack-offset: -60px;
+  animation:
+    150ms ease-in both stack-fade reverse,
+    400ms var(--ease-out) both stack-slide reverse;
+}
+html:active-view-transition-type(nav-forward)::view-transition-new(stack-page) {
+  --stack-offset: 60px;
+  animation:
+    210ms ease-out 150ms both stack-fade,
+    400ms var(--ease-out) both stack-slide;
+}
+html:active-view-transition-type(nav-back)::view-transition-old(stack-page) {
+  --stack-offset: 60px;
+  animation:
+    150ms ease-in both stack-fade reverse,
+    400ms var(--ease-out) both stack-slide reverse;
+}
+html:active-view-transition-type(nav-back)::view-transition-new(stack-page) {
+  --stack-offset: -60px;
+  animation:
+    210ms ease-out 150ms both stack-fade,
+    400ms var(--ease-out) both stack-slide;
+}
+@keyframes stack-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes stack-slide {
+  from {
+    translate: var(--stack-offset) 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:active-view-transition-type(nav-forward, nav-back)::view-transition-old(stack-page) {
+    animation: 150ms ease-in both stack-fade reverse;
+  }
+  html:active-view-transition-type(nav-forward, nav-back)::view-transition-new(stack-page) {
+    animation: 210ms ease-out 150ms both stack-fade;
   }
 }
 
