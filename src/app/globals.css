@@ -14,6 +14,9 @@
 
   /* Ink */
   --color-ink: #2b2a28; /* warm charcoal — never pure black */
+  /* The dim behind a sheet or dialog. Stays dark in both themes: ink turns
+     light in dark mode, which would wash the page out instead of dimming it. */
+  --color-scrim: #2b2a28;
   --color-ink-soft: #6b6459; /* secondary text */
   --color-ink-faint: #9a9186; /* tertiary / placeholder */
 
@@ -153,6 +156,7 @@ html.dark {
   --color-paper-sunk: #131210;
 
   --color-ink: #f1ece2;
+  --color-scrim: #000000;
   --color-ink-soft: #b3aa9b;
   --color-ink-faint: #827a6d;
 
@@ -342,7 +346,7 @@ html:active-view-transition-type(nav-back)::view-transition-new(stack-page) {
   .sheet-backdrop {
     position: absolute;
     inset: 0;
-    background: color-mix(in srgb, var(--color-ink) 40%, transparent);
+    background: color-mix(in srgb, var(--color-scrim) 40%, transparent);
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
   }

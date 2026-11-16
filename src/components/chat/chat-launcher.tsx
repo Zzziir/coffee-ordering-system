@@ -258,7 +258,7 @@ export function ChatLauncher() {
             <button
               aria-label="Close chat"
               onClick={() => setOpen(false)}
-              className="absolute inset-0 bg-ink/40 backdrop-blur-[2px] sm:bg-transparent sm:backdrop-blur-none"
+              className="absolute inset-0 bg-scrim/40 backdrop-blur-[2px] sm:bg-transparent sm:backdrop-blur-none"
             />
 
             <motion.div

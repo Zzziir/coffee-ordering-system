@@ -55,7 +55,7 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
         label={active?.alt}
         placement="center"
         swipeToClose
-        backdropClassName="bg-ink/80 backdrop-blur-sm"
+        backdropClassName="bg-scrim/80 backdrop-blur-sm"
         className="h-[85dvh] max-w-5xl"
       >
         {active && (
