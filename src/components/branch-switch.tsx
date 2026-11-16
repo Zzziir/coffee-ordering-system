@@ -34,7 +34,7 @@ export function BranchSwitch({ current }: { current: BranchId }) {
         onClick={() => setOpen((value) => !value)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="pressable flex items-center gap-1.5 rounded-full bg-paper-sunk px-2.5 py-1 text-[12px] font-medium text-ink-soft"
+        className="pressable tap-44 flex items-center gap-1.5 rounded-full bg-paper-sunk px-2.5 py-1 text-[12px] font-medium text-ink-soft"
       >
         {getBranch(current).name}
         <CaretDownIcon
@@ -54,7 +54,7 @@ export function BranchSwitch({ current }: { current: BranchId }) {
                 href={`/staff/${branch.id}`}
                 onClick={() => setOpen(false)}
                 className={clsx(
-                  "flex items-center justify-between gap-2 rounded-[var(--radius-sm)] px-3 py-2 text-[13.5px] transition-colors",
+                  "tap-dim flex items-center justify-between gap-2 rounded-[var(--radius-sm)] px-3 py-2 text-[13.5px] transition-colors",
                   active
                     ? "font-semibold text-ink"
                     : "text-ink-soft hover:bg-paper-sunk hover:text-ink",

@@ -36,7 +36,7 @@ export default async function AdminEventsPage() {
         actions={
           <Link
             href="/admin/events/new"
-            className="pressable inline-flex h-10 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-[14px] font-semibold text-paper"
+            className="pressable tap-44 inline-flex h-10 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-[14px] font-semibold text-paper"
           >
             <PlusIcon size={16} weight="bold" />
             New event

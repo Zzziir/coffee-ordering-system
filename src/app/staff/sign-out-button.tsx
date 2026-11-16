@@ -20,7 +20,7 @@ export function SignOutButton({ name }: { name: string }) {
       <button
         type="button"
         onClick={() => setAsking(true)}
-        className="pressable grid size-10 place-items-center rounded-full border border-line text-[13px] font-medium text-ink-soft sm:block sm:size-auto sm:h-9 sm:px-3.5"
+        className="pressable tap-44 grid size-10 place-items-center rounded-full border border-line text-[13px] font-medium text-ink-soft sm:block sm:size-auto sm:h-9 sm:px-3.5"
       >
         <SignOutIcon size={17} weight="bold" className="sm:hidden" aria-hidden />
         <span className="sr-only sm:not-sr-only">Sign out</span>

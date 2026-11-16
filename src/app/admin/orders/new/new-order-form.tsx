@@ -372,7 +372,7 @@ function Stepper({ qty, onChange }: { qty: number; onChange: (n: number) => void
         type="button"
         onClick={() => onChange(qty - 1)}
         aria-label="Remove one"
-        className="pressable grid size-10 place-items-center rounded-full text-ink"
+        className="pressable tap-44 grid size-10 place-items-center rounded-full text-ink"
       >
         <MinusIcon size={15} weight="bold" />
       </button>
@@ -381,7 +381,7 @@ function Stepper({ qty, onChange }: { qty: number; onChange: (n: number) => void
         type="button"
         onClick={() => onChange(qty + 1)}
         aria-label="Add one"
-        className="pressable grid size-10 place-items-center rounded-full text-ink"
+        className="pressable tap-44 grid size-10 place-items-center rounded-full text-ink"
       >
         <PlusIcon size={15} weight="bold" />
       </button>

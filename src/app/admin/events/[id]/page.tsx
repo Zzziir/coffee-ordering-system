@@ -91,7 +91,7 @@ export default async function AdminEventPage({ params }: { params: Promise<{ id:
       <div>
         <Link
           href="/admin/events"
-          className="pressable -ml-1 inline-flex h-9 items-center gap-1 text-[14px] font-medium text-ink-soft hover:text-ink"
+          className="pressable tap-44 -ml-1 inline-flex h-9 items-center gap-1 text-[14px] font-medium text-ink-soft hover:text-ink"
         >
           <CaretLeftIcon size={16} weight="bold" />
           Events
@@ -138,7 +138,7 @@ export default async function AdminEventPage({ params }: { params: Promise<{ id:
           {!closed && (
             <Link
               href={`/admin/orders/new?event=${event.id}`}
-              className="pressable inline-flex h-10 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-[14px] font-semibold text-paper"
+              className="pressable tap-44 inline-flex h-10 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-[14px] font-semibold text-paper"
             >
               <PlusIcon size={16} weight="bold" />
               Ring up a sale
@@ -282,7 +282,7 @@ export default async function AdminEventPage({ params }: { params: Promise<{ id:
             <h2 className="text-[15px] font-semibold text-ink">Latest sales</h2>
             <Link
               href={`/admin/orders?event=${event.id}`}
-              className="text-[14px] font-semibold text-coffee"
+              className="tap-dim text-[14px] font-semibold text-coffee"
             >
               All {orders.length.toLocaleString("en-PH")}
             </Link>

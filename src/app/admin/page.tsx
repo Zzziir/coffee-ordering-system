@@ -85,7 +85,7 @@ export default async function AdminOverviewPage() {
         <h1 className="text-2xl font-bold tracking-tight text-ink">Overview</h1>
         <p className="mt-1 text-[14.5px] text-ink-soft">
           Sales across every branch and bazaar. Paid orders only.{" "}
-          <Link href="/admin/sales" className="font-semibold text-coffee">
+          <Link href="/admin/sales" className="tap-dim font-semibold text-coffee">
             Open the full sales report
           </Link>
           .
@@ -181,7 +181,7 @@ export default async function AdminOverviewPage() {
       <section>
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-[15px] font-semibold text-ink">Recent orders</h2>
-          <Link href="/admin/orders" className="text-[14px] font-semibold text-coffee">
+          <Link href="/admin/orders" className="tap-dim text-[14px] font-semibold text-coffee">
             All transactions
           </Link>
         </div>
@@ -225,7 +225,7 @@ export default async function AdminOverviewPage() {
         {orders.length === 0 && (
           <p className="mt-4 text-center text-[14px] text-ink-soft">
             No orders yet.{" "}
-            <Link href="/admin/orders/new" className="font-semibold text-coffee">
+            <Link href="/admin/orders/new" className="tap-dim font-semibold text-coffee">
               Log the first one
             </Link>
             .

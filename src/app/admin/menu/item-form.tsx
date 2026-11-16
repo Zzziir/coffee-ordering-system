@@ -61,7 +61,7 @@ export function ItemForm({
         <div className="min-w-0">
           <Link
             href="/admin/menu"
-            className="pressable -ml-1 inline-flex h-9 items-center gap-1 text-[14px] font-medium text-ink-soft hover:text-ink"
+            className="pressable tap-44 -ml-1 inline-flex h-9 items-center gap-1 text-[14px] font-medium text-ink-soft hover:text-ink"
           >
             <CaretLeftIcon size={16} weight="bold" />
             Menu
@@ -255,7 +255,7 @@ function PhotoField({ current }: { current?: string }) {
       </label>
 
       {shown && (
-        <button type="button" onClick={onRemove} className="pressable self-start text-[13px] font-medium text-warn">
+        <button type="button" onClick={onRemove} className="pressable tap-44 self-start text-[13px] font-medium text-warn">
           Remove photo
         </button>
       )}
@@ -336,7 +336,7 @@ function DietTags({ initial }: { initial: DietTag[] }) {
                     aria-pressed={on}
                     onClick={() => toggle(tag.id, rivals)}
                     className={clsx(
-                      "pressable inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors",
+                      "pressable tap-44 inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors",
                       on
                         ? "border-coffee bg-coffee-tint text-ink"
                         : "border-line text-ink-soft hover:border-line-strong hover:text-ink",

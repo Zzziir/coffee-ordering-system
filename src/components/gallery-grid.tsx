@@ -47,7 +47,7 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
               type="button"
               onClick={() => setActive(p)}
               aria-label={`Expand photo: ${p.alt}`}
-              className="group relative block size-full overflow-hidden rounded-[var(--radius-md)]"
+              className="pressable group relative block size-full overflow-hidden rounded-[var(--radius-md)]"
             >
               <Image
                 src={p.src}
@@ -101,7 +101,7 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
               <button
                 onClick={() => setActive(null)}
                 aria-label="Close"
-                className="pressable absolute right-2 top-2 grid size-10 place-items-center rounded-full bg-paper text-ink shadow-[var(--shadow-sheet)]"
+                className="pressable tap-44 absolute right-2 top-2 grid size-10 place-items-center rounded-full bg-paper text-ink shadow-[var(--shadow-sheet)]"
               >
                 <XIcon size={20} weight="bold" />
               </button>

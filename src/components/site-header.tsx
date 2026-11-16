@@ -55,7 +55,7 @@ export function SiteHeader({
           {title ? (
             <span className="truncate text-[17px] font-semibold">{title}</span>
           ) : (
-            <Link href="/" aria-label="Craffé home" className="pressable">
+            <Link href="/" aria-label="Craffé home" className="pressable tap-44">
               <Wordmark className="text-[19px] text-ink" />
             </Link>
           )}

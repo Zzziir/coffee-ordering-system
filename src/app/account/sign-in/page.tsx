@@ -60,7 +60,7 @@ export default async function CustomerSignInPage({
           New to Craffe?{" "}
           <Link
             href={next ? `/account/sign-up?next=${encodeURIComponent(next)}` : "/account/sign-up"}
-            className="font-semibold text-coffee"
+            className="tap-dim font-semibold text-coffee"
           >
             Create an account
           </Link>

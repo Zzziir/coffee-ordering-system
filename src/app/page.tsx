@@ -271,7 +271,7 @@ export default async function HomePage() {
             </h2>
             <Link
               href="/gallery"
-              className="pressable hidden shrink-0 items-center gap-1.5 text-[15px] font-medium text-coffee sm:inline-flex"
+              className="pressable tap-44 hidden shrink-0 items-center gap-1.5 text-[15px] font-medium text-coffee sm:inline-flex"
             >
               See the gallery
               <ArrowRightIcon size={16} weight="bold" />
@@ -374,7 +374,7 @@ export default async function HomePage() {
                 <p className="flex items-start gap-3 text-[15px] text-ink-soft">
                   <ClockIcon size={22} weight="fill" className="mt-0.5 shrink-0 text-coffee" />
                   Full hours for every branch are on the{" "}
-                  <Link href="/contact" className="font-medium text-coffee underline-offset-2 hover:underline">
+                  <Link href="/contact" className="tap-dim font-medium text-coffee underline-offset-2 hover:underline">
                     contact page
                   </Link>
                   .

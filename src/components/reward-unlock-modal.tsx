@@ -146,7 +146,7 @@ export function RewardUnlockModal({
                 <button
                   type="button"
                   onClick={dismiss}
-                  className="pressable h-10 text-[14px] font-medium text-paper/60"
+                  className="pressable tap-44 h-10 text-[14px] font-medium text-paper/60"
                 >
                   Maybe later
                 </button>

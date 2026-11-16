@@ -126,7 +126,7 @@ export default async function AdminInquiriesPage({
           {shown.length === 0 ? (
             <EmptyState title="No inquiries match.">
               Nothing fits those filters.{" "}
-              <Link href={PATH} className="font-semibold text-coffee">
+              <Link href={PATH} className="tap-dim font-semibold text-coffee">
                 Show every inquiry
               </Link>
               .

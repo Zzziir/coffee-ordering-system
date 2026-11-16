@@ -355,7 +355,7 @@ function SocialLink({
       aria-label={label}
       target="_blank"
       rel="noreferrer"
-      className="pressable grid size-10 place-items-center rounded-full bg-ink text-paper transition-colors hover:bg-coffee-deep"
+      className="pressable tap-44 grid size-10 place-items-center rounded-full bg-ink text-paper transition-colors hover:bg-coffee-deep"
     >
       {children}
     </Link>

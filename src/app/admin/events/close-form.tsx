@@ -133,7 +133,7 @@ export function ReopenButton({ eventId, eventName }: { eventId: string; eventNam
       <button
         type="button"
         onClick={() => setAsking(true)}
-        className="pressable h-10 rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
+        className="pressable tap-44 h-10 rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
       >
         Reopen
       </button>

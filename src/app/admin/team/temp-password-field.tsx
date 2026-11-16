@@ -47,7 +47,7 @@ export function TempPasswordField({
   };
 
   const iconButton =
-    "pressable grid size-9 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-sunk hover:text-ink";
+    "pressable tap-44 grid size-9 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-sunk hover:text-ink";
 
   return (
     <div className="flex flex-col gap-1.5">

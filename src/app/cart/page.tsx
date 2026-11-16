@@ -166,7 +166,7 @@ export default function CartPage() {
                                   <button
                                     onClick={() => updateQty(line.id, line.qty - 1)}
                                     aria-label="Decrease"
-                                    className="pressable grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-paper-sunk"
+                                    className="pressable tap-44 grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-paper-sunk"
                                   >
                                     <MinusIcon size={15} weight="bold" />
                                   </button>
@@ -177,7 +177,7 @@ export default function CartPage() {
                                   <button
                                     onClick={() => updateQty(line.id, line.qty + 1)}
                                     aria-label="Increase"
-                                    className="pressable grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-paper-sunk"
+                                    className="pressable tap-44 grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-paper-sunk"
                                   >
                                     <PlusIcon size={15} weight="bold" />
                                   </button>
@@ -185,7 +185,7 @@ export default function CartPage() {
                                 <button
                                   onClick={() => handleRemove(line)}
                                   aria-label={`Remove ${line.name}`}
-                                  className="pressable grid size-10 place-items-center rounded-full text-ink-faint transition-colors hover:bg-warn/10 hover:text-warn"
+                                  className="pressable tap-44 grid size-10 place-items-center rounded-full text-ink-faint transition-colors hover:bg-warn/10 hover:text-warn"
                                 >
                                   <TrashIcon size={18} />
                                 </button>
@@ -286,7 +286,7 @@ export default function CartPage() {
             </span>
             <button
               onClick={handleUndo}
-              className="pressable inline-flex items-center gap-1.5 rounded-full bg-paper/15 px-3 py-1 text-[13px] font-semibold text-paper transition-colors hover:bg-paper/25"
+              className="pressable tap-44 inline-flex items-center gap-1.5 rounded-full bg-paper/15 px-3 py-1 text-[13px] font-semibold text-paper transition-colors hover:bg-paper/25"
             >
               <ArrowCounterClockwiseIcon size={14} weight="bold" />
               Undo

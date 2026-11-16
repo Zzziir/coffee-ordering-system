@@ -42,7 +42,7 @@ export default async function AdminLayout({
     <div className="admin-shell dashboard-surface flex min-h-[100dvh] flex-col">
       <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur-md">
         <div className={clsx(ADMIN_CONTAINER, "flex h-16 items-center justify-between")}>
-          <Link href="/admin" className="pressable flex items-center gap-2.5">
+          <Link href="/admin" className="pressable tap-44 flex items-center gap-2.5">
             <Wordmark className="text-[18px] text-ink" />
             <span className="hidden rounded-full bg-paper-sunk px-2.5 py-1 text-[12px] font-medium text-ink-soft sm:inline">
               Admin

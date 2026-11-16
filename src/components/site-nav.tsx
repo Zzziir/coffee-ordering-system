@@ -46,7 +46,7 @@ export function SiteNav() {
     <>
     <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-md">
       <nav className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between gap-4 px-5 lg:px-8">
-        <Link href="/" aria-label="Craffé home" className="pressable shrink-0">
+        <Link href="/" aria-label="Craffé home" className="pressable tap-44 shrink-0">
           <Wordmark className="text-[20px] text-ink" />
         </Link>
 
@@ -60,7 +60,7 @@ export function SiteNav() {
               <Link
                 href={l.href}
                 className={clsx(
-                  "relative text-[15px] font-medium transition-colors duration-150",
+                  "tap-dim relative text-[15px] font-medium transition-colors duration-150",
                   isActive(pathname, l.href)
                     ? "text-ink"
                     : "text-ink-soft hover:text-ink",
@@ -93,7 +93,7 @@ export function SiteNav() {
           <Link
             href="/cart"
             aria-label={`Bag, ${hydrated ? count : 0} items`}
-            className="pressable relative hidden size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:grid"
+            className="pressable tap-44 relative hidden size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:grid"
           >
             <BagIcon size={22} weight="regular" />
             <span
@@ -110,7 +110,7 @@ export function SiteNav() {
             <Link
               href="/admin"
               aria-label="Admin"
-              className="pressable hidden size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:grid"
+              className="pressable tap-44 hidden size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:grid"
             >
               <GaugeIcon size={22} weight="regular" />
             </Link>
@@ -119,7 +119,7 @@ export function SiteNav() {
           <Link
             href={accountHref}
             aria-label={account.isCustomer ? "Your account" : "Sign in"}
-            className="pressable hidden size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:grid"
+            className="pressable tap-44 hidden size-10 place-items-center rounded-full text-ink hover:bg-paper-sunk lg:grid"
           >
             <UserIcon size={22} weight="regular" />
           </Link>
@@ -177,7 +177,7 @@ export function SiteNav() {
                   <Link
                     href={l.href}
                     className={clsx(
-                      "block py-2 text-[28px] font-bold tracking-tight",
+                      "tap-dim block py-2 text-[28px] font-bold tracking-tight",
                       isActive(pathname, l.href) ? "text-coffee" : "text-ink",
                     )}
                   >
@@ -195,7 +195,7 @@ export function SiteNav() {
                 <Link
                   href={accountHref}
                   className={clsx(
-                    "flex items-center gap-3 py-2 text-[28px] font-bold tracking-tight",
+                    "tap-dim flex items-center gap-3 py-2 text-[28px] font-bold tracking-tight",
                     isActive(pathname, "/account") ? "text-coffee" : "text-ink",
                   )}
                 >
@@ -213,7 +213,7 @@ export function SiteNav() {
                   <Link
                     href="/admin"
                     className={clsx(
-                      "flex items-center gap-3 py-2 text-[28px] font-bold tracking-tight",
+                      "tap-dim flex items-center gap-3 py-2 text-[28px] font-bold tracking-tight",
                       isActive(pathname, "/admin") ? "text-coffee" : "text-ink",
                     )}
                   >

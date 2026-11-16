@@ -245,7 +245,7 @@ export function BranchChip() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="pressable flex h-10 max-w-[11rem] items-center gap-1.5 rounded-full bg-paper-sunk pl-3.5 pr-3 text-[13.5px] font-medium text-ink-soft lg:h-9 lg:max-w-[9.5rem] lg:pl-3 lg:pr-2.5 lg:text-[13px]"
+        className="pressable tap-44 flex h-10 max-w-[11rem] items-center gap-1.5 rounded-full bg-paper-sunk pl-3.5 pr-3 text-[13.5px] font-medium text-ink-soft lg:h-9 lg:max-w-[9.5rem] lg:pl-3 lg:pr-2.5 lg:text-[13px]"
       >
         <StorefrontIcon size={15} weight="fill" className="shrink-0 text-coffee" />
         <span className="truncate">{branch.name}</span>

@@ -204,7 +204,7 @@ function ChosenIntent({ intent, onChange }: { intent: Intent; onChange: () => vo
       <button
         type="button"
         onClick={onChange}
-        className="pressable inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[13px] font-medium text-coffee hover:bg-coffee/5"
+        className="pressable tap-44 inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[13px] font-medium text-coffee hover:bg-coffee/5"
       >
         <CaretLeftIcon size={13} weight="bold" />
         Change

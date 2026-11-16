@@ -677,7 +677,7 @@ function StepButton({
       disabled={disabled}
       onClick={onClick}
       className={clsx(
-        "grid size-7 place-items-center rounded-full border transition-colors",
+        "tap-44 grid size-7 place-items-center rounded-full border transition-colors",
         disabled
           ? "border-line text-ink-faint opacity-40"
           : "pressable border-coffee bg-coffee text-paper",

@@ -101,7 +101,7 @@ export default async function AdminTransactionsPage({
         actions={
           <Link
             href={hrefWith("/admin/sales", { range: params.range }, {})}
-            className="pressable inline-flex h-10 items-center rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
+            className="pressable tap-44 inline-flex h-10 items-center rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
           >
             Sales report
           </Link>
@@ -162,7 +162,7 @@ export default async function AdminTransactionsPage({
               <Link
                 href={hrefWith(PATH, { range: params.range }, {})}
                 scroll={false}
-                className="pressable flex h-10 items-center px-2 text-[13.5px] font-semibold text-coffee"
+                className="pressable tap-44 flex h-10 items-center px-2 text-[13.5px] font-semibold text-coffee"
               >
                 Clear filters
               </Link>
@@ -176,14 +176,14 @@ export default async function AdminTransactionsPage({
           {filtered ? (
             <>
               Nothing matches those filters.{" "}
-              <Link href={hrefWith(PATH, { range: params.range }, {})} className="font-semibold text-coffee">
+              <Link href={hrefWith(PATH, { range: params.range }, {})} className="tap-dim font-semibold text-coffee">
                 Clear filters
               </Link>
             </>
           ) : (
             <>
               Try a longer period.{" "}
-              <Link href={hrefWith(PATH, query, { range: "all" })} className="font-semibold text-coffee">
+              <Link href={hrefWith(PATH, query, { range: "all" })} className="tap-dim font-semibold text-coffee">
                 Show all time
               </Link>
             </>
@@ -219,7 +219,7 @@ export default async function AdminTransactionsPage({
                     {o.customerId ? (
                       <Link
                         href={`/admin/customers/${o.customerId}`}
-                        className="row-above font-medium text-coffee hover:underline"
+                        className="tap-dim row-above font-medium text-coffee hover:underline"
                       >
                         {o.customerName}
                       </Link>

@@ -226,7 +226,7 @@ export function StampCard({
       {signUpNudge && (
         <Link
           href="/account/sign-up"
-          className="group flex items-center gap-2.5 border-t border-paper/15 px-5 py-3.5 text-paper transition-colors hover:bg-paper/5"
+          className="tap-dim group flex items-center gap-2.5 border-t border-paper/15 px-5 py-3.5 text-paper transition-colors hover:bg-paper/5"
         >
           <GiftIcon size={16} weight="fill" className="shrink-0 text-gold" />
           <span className="flex-1 text-[13px] font-medium leading-snug">

@@ -188,7 +188,7 @@ export function FilterPills({ label, options }: { label: string; options: PillOp
           aria-current={option.active ? "true" : undefined}
           scroll={false}
           className={clsx(
-            "pressable flex h-9 shrink-0 items-center rounded-full px-3.5 text-[13px] font-medium transition-colors",
+            "pressable tap-44 flex h-9 shrink-0 items-center rounded-full px-3.5 text-[13px] font-medium transition-colors",
             option.active ? "bg-ink text-paper" : "text-ink-soft hover:text-ink",
           )}
         >
@@ -242,7 +242,7 @@ export function SearchField({
           href={clearHref}
           scroll={false}
           aria-label="Clear search"
-          className="pressable absolute right-1 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:text-ink"
+          className="pressable tap-44 absolute right-1 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:text-ink"
         >
           <XIcon size={14} weight="bold" />
         </Link>
@@ -252,7 +252,7 @@ export function SearchField({
 }
 
 const pageLinkClass =
-  "pressable grid h-10 min-w-10 place-items-center rounded-full px-2 text-[13.5px] font-medium tabular-nums transition-colors";
+  "pressable tap-44 grid h-10 min-w-10 place-items-center rounded-full px-2 text-[13.5px] font-medium tabular-nums transition-colors";
 
 /**
  * Says which rows are showing and steps through the rest. Pages are links, so

@@ -198,7 +198,7 @@ export default async function AdminCustomersPage({
               : (
                 <>
                   Try a different segment or{" "}
-                  <Link href={PATH} className="font-semibold text-coffee">
+                  <Link href={PATH} className="tap-dim font-semibold text-coffee">
                     clear the filters
                   </Link>
                   .

@@ -100,7 +100,7 @@ export function BentoCard({
             <Link
               href={href}
               {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
-              className="pressable inline-flex items-center gap-1.5 text-[14.5px] font-medium text-coffee"
+              className="pressable tap-44 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-coffee"
             >
               {cta}
               <ArrowUpRightIcon

@@ -60,7 +60,7 @@ function Segment({
   return (
     <Link
       href={href}
-      className="pressable flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-ink-soft transition-colors hover:text-ink sm:px-3.5"
+      className="pressable tap-44 flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-ink-soft transition-colors hover:text-ink sm:px-3.5"
     >
       <Icon size={16} weight="bold" />
       {/* Icon only on a phone, where the dashboard header has no room. */}

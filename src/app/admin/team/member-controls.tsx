@@ -82,7 +82,7 @@ export function MoveBranch({ id, name, branchId }: { id: string; name: string; b
 }
 
 const actionButton =
-  "pressable inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13.5px] font-medium transition-colors disabled:opacity-60";
+  "pressable tap-44 inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13.5px] font-medium transition-colors disabled:opacity-60";
 
 /**
  * Reset password and deactivate (or reactivate) for one teammate.

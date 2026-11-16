@@ -193,13 +193,50 @@ html.dark {
 }
 
 /* Pressable feedback — global reflex (Emil): elements that respond to touch
-   scale down subtly. Applied via the .pressable utility. */
+   scale down subtly. Applied via the .pressable utility.
+
+   Every press style below keys off [data-pressed] as well as :active.
+   components/press-feedback sets it on pointerdown, so the press shows the
+   instant a finger lands; touch browsers otherwise hold :active back (iOS
+   Safari skips it entirely). It clears on lift, or when the touch turns into
+   a scroll. */
 .pressable {
   transition: transform 160ms var(--ease-out);
   touch-action: manipulation;
 }
-.pressable:active {
+.pressable:active,
+.pressable[data-pressed] {
   transform: scale(0.97);
+}
+
+@layer components {
+  /* Text links and list rows dim rather than shrink, the way iOS highlights
+     a row: a shrinking word or full-width row reads as a glitch. */
+  .tap-dim {
+    transition: opacity 160ms var(--ease-out);
+    touch-action: manipulation;
+  }
+  .tap-dim:active,
+  .tap-dim[data-pressed] {
+    opacity: 0.6;
+  }
+
+  /* At least a 44px square to hit, whatever the control looks like. An
+     invisible ::after grows the hit area around a smaller visual, so compact
+     icon buttons keep their look. In this layer so a positioning utility on
+     the element (absolute, fixed) still wins over the relative here. */
+  .tap-44 {
+    position: relative;
+  }
+  .tap-44::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    translate: -50% -50%;
+  }
 }
 
 /* Barista queue action — the primary tap target on each order card. A resting
@@ -213,7 +250,8 @@ html.dark {
   box-shadow: var(--shadow-pop);
   touch-action: manipulation;
 }
-.queue-action:active {
+.queue-action:active,
+.queue-action[data-pressed] {
   transform: scale(0.97);
   box-shadow: var(--shadow-card);
 }
@@ -228,7 +266,8 @@ html.dark {
   .queue-action:hover .queue-action-icon {
     transform: translateX(3px);
   }
-  .queue-action:active {
+  .queue-action:active,
+  .queue-action[data-pressed] {
     transform: translateY(-1px) scale(0.97);
     box-shadow: var(--shadow-card);
   }
@@ -330,7 +369,8 @@ html.dark {
     border-color 200ms var(--ease-out);
   touch-action: manipulation;
 }
-.lift-card:active {
+.lift-card:active,
+.lift-card[data-pressed] {
   transform: scale(0.985);
 }
 .lift-arrow {

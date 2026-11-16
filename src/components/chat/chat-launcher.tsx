@@ -202,7 +202,7 @@ export function ChatLauncher() {
                 <button
                   onClick={dismissTeaser}
                   aria-label="Dismiss"
-                  className="pressable grid size-9 shrink-0 place-items-center rounded-full bg-paper/10 text-paper/80 transition-colors duration-150 hover:bg-paper/20 hover:text-paper"
+                  className="pressable tap-44 grid size-9 shrink-0 place-items-center rounded-full bg-paper/10 text-paper/80 transition-colors duration-150 hover:bg-paper/20 hover:text-paper"
                 >
                   <XIcon size={16} weight="bold" />
                 </button>
@@ -216,7 +216,7 @@ export function ChatLauncher() {
                 </p>
                 <button
                   onClick={openChat}
-                  className="pressable mt-4 inline-flex h-10 items-center gap-1.5 rounded-full bg-ink pl-4 pr-3.5 text-[14.5px] font-semibold text-paper"
+                  className="pressable tap-44 mt-4 inline-flex h-10 items-center gap-1.5 rounded-full bg-ink pl-4 pr-3.5 text-[14.5px] font-semibold text-paper"
                 >
                   Let&apos;s chat
                   <ArrowRightIcon size={16} weight="bold" />

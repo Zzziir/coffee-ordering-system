@@ -89,7 +89,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 type="button"
                 onClick={() => dismiss(toast.id)}
                 aria-label="Dismiss"
-                className="pressable grid size-8 shrink-0 place-items-center rounded-full text-paper/70 hover:text-paper"
+                className="pressable tap-44 grid size-8 shrink-0 place-items-center rounded-full text-paper/70 hover:text-paper"
               >
                 <XIcon size={15} weight="bold" />
               </button>

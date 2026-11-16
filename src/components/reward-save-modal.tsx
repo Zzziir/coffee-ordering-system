@@ -108,7 +108,7 @@ export function RewardSaveModal({
                 <button
                   type="button"
                   onClick={onDismiss}
-                  className="pressable mt-0.5 h-9 text-[14px] font-medium text-ink-faint"
+                  className="pressable tap-44 mt-0.5 h-9 text-[14px] font-medium text-ink-faint"
                 >
                   Maybe later
                 </button>

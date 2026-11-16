@@ -46,7 +46,7 @@ export default async function StaffBranchPage({
       <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 md:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            <Link href={landingPath(staff)} className="pressable shrink-0">
+            <Link href={landingPath(staff)} className="pressable tap-44 shrink-0">
               <BranchLockup branch={branch} className="h-6 text-[18px] text-ink" />
             </Link>
             {staff.role === "owner" ? (

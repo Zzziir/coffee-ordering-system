@@ -7,7 +7,7 @@ export default function NewEventPage() {
     <div className="mx-auto max-w-2xl">
       <Link
         href="/admin/events"
-        className="pressable -ml-1 inline-flex h-9 items-center gap-1 text-[14px] font-medium text-ink-soft hover:text-ink"
+        className="pressable tap-44 -ml-1 inline-flex h-9 items-center gap-1 text-[14px] font-medium text-ink-soft hover:text-ink"
       >
         <CaretLeftIcon size={16} weight="bold" />
         Events

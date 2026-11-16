@@ -123,7 +123,7 @@ function ProductRow({
               </span>
               <button
                 onClick={onViewBag}
-                className="pressable ml-auto inline-flex h-9 items-center gap-1 rounded-full bg-ink px-3 text-[12.5px] font-semibold text-paper"
+                className="pressable tap-44 ml-auto inline-flex h-9 items-center gap-1 rounded-full bg-ink px-3 text-[12.5px] font-semibold text-paper"
               >
                 View bag
                 <ArrowRightIcon size={13} weight="bold" />
@@ -133,13 +133,13 @@ function ProductRow({
             <>
               <button
                 onClick={() => onView(product.id)}
-                className="pressable h-9 rounded-full border border-line-strong px-3 text-[12.5px] font-medium text-ink"
+                className="pressable tap-44 h-9 rounded-full border border-line-strong px-3 text-[12.5px] font-medium text-ink"
               >
                 View product
               </button>
               <button
                 onClick={() => onAdd(product)}
-                className="pressable inline-flex h-9 items-center gap-1 rounded-full bg-ink px-3 text-[12.5px] font-semibold text-paper"
+                className="pressable tap-44 inline-flex h-9 items-center gap-1 rounded-full bg-ink px-3 text-[12.5px] font-semibold text-paper"
               >
                 <PlusIcon size={13} weight="bold" />
                 Add
@@ -170,7 +170,7 @@ function ProductTile({
       <button
         onClick={() => onView(product.id)}
         aria-label={`View ${product.name}`}
-        className="group relative block aspect-[5/4] w-full overflow-hidden"
+        className="pressable group relative block aspect-[5/4] w-full overflow-hidden"
       >
         <div className="absolute inset-0 transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.06]">
           <ItemThumb item={{ id: product.id, name: product.name, image: product.image ?? undefined }} iconClassName="size-9" sizes="152px" />
@@ -189,7 +189,7 @@ function ProductTile({
           {added ? (
             <button
               onClick={onViewBag}
-              className="pressable inline-flex h-9 w-full items-center justify-center gap-1 rounded-full bg-ready-tint px-3 text-[12px] font-semibold text-ready"
+              className="pressable tap-44 inline-flex h-9 w-full items-center justify-center gap-1 rounded-full bg-ready-tint px-3 text-[12px] font-semibold text-ready"
             >
               <CheckCircleIcon size={14} weight="fill" />
               In bag
@@ -197,7 +197,7 @@ function ProductTile({
           ) : (
             <button
               onClick={() => onAdd(product)}
-              className="pressable inline-flex h-9 w-full items-center justify-center gap-1 rounded-full bg-ink px-3 text-[12px] font-semibold text-paper"
+              className="pressable tap-44 inline-flex h-9 w-full items-center justify-center gap-1 rounded-full bg-ink px-3 text-[12px] font-semibold text-paper"
             >
               <PlusIcon size={13} weight="bold" />
               Add to bag

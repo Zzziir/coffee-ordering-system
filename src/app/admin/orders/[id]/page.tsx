@@ -73,7 +73,7 @@ export default async function AdminOrderPage({
       <div className="settle">
         <Link
           href={back.href}
-          className="pressable -ml-1 inline-flex h-9 items-center gap-1 text-[14px] font-medium text-ink-soft hover:text-ink"
+          className="pressable tap-44 -ml-1 inline-flex h-9 items-center gap-1 text-[14px] font-medium text-ink-soft hover:text-ink"
         >
           <CaretLeftIcon size={16} weight="bold" />
           {back.label}

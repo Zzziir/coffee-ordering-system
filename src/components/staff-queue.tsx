@@ -278,7 +278,7 @@ function OrderCard({
         <button
           onClick={() => onAdvance(order, next.status)}
           className={clsx(
-            "queue-action inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-semibold text-paper",
+            "queue-action tap-44 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-semibold text-paper",
             next.bg,
           )}
         >

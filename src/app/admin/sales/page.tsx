@@ -150,7 +150,7 @@ export default async function AdminSalesPage({
         actions={
           <Link
             href={hrefWith("/admin/orders", { range: params.range }, {})}
-            className="pressable inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
+            className="pressable tap-44 inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-4 text-[14px] font-medium text-ink"
           >
             Transactions
             <ArrowRightIcon size={15} weight="bold" />
@@ -214,7 +214,7 @@ export default async function AdminSalesPage({
       {current.length === 0 ? (
         <EmptyState title="No paid orders in this view.">
           Try a longer period or a different filter.{" "}
-          <Link href={hrefWith(PATH, query, { range: "all" })} className="font-semibold text-coffee">
+          <Link href={hrefWith(PATH, query, { range: "all" })} className="tap-dim font-semibold text-coffee">
             Show all time
           </Link>
           .

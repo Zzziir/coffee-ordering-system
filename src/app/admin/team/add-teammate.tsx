@@ -49,7 +49,7 @@ export function AddTeammate({ roles, branches }: { roles: StaffRole[]; branches:
       <button
         type="button"
         onClick={show}
-        className="pressable inline-flex h-10 items-center gap-2 rounded-full bg-ink px-4 text-[14px] font-semibold text-paper"
+        className="pressable tap-44 inline-flex h-10 items-center gap-2 rounded-full bg-ink px-4 text-[14px] font-semibold text-paper"
       >
         <PlusIcon size={16} weight="bold" aria-hidden />
         Add teammate
@@ -119,7 +119,7 @@ function AddForm({
           type="button"
           onClick={onDone}
           aria-label="Close"
-          className="pressable -mr-2 grid size-9 shrink-0 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk hover:text-ink"
+          className="pressable tap-44 -mr-2 grid size-9 shrink-0 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk hover:text-ink"
         >
           <XIcon size={18} weight="bold" />
         </button>

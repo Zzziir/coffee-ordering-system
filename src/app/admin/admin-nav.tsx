@@ -57,7 +57,7 @@ export function AdminNav() {
               href={href}
               aria-current={active ? "page" : undefined}
               className={clsx(
-                "pressable group relative isolate flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[14px] font-medium transition-colors duration-200",
+                "pressable tap-44 group relative isolate flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[14px] font-medium transition-colors duration-200",
                 active ? "text-paper" : "text-ink-soft hover:bg-paper-sunk hover:text-ink",
               )}
             >

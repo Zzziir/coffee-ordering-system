@@ -136,7 +136,7 @@ export default async function AccountPage() {
             <h2 className="text-[15px] font-semibold text-ink">Your details</h2>
             <Link
               href="/account/edit"
-              className="pressable flex items-center gap-1.5 text-[13.5px] font-medium text-coffee"
+              className="pressable tap-44 flex items-center gap-1.5 text-[13.5px] font-medium text-coffee"
             >
               <PencilSimpleIcon size={14} weight="bold" />
               Edit
@@ -195,7 +195,7 @@ function OrderRow({ order }: { order: Order }) {
     <li>
       <Link
         href={`/order/${order.id}`}
-        className="group flex items-center gap-3 rounded-[var(--radius-md)] px-2 py-3 transition-colors hover:bg-paper-sunk/60"
+        className="tap-dim group flex items-center gap-3 rounded-[var(--radius-md)] px-2 py-3 transition-colors hover:bg-paper-sunk/60"
       >
         <span className="grid size-11 shrink-0 place-items-center rounded-full bg-coffee-tint/70 text-[14px] font-bold text-coffee">
           {order.code}

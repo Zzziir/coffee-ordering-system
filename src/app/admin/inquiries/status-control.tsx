@@ -87,7 +87,7 @@ export function StatusControl({
           type="button"
           disabled={pending}
           onClick={() => move(secondary.to)}
-          className="pressable inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-ink-soft transition-colors hover:bg-paper-sunk hover:text-ink disabled:opacity-60"
+          className="pressable tap-44 inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-ink-soft transition-colors hover:bg-paper-sunk hover:text-ink disabled:opacity-60"
         >
           {secondary.icon}
           {secondary.label}
@@ -98,7 +98,7 @@ export function StatusControl({
           type="button"
           disabled={pending}
           onClick={() => move(primary.to)}
-          className="pressable inline-flex h-9 items-center gap-1.5 rounded-full bg-ink px-3.5 text-[13px] font-semibold text-paper disabled:opacity-60"
+          className="pressable tap-44 inline-flex h-9 items-center gap-1.5 rounded-full bg-ink px-3.5 text-[13px] font-semibold text-paper disabled:opacity-60"
         >
           {primary.icon}
           {primary.label}

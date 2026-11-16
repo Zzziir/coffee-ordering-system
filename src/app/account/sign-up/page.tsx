@@ -38,7 +38,7 @@ export default async function CustomerSignUpPage({
           Already have an account?{" "}
           <Link
             href={next ? `/account/sign-in?next=${encodeURIComponent(next)}` : "/account/sign-in"}
-            className="font-semibold text-coffee"
+            className="tap-dim font-semibold text-coffee"
           >
             Sign in
           </Link>

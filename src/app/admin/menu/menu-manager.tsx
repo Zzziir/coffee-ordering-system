@@ -46,7 +46,7 @@ export function MenuManager({
         actions={
           <Link
             href="/admin/menu/new"
-            className="pressable inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-[14px] font-semibold text-paper"
+            className="pressable tap-44 inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-[14px] font-semibold text-paper"
           >
             <PlusIcon size={16} weight="bold" />
             Add item
@@ -71,7 +71,7 @@ export function MenuManager({
               type="button"
               onClick={() => setSearch("")}
               aria-label="Clear search"
-              className="pressable absolute right-1 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:text-ink"
+              className="pressable tap-44 absolute right-1 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:text-ink"
             >
               <XIcon size={14} weight="bold" />
             </button>
@@ -105,7 +105,7 @@ export function MenuManager({
             aria-pressed={soldOutOnly}
             onClick={() => setSoldOutOnly((on) => !on)}
             className={clsx(
-              "pressable inline-flex h-10 items-center gap-2 rounded-full border px-3.5 text-[13px] font-medium transition-colors",
+              "pressable tap-44 inline-flex h-10 items-center gap-2 rounded-full border px-3.5 text-[13px] font-medium transition-colors",
               soldOutOnly
                 ? "border-ink bg-ink text-paper"
                 : "border-line bg-paper-raised text-ink-soft hover:text-ink",
@@ -127,7 +127,7 @@ export function MenuManager({
               setSearch("");
               setSoldOutOnly(false);
             }}
-            className="pressable mt-2 h-9 text-[14px] font-semibold text-coffee"
+            className="pressable tap-44 mt-2 h-9 text-[14px] font-semibold text-coffee"
           >
             Clear filters
           </button>
@@ -241,7 +241,7 @@ function ItemRow({
             onClick={toggle}
             disabled={pending}
             className={clsx(
-              "pressable inline-flex h-6 w-11 shrink-0 items-center rounded-full px-0.5 transition-colors disabled:opacity-50",
+              "pressable tap-44 inline-flex h-6 w-11 shrink-0 items-center rounded-full px-0.5 transition-colors disabled:opacity-50",
               available ? "bg-ready" : "bg-line-strong",
             )}
           >
