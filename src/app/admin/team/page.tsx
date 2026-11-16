@@ -1,10 +1,8 @@
 import { redirect } from "next/navigation";
 import { BRANCH_LIST, getBranch, isBranchId } from "@/lib/branches";
-import { clsx } from "@/lib/clsx";
 import { getStaffMember, isAdmin, type StaffRole } from "@/lib/staff";
 import { listTeam } from "@/lib/team";
 import {
-  ROLE_LABEL,
   assignableBranches,
   canManage,
   canMoveBranch,
@@ -22,7 +20,7 @@ import {
   tableHeadClass,
 } from "@/components/admin/report-ui";
 import { AddTeammate } from "./add-teammate";
-import { MemberActions, MoveBranch } from "./member-controls";
+import { MemberRow } from "./member-row";
 
 export const dynamic = "force-dynamic";
 
@@ -101,67 +99,16 @@ export default async function AdminTeamPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {shown.map((member) => {
-              const manageable = canManage(actor, member);
-              const isYou = member.id === actor.id;
-              return (
-                <tr
-                  key={member.id}
-                  className={clsx("quiet-hover bg-paper-raised align-middle", !member.active && "text-ink-faint")}
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span
-                        aria-hidden
-                        className={clsx(
-                          "grid size-10 shrink-0 place-items-center rounded-full text-[13px] font-semibold",
-                          member.active ? "bg-coffee-tint text-coffee" : "bg-paper-sunk text-ink-faint",
-                        )}
-                      >
-                        {initials(member.name)}
-                      </span>
-                      <div className="min-w-0">
-                        <p className={clsx("truncate font-semibold", member.active ? "text-ink" : "text-ink-soft")}>
-                          {member.name}
-                          {isYou && (
-                            <span className="ml-2 rounded-full bg-paper-sunk px-2 py-0.5 text-[11.5px] font-medium text-ink-soft">
-                              You
-                            </span>
-                          )}
-                        </p>
-                        <p className="truncate text-[13px] text-ink-faint">{member.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-ink-soft">{ROLE_LABEL[member.role]}</td>
-                  <td className="px-4 py-3 text-ink-soft">
-                    {member.branchId === null ? (
-                      "All branches"
-                    ) : movable && manageable && member.active ? (
-                      <MoveBranch id={member.id} name={member.name} branchId={member.branchId} />
-                    ) : (
-                      getBranch(member.branchId).name
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-2 text-[13.5px]">
-                      <span
-                        aria-hidden
-                        className={clsx("size-2 rounded-full", member.active ? "bg-ready" : "bg-ink-faint/60")}
-                      />
-                      <span className={member.active ? "text-ink" : "text-ink-faint"}>
-                        {member.active ? "Active" : "Deactivated"}
-                      </span>
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {manageable && (
-                      <MemberActions id={member.id} name={member.name} active={member.active} />
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+            {shown.map((member) => (
+              <MemberRow
+                key={member.id}
+                member={member}
+                initials={initials(member.name)}
+                isYou={member.id === actor.id}
+                manageable={canManage(actor, member)}
+                movable={movable}
+              />
+            ))}
           </tbody>
         </TableShell>
       )}

@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { ArrowRightIcon, MagnifyingGlassIcon, PlusIcon, StorefrontIcon, XIcon } from "@phosphor-icons/react";
 import { isAvailableAt, peso, type MenuData, type MenuItem } from "@/lib/menu";
 import type { BranchId } from "@/lib/types";
@@ -169,11 +168,12 @@ function ItemRow({
   branch: BranchId;
   branchName: string;
 }) {
-  const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
-  // Optimistic: flip the switch immediately, reconcile on refresh.
-  const [available, setAvailableState] = useState(isAvailableAt(item, branch));
+  // Optimistic: the switch flips the moment it's pressed. The action's
+  // response carries the refreshed menu, which takes over when it lands; if
+  // the save fails, React drops the optimistic value and the switch flips back.
+  const [available, setOptimisticAvailable] = useOptimistic(isAvailableAt(item, branch));
 
   // The master switch (item form) retires an item everywhere; a branch can't
   // bring back what the owner has turned off outright.
@@ -181,18 +181,16 @@ function ItemRow({
 
   const toggle = () => {
     const next = !available;
-    setAvailableState(next);
     startTransition(async () => {
+      setOptimisticAvailable(next);
       try {
         await setBranchAvailability(item.id, branch, next);
-        router.refresh();
         toast.success(
           next
             ? `${item.name} is back on at ${branchName}.`
             : `${item.name} is sold out at ${branchName}.`,
         );
       } catch {
-        setAvailableState(!next); // revert on failure
         toast.error(`Couldn't update ${item.name}. Try again.`);
       }
     });

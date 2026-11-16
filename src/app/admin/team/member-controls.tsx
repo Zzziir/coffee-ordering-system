@@ -84,12 +84,38 @@ export function MoveBranch({ id, name, branchId }: { id: string; name: string; b
 const actionButton =
   "pressable inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13.5px] font-medium transition-colors disabled:opacity-60";
 
-/** Reset password and deactivate (or reactivate) for one teammate. */
-export function MemberActions({ id, name, active }: { id: string; name: string; active: boolean }) {
+/**
+ * Reset password and deactivate (or reactivate) for one teammate.
+ *
+ * Deactivating and reactivating are optimistic: `onActiveChange` restyles the
+ * row the moment it's confirmed and the save runs behind it. If the save fails,
+ * the row reverts on its own and a toast says so. A password reset waits for
+ * the server instead, because the owner is about to hand that password over.
+ */
+export function MemberActions({
+  id,
+  name,
+  active,
+  onActiveChange,
+}: {
+  id: string;
+  name: string;
+  active: boolean;
+  /** Shows the new state on the row; must be called inside a transition. */
+  onActiveChange: (active: boolean) => void;
+}) {
   const [dialog, setDialog] = useState<"password" | "deactivate" | null>(null);
   const [password, setPassword] = useState("");
   const { pending, run } = useTeamAction();
   const close = () => setDialog(null);
+
+  const changeActive = (next: boolean) => {
+    close();
+    run(async () => {
+      onActiveChange(next);
+      return setActive(id, next);
+    });
+  };
 
   const openPassword = () => {
     setPassword(generatePassword());
@@ -122,12 +148,12 @@ export function MemberActions({ id, name, active }: { id: string; name: string; 
       ) : (
         <button
           type="button"
-          onClick={() => run(() => setActive(id, true))}
+          onClick={() => changeActive(true)}
           disabled={pending}
           className={`${actionButton} border border-line-strong text-ink hover:bg-paper-sunk`}
         >
           <ArrowCounterClockwiseIcon size={16} weight="bold" aria-hidden />
-          {pending ? "Reactivating" : "Reactivate"}
+          Reactivate
         </button>
       )}
 
@@ -153,9 +179,7 @@ export function MemberActions({ id, name, active }: { id: string; name: string; 
         open={dialog === "deactivate"}
         title={`Deactivate ${name}?`}
         confirmLabel="Deactivate"
-        pendingLabel="Deactivating"
-        pending={pending}
-        onConfirm={() => run(() => setActive(id, false), (ok) => ok && close())}
+        onConfirm={() => changeActive(false)}
         onCancel={close}
       >
         They are signed out and can&apos;t sign back in. Their name stays on past orders, and you
