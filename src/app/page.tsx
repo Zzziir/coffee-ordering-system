@@ -133,7 +133,8 @@ export default async function HomePage() {
                 src="/brand/hero-drinks.jpg"
                 alt="Three Craffé signature drinks on the counter in warm afternoon light"
                 fill
-                priority
+                loading="eager"
+                fetchPriority="high"
                 sizes="(max-width: 1024px) 100vw, 600px"
                 className="object-cover"
               />

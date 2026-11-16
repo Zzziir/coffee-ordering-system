@@ -54,6 +54,8 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
                 alt={p.alt}
                 fill
                 sizes="(max-width: 1024px) 50vw, 400px"
+                // The first tile opens the page; the rest load as they scroll in.
+                loading={i === 0 ? "eager" : "lazy"}
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
             </button>
@@ -94,7 +96,7 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
                 fill
                 sizes="(max-width: 1024px) 100vw, 1024px"
                 className="rounded-[var(--radius-lg)] object-contain"
-                priority
+                loading="eager"
               />
               <button
                 onClick={() => setActive(null)}

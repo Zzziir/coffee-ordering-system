@@ -35,8 +35,13 @@ export type Branch = {
   name: string;
   /** the lockup as it reads on the building, when it differs from plain Craffé */
   lockupName: string;
-  /** the branch's own mark, shown at branch touchpoints. null = shared Craffé mark. */
-  logo: string | null;
+  /**
+   * The branch's own mark, shown at branch touchpoints. null = shared Craffé
+   * mark. width and height are the file's real pixel size: the lockup is sized
+   * by height alone, so the browser reserves its width from this ratio before
+   * the file arrives. A wrong ratio makes the row beside it jump on load.
+   */
+  logo: { src: string; width: number; height: number } | null;
   addressLine: string;
   city: string;
   mapsUrl: string;
@@ -86,7 +91,7 @@ export const BRANCHES: Record<BranchId, Branch> = {
     id: "mycc",
     name: "MYCC",
     lockupName: "Craffé by MYCC",
-    logo: "/brand/mycc-lockup.png",
+    logo: { src: "/brand/mycc-lockup.png", width: 1254, height: 1254 },
     addressLine: "Marilao",
     city: "Bulacan",
     mapsUrl: MAPS("Craffe by MYCC Marilao"),

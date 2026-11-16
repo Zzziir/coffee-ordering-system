@@ -46,7 +46,8 @@ export default function StoryPage() {
               src="/brand/storefront-day.jpg"
               alt="The Craffé East Rembo storefront on 15th Ave"
               fill
-              priority
+              loading="eager"
+              fetchPriority="high"
               sizes="(max-width: 1080px) 100vw, 1080px"
               className="object-cover"
             />

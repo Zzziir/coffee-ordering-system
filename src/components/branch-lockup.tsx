@@ -23,12 +23,16 @@ export function BranchLockup({
   if (branch.logo) {
     return (
       <Image
-        src={branch.logo}
+        src={branch.logo.src}
         alt={branch.lockupName}
-        width={180}
-        height={60}
+        width={branch.logo.width}
+        height={branch.logo.height}
+        // Callers size it h-6 to h-7 (24 to 28px), so ask for a file that
+        // small rather than one at the source's full width.
+        sizes="32px"
         className={clsx("w-auto object-contain", className)}
-        priority
+        // Sits at the top of every screen that shows it.
+        loading="eager"
       />
     );
   }
