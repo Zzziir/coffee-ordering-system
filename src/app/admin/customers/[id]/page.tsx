@@ -13,7 +13,8 @@ import { listOrders } from "@/lib/admin-orders";
 import { breakdown, itemSales } from "@/lib/analytics";
 import { getBranch, isBranchId } from "@/lib/branches";
 import { customerStats, getProfile } from "@/lib/crm";
-import { getLoyalty } from "@/lib/loyalty";
+import { computeLoyalty, getLoyaltyProfile } from "@/lib/loyalty";
+import { getMenu } from "@/lib/menu-store";
 import { paginate } from "@/lib/paginate";
 import { STAMPS_PER_REWARD, peso } from "@/lib/menu";
 import { listEvents } from "@/lib/sales-events";
@@ -52,11 +53,14 @@ export default async function AdminCustomerPage({
   const profile = await getProfile(id);
   if (!profile) notFound();
 
-  const [orders, loyalty, events] = await Promise.all([
+  const [orders, loyaltyProfile, menu, events] = await Promise.all([
     listOrders({ customerId: profile.id }),
-    getLoyalty(profile.id),
+    getLoyaltyProfile(profile.id),
+    getMenu(),
     listEvents(),
   ]);
+  // Every order, paid or not: an applied reward is spent the moment it's used.
+  const loyalty = computeLoyalty(loyaltyProfile, orders, menu);
 
   const now = Date.now();
   const paid = orders.filter((o) => o.paid);

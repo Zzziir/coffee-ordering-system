@@ -14,7 +14,7 @@ import { ActiveOrders } from "@/components/active-orders";
 import { RewardUnlockModal } from "@/components/reward-unlock-modal";
 import { getCustomer } from "@/lib/customer";
 import { listCustomerOrders } from "@/lib/store";
-import { getLoyalty } from "@/lib/loyalty";
+import { computeLoyalty, getLoyaltyProfile } from "@/lib/loyalty";
 import { getMenu } from "@/lib/menu-store";
 import { drinkStickers, peso } from "@/lib/menu";
 import { getBranch } from "@/lib/branches";
@@ -28,11 +28,12 @@ export default async function AccountPage() {
   // proxy.ts already gates this route; this is the belt-and-braces check.
   if (!customer) redirect("/account/sign-in?next=/account");
 
-  const [orders, loyalty, menu] = await Promise.all([
+  const [orders, loyaltyProfile, menu] = await Promise.all([
     listCustomerOrders(customer.id),
-    getLoyalty(customer.id),
+    getLoyaltyProfile(customer.id),
     getMenu(),
   ]);
+  const loyalty = computeLoyalty(loyaltyProfile, orders, menu);
 
   // Active = still on its way (not yet picked up). These lead the page and live
   // in their own section; history keeps the picked-up ones so nothing doubles.

@@ -1,7 +1,8 @@
 import { supabaseAdmin } from "./supabase/admin";
 import { listCustomerOrders } from "./store";
 import { getMenu } from "./menu-store";
-import { drinkStickers, STAMPS_PER_REWARD } from "./menu";
+import { drinkStickers, STAMPS_PER_REWARD, type MenuData } from "./menu";
+import type { Order } from "./types";
 
 /**
  * Loyalty — "10 stamps, 1 free drink", derived, never stored as a balance.
@@ -42,18 +43,42 @@ export type LoyaltyState = {
   celebrated: number | null;
 };
 
+/** The two stored loyalty facts on a profile. Everything else is derived. */
+export type LoyaltyProfile = { seed: number; celebrated: number | null };
+
+/** A customer's stored loyalty facts. A missing profile reads as a blank card. */
+export async function getLoyaltyProfile(customerId: string): Promise<LoyaltyProfile> {
+  const { data, error } = await supabaseAdmin()
+    .from("profiles")
+    .select("loyalty_seed, rewards_celebrated")
+    .eq("id", customerId)
+    .maybeSingle<{ loyalty_seed: number; rewards_celebrated: number | null }>();
+
+  if (error) throw new Error(`Could not read loyalty for ${customerId}: ${error.message}`);
+  return { seed: data?.loyalty_seed ?? 0, celebrated: data?.rewards_celebrated ?? null };
+}
+
+/**
+ * Loyalty standing, read from scratch. A page that already holds the
+ * customer's orders should read `getLoyaltyProfile` alongside them and call
+ * `computeLoyalty`, rather than have this read the same orders a second time.
+ */
 export async function getLoyalty(customerId: string): Promise<LoyaltyState> {
-  const [{ data: profile }, orders, menu] = await Promise.all([
-    supabaseAdmin()
-      .from("profiles")
-      .select("loyalty_seed, rewards_celebrated")
-      .eq("id", customerId)
-      .maybeSingle<{ loyalty_seed: number; rewards_celebrated: number | null }>(),
+  const [profile, orders, menu] = await Promise.all([
+    getLoyaltyProfile(customerId),
     listCustomerOrders(customerId),
     getMenu(),
   ]);
+  return computeLoyalty(profile, orders, menu);
+}
 
-  const seed = profile?.loyalty_seed ?? 0;
+/** Loyalty standing from the stored facts and every order the customer placed. */
+export function computeLoyalty(
+  profile: LoyaltyProfile,
+  orders: Order[],
+  menu: MenuData,
+): LoyaltyState {
+  const { seed } = profile;
   const pickedUp = orders.filter((o) => o.status === "completed");
   const purchasedDrinks = pickedUp.reduce(
     (total, o) => total + drinkStickers(menu, o.items),
@@ -73,6 +98,6 @@ export async function getLoyalty(customerId: string): Promise<LoyaltyState> {
     progress: stamps % STAMPS_PER_REWARD,
     free: Math.max(0, earnedRewards - committedRedeemed),
     earnedRewards,
-    celebrated: profile?.rewards_celebrated ?? null,
+    celebrated: profile.celebrated,
   };
 }
