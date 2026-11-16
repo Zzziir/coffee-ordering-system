@@ -101,6 +101,8 @@ export function Sheet({
   if (open) lastChildren.current = children;
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  const openRef = useRef(open);
+  openRef.current = open;
 
   if (open && !mounted) setMounted(true);
 
@@ -114,9 +116,19 @@ export function Sheet({
     const dialog = dialogRef.current;
     const panel = panelRef.current;
     const backdrop = backdropRef.current;
-    if (!open || !dialog || !panel || !backdrop || dialog.open) return;
-    dialog.showModal();
+    if (!open || !dialog || !panel || !backdrop) return;
     const timing = { duration: reduced() ? 200 : slides() ? ENTER_MS : ENTER_CENTER_MS, easing: EASE_DRAWER };
+    if (dialog.open) {
+      // Reopened while still closing: turn around from wherever it is.
+      const from = { transform: getComputedStyle(panel).transform, opacity: getComputedStyle(panel).opacity };
+      const dim = getComputedStyle(backdrop).opacity;
+      panel.getAnimations().forEach((a) => a.cancel());
+      backdrop.getAnimations().forEach((a) => a.cancel());
+      panel.animate([from, { transform: "none", opacity: 1 }], timing);
+      backdrop.animate([{ opacity: dim }, { opacity: 1 }], timing);
+      return;
+    }
+    dialog.showModal();
     const from = reduced()
       ? { opacity: 0 }
       : slides()
@@ -131,7 +143,14 @@ export function Sheet({
     const dialog = dialogRef.current;
     const panel = panelRef.current;
     const backdrop = backdropRef.current;
-    if (open || !dialog?.open || !panel || !backdrop) return;
+    if (open || !dialog || !panel || !backdrop) return;
+    if (!dialog.open) {
+      // Already shut by the browser (see onClose below): just tidy up.
+      panel.style.transform = "";
+      backdrop.style.opacity = "";
+      setMounted(false);
+      return;
+    }
     const y = translateYOf(panel);
     const timing = { duration: reduced() ? 160 : EXIT_MS, easing: EASE_DRAWER, fill: "forwards" as const };
     const to = reduced()
@@ -270,6 +289,17 @@ export function Sheet({
       onCancel={(event) => {
         event.preventDefault();
         onCloseRef.current();
+      }}
+      // Chrome ignores preventDefault on Escape when the page hasn't been
+      // touched yet, and shuts the dialog itself. Tell the caller, and if it
+      // still wants the sheet open (a choice that must be made), put it back.
+      onClose={() => {
+        if (!openRef.current) return;
+        onCloseRef.current();
+        requestAnimationFrame(() => {
+          const dialog = dialogRef.current;
+          if (openRef.current && dialog && !dialog.open) dialog.showModal();
+        });
       }}
     >
       <div ref={backdropRef} aria-hidden className={clsx("sheet-backdrop", backdropClassName)} onClick={() => onCloseRef.current()} />
