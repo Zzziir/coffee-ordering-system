@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { BagIcon, ListIcon, XIcon, ArrowRightIcon, UserIcon, GaugeIcon } from "@phosphor-icons/react";
 import { Wordmark } from "./brand";
 import { useCart } from "./cart-provider";
@@ -12,6 +12,7 @@ import { useAccountNav } from "./use-account-nav";
 import { InstallPrompt } from "./pwa/install-prompt";
 import { AnimatedThemeToggler } from "./animated-theme-toggler";
 import { clsx } from "@/lib/clsx";
+import { Sheet } from "./sheet";
 
 const LINKS = [
   { href: "/", label: "Home" },
@@ -34,13 +35,6 @@ export function SiteNav() {
 
   // Close the mobile menu on route change.
   useEffect(() => setOpen(false), [pathname]);
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
 
   return (
     <>
@@ -144,98 +138,94 @@ export function SiteNav() {
       </nav>
       </header>
 
-      {/* Mobile overlay menu — rendered outside the backdrop-blurred header so
-          `position: fixed` resolves against the viewport, not the header. */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="fixed inset-0 z-50 flex flex-col lg:hidden"
-            style={{ backgroundColor: "var(--color-paper)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+      {/* Mobile menu: a page sheet over the site, swiped down or closed with
+          the X. It's a <dialog> in the top layer, so the blurred header can't
+          trap it. */}
+      <Sheet
+        open={open}
+        onClose={() => setOpen(false)}
+        label="Menu"
+        className="flex h-[calc(100dvh-max(env(safe-area-inset-top),0.75rem))] flex-col rounded-t-[var(--radius-xl)] bg-paper"
+  >
+        <span aria-hidden className="mx-auto mt-2.5 block h-1.5 w-10 shrink-0 rounded-full bg-line-strong" />
+        <div className="flex h-16 items-center justify-between px-5">
+          <Wordmark className="text-[20px] text-ink" />
+          <button
+            onClick={() => setOpen(false)}
+            aria-label="Close menu"
+            className="pressable -mr-1.5 grid size-11 place-items-center rounded-full text-ink hover:bg-paper-sunk"
           >
-            <div className="flex h-[72px] items-center justify-between px-5">
-              <Wordmark className="text-[20px] text-ink" />
-              <button
-                onClick={() => setOpen(false)}
-                aria-label="Close menu"
-                className="pressable -mr-1.5 grid size-11 place-items-center rounded-full text-ink hover:bg-paper-sunk"
-              >
-                <XIcon size={24} weight="bold" />
-              </button>
-            </div>
-            <ul className="flex min-h-0 flex-col overflow-y-auto px-5 pt-2">
-              {LINKS.map((l, i) => (
-                <motion.li
-                  key={l.href}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05 + i * 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                >
-                  <Link
-                    href={l.href}
-                    className={clsx(
-                      "tap-dim block py-2 text-[28px] font-bold tracking-tight",
-                      isActive(pathname, l.href) ? "text-coffee" : "text-ink",
-                    )}
-                  >
-                    {l.label}
-                  </Link>
-                </motion.li>
-              ))}
-
-              <motion.li
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.05 + LINKS.length * 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                className="mt-2 border-t border-line/70 pt-2"
-              >
-                <Link
-                  href={accountHref}
-                  className={clsx(
-                    "tap-dim flex items-center gap-3 py-2 text-[28px] font-bold tracking-tight",
-                    isActive(pathname, "/account") ? "text-coffee" : "text-ink",
-                  )}
-                >
-                  <UserIcon size={26} weight="bold" />
-                  {account.isCustomer ? "Account" : "Sign in"}
-                </Link>
-              </motion.li>
-
-              {account.isAdmin && (
-                <motion.li
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05 + (LINKS.length + 1) * 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                >
-                  <Link
-                    href="/admin"
-                    className={clsx(
-                      "tap-dim flex items-center gap-3 py-2 text-[28px] font-bold tracking-tight",
-                      isActive(pathname, "/admin") ? "text-coffee" : "text-ink",
-                    )}
-                  >
-                    <GaugeIcon size={26} weight="bold" />
-                    Admin
-                  </Link>
-                </motion.li>
-              )}
-            </ul>
-            <div className="mt-auto flex flex-col gap-3 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-              <InstallPrompt />
+            <XIcon size={24} weight="bold" />
+          </button>
+        </div>
+        <ul className="flex min-h-0 flex-col overflow-y-auto px-5 pt-2">
+          {LINKS.map((l, i) => (
+            <motion.li
+              key={l.href}
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.05 + i * 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            >
               <Link
-                href="/menu"
-                className="pressable flex h-14 w-full items-center justify-center gap-2 rounded-full bg-ink text-[16px] font-semibold text-paper"
+                href={l.href}
+                className={clsx(
+                  "tap-dim block py-2 text-[28px] font-bold tracking-tight",
+                  isActive(pathname, l.href) ? "text-coffee" : "text-ink",
+                )}
               >
-                Order now
-                <ArrowRightIcon size={18} weight="bold" />
+                {l.label}
               </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.li>
+          ))}
+
+          <motion.li
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.05 + LINKS.length * 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="mt-2 border-t border-line/70 pt-2"
+          >
+            <Link
+              href={accountHref}
+              className={clsx(
+                "tap-dim flex items-center gap-3 py-2 text-[28px] font-bold tracking-tight",
+                isActive(pathname, "/account") ? "text-coffee" : "text-ink",
+              )}
+            >
+              <UserIcon size={26} weight="bold" />
+              {account.isCustomer ? "Account" : "Sign in"}
+            </Link>
+          </motion.li>
+
+          {account.isAdmin && (
+            <motion.li
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.05 + (LINKS.length + 1) * 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            >
+              <Link
+                href="/admin"
+                className={clsx(
+                  "tap-dim flex items-center gap-3 py-2 text-[28px] font-bold tracking-tight",
+                  isActive(pathname, "/admin") ? "text-coffee" : "text-ink",
+                )}
+              >
+                <GaugeIcon size={26} weight="bold" />
+                Admin
+              </Link>
+            </motion.li>
+          )}
+        </ul>
+        <div className="mt-auto flex flex-col gap-3 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+          <InstallPrompt />
+          <Link
+            href="/menu"
+            className="pressable flex h-14 w-full items-center justify-center gap-2 rounded-full bg-ink text-[16px] font-semibold text-paper"
+          >
+            Order now
+            <ArrowRightIcon size={18} weight="bold" />
+          </Link>
+        </div>
+      </Sheet>
     </>
   );
 }

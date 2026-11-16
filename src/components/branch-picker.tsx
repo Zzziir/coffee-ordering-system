@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 import { CaretDownIcon, CheckIcon, StorefrontIcon, XIcon } from "@phosphor-icons/react";
 import {
   BRANCH_LIST,
@@ -15,6 +13,7 @@ import {
 import type { BranchId } from "@/lib/types";
 import { useCart } from "./cart-provider";
 import { clsx } from "@/lib/clsx";
+import { Sheet } from "./sheet";
 
 /**
  * Choosing which Craffé you're ordering from.
@@ -92,36 +91,30 @@ export function BranchGate() {
   const { hydrated, branchId, setBranch } = useCart();
 
   // Wait for hydration or this flashes over a branch that was already chosen.
-  if (!hydrated || branchId) return null;
-
+  // Nothing to close to: a branch has to be picked, so Escape and swipes do nothing.
   return (
-    <motion.div
-      className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/40 backdrop-blur-sm sm:items-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2 }}
+    <Sheet
+      open={hydrated && !branchId}
+      onClose={() => {}}
+      labelledBy="branch-gate-title"
+      placement="responsive"
+      swipeToClose={false}
+      className="max-w-md rounded-t-[var(--radius-xl)] bg-paper p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:rounded-[var(--radius-xl)]"
     >
-      <motion.div
-        initial={{ y: 24, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
-        className="w-full max-w-md rounded-t-[var(--radius-xl)] bg-paper p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:rounded-[var(--radius-xl)]"
-      >
-        <span className="grid size-11 place-items-center rounded-full bg-coffee-tint text-coffee">
-          <StorefrontIcon size={22} weight="fill" />
-        </span>
-        <h2 className="mt-4 text-[20px] font-bold tracking-tight text-ink">
-          Which Craffé today?
-        </h2>
-        <p className="mt-1 text-[14.5px] leading-relaxed text-ink-soft">
-          We&apos;ll send your order to that counter. Same menu, same prices at
-          both.
-        </p>
-        <div className="mt-5">
-          <BranchOptions current={null} onPick={setBranch} />
-        </div>
-      </motion.div>
-    </motion.div>
+      <span className="grid size-11 place-items-center rounded-full bg-coffee-tint text-coffee">
+        <StorefrontIcon size={22} weight="fill" />
+      </span>
+      <h2 id="branch-gate-title" className="mt-4 text-[20px] font-bold tracking-tight text-ink">
+        Which Craffé today?
+      </h2>
+      <p className="mt-1 text-[14.5px] leading-relaxed text-ink-soft">
+        We&apos;ll send your order to that counter. Same menu, same prices at
+        both.
+      </p>
+      <div className="mt-5">
+        <BranchOptions current={null} onPick={setBranch} />
+      </div>
+    </Sheet>
   );
 }
 
@@ -134,14 +127,6 @@ export function BranchChip() {
   const { hydrated, branchId, setBranch, count } = useCart();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<BranchId | null>(null);
-
-  // The sheet covers the page; don't let the page scroll behind it.
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
 
   if (!hydrated || !branchId) return null;
   const branch = getBranch(branchId);
@@ -164,81 +149,65 @@ export function BranchChip() {
     setPending(null);
   };
 
-  // The chip lives inside the site header, which is `backdrop-blur`-ed — and a
-  // backdrop-filter makes an element the containing block for its `fixed`
-  // descendants. Rendered in place, this sheet would resolve `inset-0` against
-  // the 72px header and hang off the top of the screen, clipped. Portal it to
-  // the body so it covers the viewport. (site-nav sidesteps the same trap by
-  // rendering its mobile menu outside the header.)
+  // A <dialog> opens in the top layer, so it covers the viewport even though
+  // the chip sits inside the backdrop-blurred header.
   const sheet = (
-    <AnimatePresence>
-        {open && (
-          <motion.div
-            className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/40 backdrop-blur-sm sm:items-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={close}
-          >
-            <motion.div
-              initial={{ y: 24, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 24, opacity: 0 }}
-              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md rounded-t-[var(--radius-xl)] bg-paper p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:rounded-[var(--radius-xl)]"
+    <Sheet
+      open={open}
+      onClose={close}
+      label={pending ? "Move your bag" : "Ordering from"}
+      placement="responsive"
+      className="max-w-md rounded-t-[var(--radius-xl)] bg-paper p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:rounded-[var(--radius-xl)]"
+    >
+      {/* Grabber: on a phone this is a sheet you can swipe away. */}
+      <span aria-hidden className="mx-auto -mt-3 mb-3 block h-1.5 w-10 rounded-full bg-line-strong sm:hidden" />
+      {pending ? (
+        <>
+          <h2 className="text-[19px] font-bold tracking-tight text-ink">
+            Move your bag to {branchFullName(getBranch(pending))}?
+          </h2>
+          <p className="mt-1.5 text-[14.5px] leading-relaxed text-ink-soft">
+            Your {count} {count === 1 ? "item" : "items"} will come
+            along, and every branch makes the same menu at the same prices.
+          </p>
+          <div className="mt-6 flex gap-3">
+            <button
+              onClick={close}
+              className="pressable h-12 flex-1 rounded-full border border-line-strong text-[15px] font-medium text-ink"
             >
-              {pending ? (
-                <>
-                  <h2 className="text-[19px] font-bold tracking-tight text-ink">
-                    Move your bag to {branchFullName(getBranch(pending))}?
-                  </h2>
-                  <p className="mt-1.5 text-[14.5px] leading-relaxed text-ink-soft">
-                    Your {count} {count === 1 ? "item" : "items"} will come
-                    along, and every branch makes the same menu at the same prices.
-                  </p>
-                  <div className="mt-6 flex gap-3">
-                    <button
-                      onClick={close}
-                      className="pressable h-12 flex-1 rounded-full border border-line-strong text-[15px] font-medium text-ink"
-                    >
-                      Stay here
-                    </button>
-                    <button
-                      onClick={() => {
-                        setBranch(pending);
-                        close();
-                      }}
-                      className="pressable h-12 flex-1 rounded-full bg-ink text-[15px] font-semibold text-paper"
-                    >
-                      Move it
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-start justify-between gap-4">
-                    <h2 className="text-[19px] font-bold tracking-tight text-ink">
-                      Ordering from
-                    </h2>
-                    <button
-                      onClick={close}
-                      aria-label="Close"
-                      className="pressable -mr-2.5 -mt-2 grid size-11 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk"
-                    >
-                      <XIcon size={20} weight="bold" />
-                    </button>
-                  </div>
-                  <div className="mt-4">
-                    <BranchOptions current={branchId} onPick={choose} />
-                  </div>
-                </>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-    </AnimatePresence>
+              Stay here
+            </button>
+            <button
+              onClick={() => {
+                setBranch(pending);
+                close();
+              }}
+              className="pressable h-12 flex-1 rounded-full bg-ink text-[15px] font-semibold text-paper"
+            >
+              Move it
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex items-start justify-between gap-4">
+            <h2 className="text-[19px] font-bold tracking-tight text-ink">
+              Ordering from
+            </h2>
+            <button
+              onClick={close}
+              aria-label="Close"
+              className="pressable -mr-2.5 -mt-2 grid size-11 place-items-center rounded-full text-ink-soft hover:bg-paper-sunk"
+            >
+              <XIcon size={20} weight="bold" />
+            </button>
+          </div>
+          <div className="mt-4">
+            <BranchOptions current={branchId} onPick={choose} />
+          </div>
+        </>
+      )}
+    </Sheet>
   );
 
   return (
@@ -252,7 +221,7 @@ export function BranchChip() {
         <CaretDownIcon size={12} weight="bold" className="shrink-0" />
       </button>
 
-      {createPortal(sheet, document.body)}
+      {sheet}
     </>
   );
 }

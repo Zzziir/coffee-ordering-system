@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { XIcon } from "@phosphor-icons/react";
 import { BlurFade } from "@/registry/magicui/blur-fade";
 import { clsx } from "@/lib/clsx";
+import { Sheet } from "./sheet";
 
 export type GalleryPhoto = {
   src: string;
@@ -16,22 +16,7 @@ export type GalleryPhoto = {
 
 /** Bento gallery whose tiles blur-fade in and expand into a lightbox on click. */
 export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
-  const reduce = useReducedMotion();
   const [active, setActive] = useState<GalleryPhoto | null>(null);
-
-  // Lock body scroll and close on Escape while the lightbox is open.
-  useEffect(() => {
-    if (!active) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) =>
-      e.key === "Escape" && setActive(null);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [active]);
 
   return (
     <>
@@ -63,52 +48,36 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
         ))}
       </div>
 
-      <AnimatePresence>
+      {/* Swipe the photo down, tap outside it, or press Escape to close. */}
+      <Sheet
+        open={active !== null}
+        onClose={() => setActive(null)}
+        label={active?.alt}
+        placement="center"
+        swipeToClose
+        backdropClassName="bg-ink/80 backdrop-blur-sm"
+        className="h-[85dvh] max-w-5xl"
+      >
         {active && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {/* Backdrop */}
-            <button
-              aria-label="Close"
-              onClick={() => setActive(null)}
-              className="absolute inset-0 bg-ink/80 backdrop-blur-sm"
+        <>
+            <Image
+              src={active.src}
+              alt={active.alt}
+              fill
+              sizes="(max-width: 1024px) 100vw, 1024px"
+              className="rounded-[var(--radius-lg)] object-contain"
+              loading="eager"
             />
-
-            {/* Expanded image */}
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-label={active.alt}
-              className="relative h-[85dvh] w-full max-w-5xl"
-              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.94 }}
-              animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            <button
+              onClick={() => setActive(null)}
+              aria-label="Close"
+              className="pressable tap-44 absolute right-2 top-2 grid size-10 place-items-center rounded-full bg-paper text-ink shadow-[var(--shadow-sheet)]"
             >
-              <Image
-                src={active.src}
-                alt={active.alt}
-                fill
-                sizes="(max-width: 1024px) 100vw, 1024px"
-                className="rounded-[var(--radius-lg)] object-contain"
-                loading="eager"
-              />
-              <button
-                onClick={() => setActive(null)}
-                aria-label="Close"
-                className="pressable tap-44 absolute right-2 top-2 grid size-10 place-items-center rounded-full bg-paper text-ink shadow-[var(--shadow-sheet)]"
-              >
-                <XIcon size={20} weight="bold" />
-              </button>
-            </motion.div>
-          </motion.div>
+              <XIcon size={20} weight="bold" />
+            </button>
+          </>
         )}
-      </AnimatePresence>
+      </Sheet>
     </>
   );
 }
